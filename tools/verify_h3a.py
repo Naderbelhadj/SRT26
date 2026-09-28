@@ -26,6 +26,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.stats import beta
 
 TAU_U = 0.73  # nats, abstention threshold used in the thesis
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,6 +61,12 @@ def stratified_bootstrap(test, t, b, seed):
         sev.append(m["sev_nr"])
         cov.append(m["coverage"])
     return np.percentile(sev, [2.5, 97.5]), np.percentile(cov, [2.5, 97.5])
+
+
+def clopper_pearson(k, n, a=0.05):
+    lo = beta.ppf(a / 2, k, n - k + 1) if k > 0 else 0.0
+    hi = beta.ppf(1 - a / 2, k + 1, n - k) if k < n else 1.0
+    return lo, hi
 
 
 def pct(x):
@@ -100,6 +107,12 @@ def main():
           f"PDR-NR={mt['pdr_nr']:.1%}  n_severe={mt['n_severe']}  n={len(test)}")
     print("Test composition (dataset x grade):\n", comp.assign(total=comp.sum(axis=1)))
     (s_lo, s_hi), (c_lo, c_hi) = stratified_bootstrap(test, args.t, args.b, args.seed)
+    g = test["true_grade"].to_numpy()
+    for name, k, n in (("Sev-NR", round(mt["sev_nr"] * (g >= 3).sum()), (g >= 3).sum()),
+                       ("PDR-NR", round(mt["pdr_nr"] * (g == 4).sum()), (g == 4).sum()),
+                       ("coverage", round(mt["coverage"] * len(test)), len(test))):
+        lo, hi = clopper_pearson(k, n)
+        print(f"Exact 95% CI (printed in the thesis) {name}: {k}/{n} [{lo:.1%}, {hi:.1%}]")
     print(f"Bootstrap 95% CI: Sev-NR [{s_lo:.1%}, {s_hi:.1%}]  coverage [{c_lo:.1%}, {c_hi:.1%}]")
     expected = [5234, 1021, 2489, 612, 644]  # grade totals printed in the thesis
     if comp.sum(axis=0).tolist() != expected:

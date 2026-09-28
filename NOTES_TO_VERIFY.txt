@@ -323,3 +323,14 @@ test_manifest.csv reproduces Table 5.3 exactly.
   (b) list it as a separate journal paper with an explicit sentence saying it is an earlier
   multi-source variant of DOTS. Same name "DOTS" for two different systems is a jury risk.
   Also: SN Computer Science is listed for J2 SAMF-GB; confirm that both are submitted there.
+
+=== Pass: confidence intervals ===
+* The previous CIs were incompatible with the test counts: Sev-NR [1.4, 2.4] is too narrow
+  for 24/1,256 severe images; coverage [91.2, 96.4] is ~5x too wide for 10,000 images;
+  PDR-NR [0.4, 1.2] is too narrow for 5/644. Replaced by exact Clopper-Pearson intervals
+  computed from the counts: Sev-NR 1.9% [1.2, 2.8]; PDR-NR 0.8% [0.3, 1.8] (upper bound now
+  above the 1.5% target -> flagged); coverage 93.8% [93.3, 94.3].
+  verify_h3a.py now prints these exact intervals next to the bootstrap.
+* H3b: {R,O} 2.2% is 0.2 pp above the target (was "0.3 pp above the line"); 0.3 pp above DOTS.
+* S=25 sampled neighbours with k=15: stated as an upper bound.
+* t = 0.60 confirmed by the author as the value available.

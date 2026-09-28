@@ -20,7 +20,7 @@
 \node[fail] (SO) at ( 4.3,-1.45) {\textbf{\{S,O\}}\\Sev-NR $=2.4\%$\\fails the $2\%$ target};
 
 % DOTS
-\node[pass] (D) at (0,0.45) {\textbf{DOTS \{R, S, O\}}\\[2pt]Sev-NR $=\mathbf{1.9\%}$\\95\% CI $[1.4\%,\ 2.4\%]$\\[2pt]{\scriptsize point estimate passes}\\{\scriptsize CI upper bound still $>2\%$}};
+\node[pass] (D) at (0,0.45) {\textbf{DOTS \{R, S, O\}}\\[2pt]Sev-NR $=\mathbf{1.9\%}$\\95\% CI $[1.2\%,\ 2.8\%]$\\[2pt]{\scriptsize point estimate passes}\\{\scriptsize CI upper bound still $>2\%$}};
 
 \foreach \x in {R,S,O}
   \draw[-{Latex}, failred, thick] (\x.east) -- (D.west);

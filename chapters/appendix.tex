@@ -119,10 +119,10 @@ Claim & Falsified if & Observed & Margin \\
 \midrule
 H1 -- graph QWK gain & $|t_4| < 2.78$ & $t_4=3.82$, $p=0.019$ & $\times1.37$ critical \\
 H2 -- topology linked to severity & $F < 3.72$ & $F=84.3$, $p<0.001$ & $\times23$ critical \\
-H3a -- all seven criteria & any criterion violated & $7/7$ met at the point estimate (\cref{tab:h3a}) & Sev-NR CI $[1.4\%,2.4\%]$ crosses $2\%$ \\
+H3a -- all seven criteria & any criterion violated & $7/7$ met at the point estimate (\cref{tab:h3a}) & Sev-NR CI $[1.2\%,2.8\%]$ crosses $2\%$ \\
 H3b -- necessity (investigated family) & any proper subset has Sev-NR $<2\%$ & $6/6$ proper subsets fail & constructive, scoped \\
 CORAL violations & any violation at test time & $0.0\%$ & algebraic identity \\
-Sev-NR point estimate & $\geq 2.0\%$ & $1.9\%$ $[1.4\%,\,2.4\%]$ & $0.1$~pp \\
+Sev-NR point estimate & $\geq 2.0\%$ & $1.9\%$ $[1.2\%,\,2.8\%]$ & $0.1$~pp \\
 \bottomrule
 \end{tabular}
 \tabnote{The critical values are $t_{0.025,4}=2.78$ (the conservative threshold adopted
@@ -165,9 +165,14 @@ Post-hoc: Tukey HSD~\cite{tukey1949} on the pairwise grade comparisons. Observed
 $F=84.3$, $p<0.001$~\cite{belhadj2025plos}.
 
 \section{H3a: Bootstrap Confidence Intervals}
-For each of the seven criteria of \cref{tab:h3a}, a 95\% confidence interval is computed
-by stratified bootstrap~\cite{efron1993bootstrap} ($B=10{,}000$ resamples, stratified by
-true grade to preserve the class distribution). A criterion ``passes'' if its point
+For each of the seven criteria of \cref{tab:h3a}, a 95\% confidence interval is
+reported. For the three proportions (Sev-NR, PDR-NR, coverage), it is the exact
+Clopper--Pearson interval over the images concerned ($24/1{,}256$ severe images not
+referred gives $1.9\%$ $[1.2\%,\,2.8\%]$; $5/644$ PDR images gives $0.8\%$
+$[0.3\%,\,1.8\%]$; $9{,}380/10{,}000$ retained images gives $93.8\%$
+$[93.3\%,\,94.3\%]$). For QWK, AUC and ECE, it is obtained by stratified
+bootstrap~\cite{efron1993bootstrap} ($B=10{,}000$ resamples, stratified by true grade to
+preserve the class distribution). A criterion ``passes'' if its point
 estimate meets the threshold; the interval is reported for transparency, but the
 pre-specified decision rule uses the point estimate, except where explicitly stated (the
 Phase~2 success criterion requires the interval).

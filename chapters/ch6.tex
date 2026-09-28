@@ -229,7 +229,7 @@ S2 -- CNN/ViT extraction & $O(1)$ per image & 6.8~ms \\
 S3 -- TDA (Rips filtration) & Polynomial in the number $m$ of simplices ($O(m^3)$ worst case) on $n$ branch points & 18.0~ms (CPU, 16 cores) \\
 S4 -- Feature fusion & $O(1)$ & $<0.1$ ms \\
 S5 -- Graph construction (FAISS) & $O(k\log N)$ per query & 1.2~ms \\
-S6 -- GAT/GraphSAGE ($S=25$, $L=2$) & $O(S^L)=O(625)$ & 1.2~ms \\
+S6 -- GAT/GraphSAGE ($S\leq25$, $L=2$) & $O(S^L)\leq O(625)$ & 1.2~ms \\
 \midrule
 Total & & 31.4~ms \\
 \bottomrule

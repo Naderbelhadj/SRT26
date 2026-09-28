@@ -415,8 +415,10 @@ of the three axes. All systems share the same data splits, pre-processing and nu
 training epochs.
 
 The DOTS graph uses a dual similarity with $\alpha=0.65$ and a $k$-nearest-neighbour
-construction ($k=15$, FAISS~\cite{johnson2021faiss}), with $L=2$ layers, $S=25$ sampled
-neighbours and hidden dimension $256$. Unlike the threshold graph of TOPORET, which
+construction ($k=15$, FAISS~\cite{johnson2021faiss}), with $L=2$ layers, at most $S=25$
+sampled neighbours per node and layer, and hidden dimension $256$. $S$ is only an upper
+bound: after symmetrisation of the $k$-NN graph most nodes have fewer than $25$
+neighbours, and all of them are then used. Unlike the threshold graph of TOPORET, which
 requires all pairwise Wasserstein distances (\cref{sec:ch3-design}), the $k$-NN
 construction keeps the cost of adding a patient independent of the cohort size. The parameters specific to DOTS are
 the class weights of the CORAL loss, $\lambda=(1.0,2.5,3.0,8.0,6.0)$ for Grades~0--4
@@ -496,9 +498,13 @@ $\tau_U$, the final architecture or any other hyperparameter; the order in which
 choices were frozen is recorded in \cref{app:repro}. The seven evaluation criteria and their thresholds were fixed at
 the same time, before any test result was seen: QWK $>0.90$, AUC $>0.97$, ECE $<0.05$,
 Sev-NR $<2\%$, PDR-NR $<1.5\%$, coverage $>90\%$ and $0\%$ rank violations. Each criterion
-is reported with a 95\% confidence interval obtained by a bootstrap of the $10{,}000$ test
-images ($B=10{,}000$ resamples, stratified by true grade), but the pre-specified decision
-rule uses the point estimate (\cref{app:stats}).
+is reported with a 95\% confidence interval, but the pre-specified decision rule uses the
+point estimate (\cref{app:stats}). For the three proportions (Sev-NR, PDR-NR, coverage) the
+interval is the exact Clopper--Pearson interval computed over the images concerned, so that
+its width reflects the real number of events: Sev-NR is estimated on the $1{,}256$ severe
+test images ($24$ not referred), PDR-NR on the $644$ PDR images. For QWK, AUC and ECE, which
+are not simple proportions, the interval comes from a bootstrap of the $10{,}000$ test images
+($B=10{,}000$ resamples, stratified by true grade).
 
 \section{Results}
 \label{sec:ch4-results}
@@ -510,7 +516,7 @@ DOTS is evaluated against seven pre-specified criteria on the combined
 APTOS $+$ Kaggle EyePACS test set ($N=10{,}000$); \cref{tab:h3a} lists each criterion,
 its threshold and the result. DOTS achieves a Sev-NR of $1.9\%$, which is below the
 predefined $2\%$ evaluation target at the point estimate. However, the corresponding 95\%
-confidence interval $[1.4\%,\,2.4\%]$ extends above the target. The present retrospective
+confidence interval $[1.2\%,\,2.8\%]$ extends above the target. The present retrospective
 evaluation therefore demonstrates performance toward the predefined target, but does not
 establish statistical compliance with the $2\%$ criterion. Accordingly, H3a is considered
 achieved at the point-estimate level, with moderate evidential strength
@@ -537,15 +543,18 @@ threshold; it does not imply that the whole confidence interval does.}
 1 & Quadratic Weighted Kappa & $>0.90$ & $0.951$ $[0.941,\,0.957]$ & Pass (PE) \\
 2 & AUC (macro one-vs-rest) & $>0.97$ & $0.988$ $[0.982,\,0.994]$ & Pass (PE) \\
 3 & Expected Calibration Error & $<0.05$ & $0.040$ $[0.034,\,0.046]$ & Pass (PE) \\
-4 & Severe-DR Non-Referral Rate & $<2.0\%$ & $1.9\%$ $[1.4\%,\,2.4\%]$ & Pass (PE)$^{\dagger}$ \\
-5 & PDR Non-Referral Rate & $<1.5\%$ & $0.8\%$ $[0.4\%,\,1.2\%]$ & Pass (PE) \\
-6 & Coverage (after abstention) & $>90\%$ & $93.8\%$ $[91.2\%,\,96.4\%]$ & Pass (PE) \\
+4 & Severe-DR Non-Referral Rate & $<2.0\%$ & $1.9\%$ $[1.2\%,\,2.8\%]$ & Pass (PE)$^{\dagger}$ \\
+5 & PDR Non-Referral Rate & $<1.5\%$ & $0.8\%$ $[0.3\%,\,1.8\%]$ & Pass (PE)$^{\dagger}$ \\
+6 & Coverage (after abstention) & $>90\%$ & $93.8\%$ $[93.3\%,\,94.3\%]$ & Pass (PE) \\
 7 & CORAL rank violations & $=0\%$ & $0.0\%$ $[0.0\%,\,0.0\%]$ & Pass (PE) \\
 \bottomrule
 \end{tabular}
-\tabnote{$^{\dagger}$The Sev-NR 95\% CI upper bound is $2.4\%$, above the $2\%$
-target: the point estimate meets the target, but statistical compliance with the $2\%$
-criterion is not established.}
+\tabnote{Intervals: exact Clopper--Pearson for the three proportions (Sev-NR over the
+$1{,}256$ severe images, PDR-NR over the $644$ PDR images, coverage over the $10{,}000$
+images); grade-stratified bootstrap for QWK, AUC and ECE.
+$^{\dagger}$The 95\% CI upper bound ($2.8\%$ for Sev-NR, $1.8\%$ for PDR-NR) lies above
+the target: the point estimate meets the target, but statistical compliance with these two
+safety criteria is not established.}
 \end{table}
 
 The seven criteria are not arbitrary: QWK and AUC are the standard ordinal and
@@ -819,8 +828,9 @@ configuration~(B) in \cref{tab:ablation3}).
 
 \paragraph{H3b supported within the investigated family.}
 All six proper subsets fail Sev-NR $<2\%$ (\cref{tab:h3b}). The closest failure is
-$\{R,O\}$ at $2.2\%$: graph and ordinal safety, but no topology. It lies $0.3$~pp above
-the line, and the bootstrap 95\% interval of the difference with DOTS is
+$\{R,O\}$ at $2.2\%$: graph and ordinal safety, but no topology. It lies $0.2$~pp above
+the target and $0.3$~pp above DOTS, and the paired bootstrap 95\% interval of the
+difference with DOTS (same test images for both systems) is
 $[-0.54,\,-0.08]$~pp, which excludes zero. Within this family and specification, removing topology alone is
 therefore enough to miss the safety target, even when the other two axes are kept.
 
@@ -1044,7 +1054,7 @@ The ``$7/7$ at the point estimate'' result of \cref{tab:h3a} establishes that, o
 retrospective held-out test set, DOTS's point estimates clear every predefined threshold,
 including the Sev-NR target informed by national screening practice. It does not
 establish that the Sev-NR target is met with statistical confidence, since the upper bound
-of its 95\% interval ($2.4\%$) lies above $2\%$. It does not establish that DOTS will continue to clear these
+of its 95\% interval ($2.8\%$) lies above $2\%$. It does not establish that DOTS will continue to clear these
 thresholds on prospective data, nor that the specific threshold values are
 themselves optimal. Clearing the bar on retrospective data is Level~1 evidence
 in the hierarchy of the General Conclusion, not Level~2--4 evidence. The
@@ -1076,7 +1086,7 @@ Claim & Evidence & Strength \\
 \midrule
 H1: dual-metric graph improves QWK & Pre-specified two-tailed $t$-test over five patient-aware splits ($t_4=3.82$, $p=0.019$, $d_z=1.71$), reproduced on three benchmarks; bootstrap CI excludes 0; exact permutation $p=0.031$ & Strong \\
 H2: $H_1$ persistence associated with severity (not causation) & Pre-specified ANOVA ($F=84.3$, $p<0.001$, $\times23$ the critical value); effect size not reported & Moderate \\
-H3a: $7/7$ criteria met at the point estimate & Point-estimate pass (Sev-NR $=1.9\%$); 95\% CI $[1.4\%,\,2.4\%]$ exceeds the target & Moderate \\
+H3a: $7/7$ criteria met at the point estimate & Point-estimate pass (Sev-NR $=1.9\%$); 95\% CI $[1.2\%,\,2.8\%]$ exceeds the target (PDR-NR CI also crosses $1.5\%$) & Moderate \\
 H3b: no proper subset sufficient, within the investigated family & Exhaustive $6/6$ enumeration; bootstrap CI of the closest case excludes 0 & Moderate \\
 Complementary graph and topology gains (\cref{ch:toporet}) & $+0.04$ QWK jointly versus $+0.03$ (graph) and $+0.02$ (topology) alone; additive, not super-additive & Moderate \\
 Synergistic gains (\cref{ch:found}) & $7.0 > 6.3$~pp; consistent with complementary information & Suggestive \\
@@ -1094,8 +1104,8 @@ boundaries apply.
 \begin{enumerate}
 \item \textbf{No prospective clinical safety claim.} Sev-NR $=1.9\%$ was measured
 retrospectively on curated, label-verified datasets, and its 95\% CI upper bound
-($2.4\%$) exceeds the threshold. A prospective reader study ($N\geq200$ patients, at
-least three sites) is required before any claim of clinically validated safety.
+($2.8\%$) exceeds the threshold. A prospective, multi-site reader study, sized on the
+number of severe cases rather than on the number of patients, is required before any claim of clinically validated safety.
 \item \textbf{No demographic equity guarantee.} None of the five benchmarks carries
 per-image demographic annotations; fairness across age, sex and ethnicity has not been
 evaluated.
@@ -1136,7 +1146,7 @@ H3b -- necessity & Exhaustive enumeration & $6/6$ proper subsets fail & -- & Sup
 \end{tabular}
 \tabnote{$^{\dagger}$Statistical association, not causation.
 $^{\ast}$Point estimate only: the upper bound of the 95\% confidence interval of
-Sev-NR ($2.4\%$) exceeds the $2\%$ target, so statistical compliance is not established.
+Sev-NR ($2.8\%$) exceeds the $2\%$ target, so statistical compliance is not established.
 $^{\ddagger}$Within the investigated architectural family and experimental specification
 only.}
 \end{table}
@@ -1147,7 +1157,7 @@ only.}
 This chapter presented DOTS and evaluated it from four complementary angles. Seven
 criteria (H3a): all seven predefined criteria are met at the point estimate on the
 retrospective held-out test set, with QWK $=0.951$, Sev-NR $=1.9\%$ (95\% CI
-$[1.4\%,\,2.4\%]$) and $0\%$ rank violations; because the interval extends above $2\%$,
+$[1.2\%,\,2.8\%]$) and $0\%$ rank violations; because the interval extends above $2\%$,
 statistical compliance with the Sev-NR target is not established. Scoped necessity (H3b):
 within the investigated family, none of the six systems obtained by removing one or two
 axes reaches Sev-NR $<2\%$; the closest, without topology, misses by a margin whose
