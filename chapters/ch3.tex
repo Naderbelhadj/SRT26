@@ -241,11 +241,20 @@ to $10^{-5}$), at most $200$ epochs and early stopping on the validation loss (p
 ordinal: TOPORET does not model the order of the grades, a limitation addressed by DOTS
 in \cref{ch:dots}.
 
+Each epoch computes the representations of all the nodes in one pass, and the loss is
+evaluated on the training nodes of the fold only; the validation nodes select the epoch by
+early stopping, and the test nodes never enter the loss. For each fold, the model with the
+lowest validation loss is kept and its predictions on the test nodes are scored. The
+baseline and the ablation variants use the same loop: a variant without graph replaces
+GraphSAGE by the two-layer perceptron, and a variant without topology removes the six
+topological features from the node vectors, while the graph, when present, keeps its dual
+similarity (\cref{tab:ablation3}).
+
 \Cref{alg:toporet} summarises how TOPORET builds the population graph and grades a new
 patient. Training images are processed once; a new image only requires its own features,
 its connection to the existing graph and one GraphSAGE forward pass.
 
-\begin{algorithm}[!htb]
+\begin{algorithm}[H]
 \caption{TOPORET: population-graph construction and inductive grading.}
 \label{alg:toporet}
 \DontPrintSemicolon

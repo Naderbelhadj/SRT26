@@ -444,3 +444,5 @@ v16 - thesis aligned with the public TOPORET code (github.com/Nader-BelHadj/plos
 - Fellow-eye (image-level split) threat added; APTOS (one image per patient) noted as unaffected.
 - Added IJCNN 2025 paper as [O1] (other publication) and cited in Ch.3 Part A.
 NOTE: README of the repo lists R. Ghayoula at Universite de Moncton; the thesis says Laval University - author to check.
+
+v17: rigorous float audit (68 floats: mentioned, after mention, no heading between) - Algorithm 4.1 pinned after its introducing paragraph; training-loop paragraph added in 4.3.4 (from released code). Ghayoula affiliation confirmed Laval (no change).
