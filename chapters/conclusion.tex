@@ -2,6 +2,7 @@
 \addcontentsline{toc}{chapter}{General Conclusion}
 \markboth{General Conclusion}{}
 \label{ch:conclusion}
+\lofgroup{General Conclusion}
 \lotgroup{General Conclusion}
 
 This thesis addressed the automated grading of diabetic retinopathy in a context where
@@ -92,21 +93,69 @@ does any reduced version do so? The observed performance of DOTS satisfies them 
 externally, and none of the reduced versions evaluated does on external data, although the
 confidence interval of the safety criterion calls for confirmation on larger data.
 
-Taken together, the findings support the scientific value of relational, structural and
-ordinal-safety mechanisms in retrospective DR grading. They do not establish clinical
-effectiveness, longitudinal prediction, regulatory certification, or
-readiness for routine clinical deployment, and the three axes have been evaluated in
-complementary systems rather than combined in one model. The thesis also introduces the use
+\paragraph{What the thesis shows, supports and does not evaluate.}
+The experiments \emph{show directly}, under the stated protocols, the measured quantities:
+a QWK gain of TOPORET in every fold of three benchmarks, the gains of the graph and of the
+topological regulariser in the DGTS ablation, the external QWK of DGTS on EyePACS, point
+estimates of DOTS that satisfy the screening targets internally and on Messidor-2, and the
+failure of all four reduced variants on Messidor-2. They \emph{support, without
+establishing conclusively}, three broader statements: that relational information improves
+grading (five folds, corrected tests significant only in combination), that topology
+carries severity-related information (a small statistical association), and that the
+ordinal pipeline is safe enough for screening (an interval that crosses $2\%$). They
+\emph{do not evaluate} clinical safety or effectiveness, patient-level TOPORET, multi-seed
+variability, reader performance, fairness, longitudinal prediction or regulatory
+compliance. The contribution that remains despite these limits is a structured body of
+retrospective evidence on how relational, topological and ordinal information can
+complement deep visual representations for DR grading. \Cref{tab:claimev} maps each claim
+to its evidence and main limitation.
+
+\begin{table}[!htbp]
+\centering
+\caption[Claim--evidence--limitation matrix]{Claim--evidence--limitation matrix of the
+thesis. All evidence is retrospective (Level~1).}
+\label{tab:claimev}
+\small
+\begin{tabular}{@{}P{4.0cm}P{4.3cm}P{2.1cm}P{3.9cm}@{}}
+\toprule
+Claim & Evidence & Level & Main limitation \\
+\midrule
+Relational information improves grading & H1 (TOPORET, transductive); DGTS ablation, $+0.018$ QWK, inductive & Moderate & Five folds; corrected $p$ significant only combined \\
+Topological descriptors are associated with severity & H2: $F=84.3$, $p<0.001$ & Moderate & Small effect ($\eta^2\approx0.01$); association only; Kaggle DR only \\
+Topological regularisation helps (DGTS) & Ablation, $+0.030$ QWK; Wilcoxon $p=0.031$ & Moderate & Feature-space, not vascular, topology \\
+DGTS keeps its QWK on external data & EyePACS zero-shot, QWK $0.925$ & Moderate--strong & Sev-NR about $2.1\%$, above the target \\
+DOTS satisfies the screening targets (H3a) & Point estimates, internal and Messidor-2 & Moderate & Internal interval $[0.2\%,\,2.8\%]$ crosses $2\%$ \\
+No reduced variant suffices (H3b) & Four variants fail Sev-NR on Messidor-2 & Moderate & One ablation specification \\
+Clinical safety and effectiveness & -- & Not established & No prospective or reader study \\
+Regulatory compliance & -- & Not established & Mapping only, no conformity assessment \\
+Longitudinal prediction & -- & Not established & Cross-sectional data \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Scope of the claims.}
+This thesis does not claim prospective clinical effectiveness, regulatory approval,
+fairness across populations, longitudinal disease prediction or a general superiority of
+graph-based models. It does not claim that the topological descriptors are anatomical
+biomarkers of DR, nor that the three axes have been evaluated jointly in a single system.
+Its conclusions are restricted to retrospective evaluation on the datasets and protocols
+described here. \Cref{fig:evarch} shows the same boundary from the point of view of the systems: each
+contributes a different kind of evidence to the common objective, and all of it stops
+before prospective evaluation.
+
+\input{figures/fig_evidence}
+
+Beyond these findings, the thesis introduces the use
 of persistent-homology descriptors of the vessel skeleton inside the similarity of a
 population graph, and an evaluation discipline in which safety metrics are reported next to
 accuracy and checked on data from another country. On the practical side, DGTS grades an
 image in $18.3$~ms and DOTS in about $75$~ms on one T4 GPU, and both report quantities that
 can be shown to a clinician -- similar cases with their grades, topological descriptors and
 calibrated probabilities -- whose faithfulness as explanations remains to be evaluated.
-Under explicit prevalence assumptions, the lower Sev-NR of DOTS corresponds to a
-\emph{projected} reduction of about $1{,}100$ non-referred severe cases per year in an
-illustrative programme of $500{,}000$ patients; this is a projection, not an observed
-outcome. A CPU model developed along the way (SAMF-GB) also offers a low-cost alternative for
+In an illustrative operational projection under explicit prevalence assumptions, the
+lower Sev-NR of DOTS corresponds to about $1{,}100$ fewer non-referred severe cases per
+year in a programme of $500{,}000$ patients; this calculation is not an estimate of
+clinical impact. A CPU model developed along the way (SAMF-GB) also offers a low-cost alternative for
 settings without GPUs.
 
 Beyond its results, the programme taught five methodological lessons. First, accuracy and

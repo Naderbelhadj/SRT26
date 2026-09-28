@@ -14,7 +14,7 @@ severity from a single fundus image.
 \paragraph{Methods.}
 Three hypotheses are tested. H1: a population graph adds information beyond a per-image
 classifier. H2: $H_0/H_1$ persistent homology of the vessel network is associated with
-severity. H3: an ordinal pipeline satisfies pre-set screening safety criteria (quadratic weighted kappa,
+severity. H3: an ordinal pipeline satisfies pre-set screening-oriented targets (quadratic weighted kappa,
 QWK, $\geq0.80$; severe and proliferative non-referral rates $\leq2\%$; no
 Grade~$0\leftrightarrow4$ confusion) internally and on external data (H3a), whereas none of
 its reduced variants does (H3b). Three systems are developed: TOPORET, a topology-aware
@@ -23,23 +23,23 @@ $5{,}859$ images, DGTS, a population graph regularised by persistent homology, a
 ordinal pipeline with a CORAL head; nine accepted papers support the work.
 
 \paragraph{Results.}
-The pre-specified test provides evidence supporting H1 ($t_4=3.82$, two-tailed $p=0.019$,
-$+0.04$ QWK); with five folds, the test corrected for fold overlap is significant only for
-the three benchmarks combined ($p=0.015$). H2 holds as a small statistical association, not
+The five-fold pre-specified test provides evidence supporting H1 ($t_4=3.82$, two-tailed $p=0.019$,
+$+0.04$ QWK); corrected for fold overlap, it is significant only for the three benchmarks
+combined ($p=0.015$). H2 holds as a small statistical association, not
 a causal or biological link ($F=84.3$, $p<0.001$, $\eta^2\approx0.01$). DGTS reaches QWK $=0.941$ in cross-validation and $0.925$
 without retraining on $35{,}126$ EyePACS images. DOTS reaches QWK $=0.953$ and a severe
 non-referral rate (Sev-NR) of $0.97\%$ internally, and QWK $=0.931$ with Sev-NR $=1.4\%$ on
 the independent Messidor-2 dataset, where none of four reduced variants reaches Sev-NR
-$\leq2\%$: the observed performance satisfies the pre-set criteria (H3a, H3b) at the
+$\leq2\%$: the observed performance satisfies the pre-set targets (H3a, H3b) at the
 point estimate, but the internal Sev-NR interval ($309$ severe images, $[0.2\%,\,2.8\%]$)
 still exceeds $2\%$.
 
 \paragraph{Conclusions.}
-TOPORET, DGTS and DOTS are complementary contributions to one objective: exploiting
-relations, topology and ordinality to improve DR grading. Each brings a measurable benefit,
-also observed on external data. This is retrospective (Level~1) evidence from separate
-systems, not a clinical validation; a path towards a unified model and prospective
-validation is outlined.
+TOPORET, DGTS and DOTS form a three-axis research framework, not a single model, for one
+objective: exploiting relations, topology and ordinality in DR grading. The findings are
+retrospective evidence that these mechanisms contribute complementary information; they
+support further clinical validation but establish neither prospective clinical safety nor
+regulatory compliance.
 
 \vspace{0.6em}
 \noindent\textbf{Keywords:} diabetic retinopathy; graph neural networks; GraphSAGE;

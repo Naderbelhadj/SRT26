@@ -1,0 +1,42 @@
+% Figure (General Conclusion) --- evidence architecture of the thesis
+\begin{figure}[!htbp]
+\centering
+\resizebox{0.92\linewidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize,
+  sys/.style={draw, rounded corners=2pt, align=center, inner sep=3pt, text width=4.3cm,
+              minimum height=2.9cm},
+  wide/.style={draw, rounded corners=2pt, align=center, inner sep=4pt, text width=14.6cm},
+  arr/.style={-{Latex[length=1.8mm]}, thick, black!55}
+]
+\def\dx{5.0}
+\node[wide, draw=navy, fill=black!4] (obj) at (\dx,0)
+  {\textbf{Objective:} exploit the relations between images, the topology of retinal
+   structures and the order of the grades to improve DR grading};
+
+\node[sys, draw=axisR, fill=axisRf] (t) at (0,-2.55)
+  {\textbf{TOPORET} (\cref{ch:toporet})\\[2pt]Axes R $+$ S\\vessel-skeleton persistence\\
+   three benchmarks, each separately\\[2pt]\textit{transductive evidence}\\H1, H2};
+\node[sys, draw=axisS, fill=axisSf] (g) at (\dx,-2.55)
+  {\textbf{DGTS} (\cref{ch:dots})\\[2pt]Axes R $+$ S\\feature-space persistence\\
+   fused corpus; EyePACS zero-shot\\[2pt]\textit{inductive evidence}\\complements H1, H2};
+\node[sys, draw=axisO, fill=axisOf] (d) at (2*\dx,-2.55)
+  {\textbf{DOTS} (\cref{ch:dots})\\[2pt]Axis O\\CORAL $+$ FRE $+$ TTA\\
+   fused corpus; Messidor-2\\[2pt]\textit{screening-oriented evidence}\\H3a, H3b};
+
+\node[wide, draw=okgreen, fill=okf] (ret) at (\dx,-4.9)
+  {\textbf{Retrospective (Level~1) evidence:} internal cross-validation and external
+   evaluation (EyePACS, Messidor-2), public data, image-level};
+\node[wide, draw=failred, fill=failf] (no) at (\dx,-6.15)
+  {\textbf{Not yet evaluated:} single three-axis model, patient-level TOPORET, multi-seed
+   runs, reader study, prospective and multi-site studies, clinical validation};
+
+\foreach \s in {t,g,d} { \draw[arr] (obj.south -| \s.north) -- (\s.north);
+                         \draw[arr] (\s.south) -- (ret.north -| \s.south); }
+\draw[arr] (ret) -- (no);
+\end{tikzpicture}}
+\caption[Evidence architecture of the thesis]{Evidence architecture of the thesis. The
+three systems are complementary instances of one research framework, not a single model:
+each provides a different kind of evidence, and all of it is retrospective.}
+\label{fig:evarch}
+\end{figure}

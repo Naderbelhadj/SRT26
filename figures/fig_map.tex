@@ -28,7 +28,7 @@
 \node[box, fill=axisOf, draw=axisO] (l3) at (0,-1.3-2*\dy) {\textbf{L3 -- no safety}\\Grade order ignored;\\missed referrals unmeasured};
 \node[box, fill=black!4, draw=black!50] (q3) at (\dx,-1.3-2*\dy) {Does ordinal grading meet the safety criteria, and does any reduced variant?};
 \node[box, fill=axisOf, draw=axisO] (s3) at (2*\dx,-1.3-2*\dy) {\textbf{Axis O}\\CORAL $+$ FRE $+$ TTA\\(DOTS)};
-\node[box, fill=okf, draw=okgreen] (e3) at (3*\dx,-1.3-2*\dy) {\textbf{H3a / H3b}\\criteria met at point estimate;\\$4/4$ variants fail externally};
+\node[box, fill=okf, draw=okgreen] (e3) at (3*\dx,-1.3-2*\dy) {\textbf{H3a / H3b}\\criteria satisfied (point est.);\\$4/4$ variants fail externally};
 
 \foreach \a/\b in {l1/q1, q1/s1, s1/e1, l2/q2, q2/s2, s2/e2, l3/q3, q3/s3, s3/e3}
   \draw[arr] (\a) -- (\b);
@@ -42,6 +42,6 @@
 the argument. Each row links one structural limitation (L1--L3) to its research
 question, the component and system that address it, and the result. The bottom bar gives
 the main results of the two systems of \cref{ch:dots}. All results are retrospective, and
-the safety criteria are met at the point estimate only.}
+the screening safety criteria are satisfied at the point estimate only.}
 \label{fig:map}
 \end{figure}

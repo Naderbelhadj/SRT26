@@ -23,8 +23,8 @@ that their contributions can be compared, but they are distinct architectures. W
 TOPORET, they pursue one objective: DGTS carries the relational and topological
 ingredients to a multi-source corpus and to external data, and DOTS adds the ordinal one. The
 chapter first reviews related work and states the residual gaps and hypothesis H3. It then
-presents the shared protocol, DGTS, DOTS, a comparison of the two systems, a projection of
-the clinical impact, and a discussion of what the results establish and what they do not.
+presents the shared protocol, DGTS, DOTS, a comparison of the two systems, an illustrative
+operational projection, and a discussion of what the results establish and what they do not.
 
 \section{Related Work}
 \label{sec:ch4-related}
@@ -121,7 +121,7 @@ safety-critical grades. APTOS~2019 provides one image per patient and KaggleDR-F
 no bilateral pairs, so the image-level stratified split is also a patient-level
 split for this corpus~\cite{belhadj2026dgts}.
 
-\paragraph{A caveat on the two sources.}
+\paragraph{Dataset provenance and independence.}
 KaggleDR-F1 contains exactly $60\%$ of the APTOS~2019 count in every grade
 ($1{,}083/1{,}805$, $222/370$, $599/999$, $116/193$, $177/295$), so the two collections have
 identical grade distributions. This is compatible with KaggleDR-F1 being derived from
@@ -129,8 +129,10 @@ APTOS~2019, and the absence of shared images between the two sources has not bee
 in the underlying publications. If images were shared, some validation images would have
 near-duplicates in the training folds, and the cross-validation estimates of this chapter
 would be optimistic. The external evaluations on EyePACS (checked for duplicates) and on
-Messidor-2 are not affected by this issue, which is why the conclusions of this chapter
-rest primarily on them.
+Messidor-2 are not affected by this issue. Cross-validation results on the fused corpus
+are therefore interpreted as internal multi-source evidence, not as evidence of
+independent generalisation, and the external evaluations carry the greater weight for
+assessing generalisation.
 
 \begin{table}[!htbp]
 \centering
@@ -625,7 +627,7 @@ or topology in its final form. Combining the two -- a population graph with a to
 regulariser and an ordinal safety head in one model -- has not been evaluated in this thesis
 and is the most direct continuation of this work (see the General Conclusion).
 
-\section{Clinical Impact Projection}
+\section{Illustrative Operational Projection}
 \label{sec:impact}
 
 A projection makes the practical stakes concrete. The number of severe cases left
@@ -643,7 +645,7 @@ retrospective dataset.
 
 \begin{table}[!htbp]
 \centering
-\caption[Clinical impact projection]{Projected non-referred cases per year for $500{,}000$
+\caption[Illustrative operational projection]{Illustrative operational projection. Projected non-referred cases per year for $500{,}000$
 screened patients (assumed prevalence: $5\%$ severe, $1\%$ proliferative), using the
 Messidor-2 non-referral rates.}
 \label{tab:impact}
@@ -661,7 +663,8 @@ Non-referred proliferative cases & $430$ & $95$ & $-335$ \\
 \end{table}
 
 Under these assumptions, DOTS would leave about $1{,}100$ fewer severe cases unreferred each
-year than the CNN baseline. This is a projection, not an observed clinical outcome; it
+year than the CNN baseline. This calculation is illustrative and should not be interpreted as an estimate of
+clinical impact; it
 ignores ungradable images, the prevalence of the target population and the behaviour of
 human graders, and it inherits the uncertainty of the rates of \cref{tab:h3b}.
 
@@ -683,11 +686,11 @@ strength of the supporting evidence.}
 Claim & Evidence & Strength \\
 \midrule
 Graph and topological regulariser help (DGTS) & Controlled ablation A1--A6; Wilcoxon $p=0.031$ over five folds & Moderate \\
-DGTS generalises across datasets & Zero-shot EyePACS, $35{,}126$ images, $\Delta$QWK $=-0.016$ & Strong \\
+DGTS keeps its QWK on external data & Zero-shot EyePACS, $35{,}126$ images, $\Delta$QWK $=-0.016$ & Strong \\
 H3a: DOTS satisfies the criteria (point estimate) & Point estimates pass internally and on Messidor-2; internal Sev-NR interval $[0.2\%,\,2.8\%]$ crosses $2\%$ & Moderate \\
 H3b: no ablation variant suffices & Four reduced variants fail Sev-NR on Messidor-2 & Moderate \\
 Ordinal supervision concentrates errors & $82.9\%$ of errors adjacent; no $0\leftrightarrow4$ confusion & Moderate \\
-Clinical impact & Projection under assumed prevalence & Illustrative \\
+Operational projection & Calculation under assumed prevalence & Illustrative only \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -703,29 +706,33 @@ that improves safety most is not the one that improves QWK most (\cref{tab:ablat
 This kind of evidence is what accuracy-only benchmarks of individual components do not
 provide.
 
-\subsection{What the Results Do Not Establish}
+\subsection{Threats to Validity}
 \label{sec:notestablished}
 
-\begin{enumerate}[leftmargin=1.6em,itemsep=2pt]
-\item \textbf{No statistical compliance with the safety thresholds.} The criteria are met
-at the point estimate; with $309$ Severe images the internal interval extends to $2.8\%$,
-and the external intervals cannot be computed from the published counts. At the observed
-rate, about $650$ severe images would be needed for the upper bound to fall below $2\%$
-(\cref{sec:roadmap}).
-\item \textbf{A small corpus of uncertain independence.} $5{,}859$ training images, with
-about $62$ Severe images per validation fold; possible overlap between KaggleDR-F1 and
-APTOS~2019 has not been excluded, so the cross-validation results may be optimistic. Each
-system was tested externally on only one dataset.
-\item \textbf{A lenient non-referral definition.} A severe image predicted as Moderate is
-counted as referred (\cref{eq:nr}); a stricter definition would give higher rates.
-\item \textbf{No abstention.} Neither system implements a mechanism that defers uncertain
-images to a human grader. The calibrated probabilities of DOTS make such a mechanism
-possible, but it has not been evaluated.
-\item \textbf{No single three-axis system.} The relational and topological axes (TOPORET,
-DGTS) and the ordinal-safety axis (DOTS) are demonstrated in separate systems.
-\item \textbf{Retrospective evidence only.} No prospective, multi-site or clinical
-evaluation was conducted; the federated variant is a simulation.
-\end{enumerate}
+\paragraph{Internal validity.}
+The split is at the image level; for this corpus it is also a patient-level split
+(\cref{sec:protocol}). A possible overlap between KaggleDR-F1 and APTOS~2019 has not been
+excluded, so the cross-validation results may be optimistic. The folds were drawn with a
+single seed ($42$). The non-referral definition counts a severe image predicted as
+Moderate as referred (\cref{eq:nr}); a stricter definition would give higher rates.
+
+\paragraph{Statistical validity.}
+The criteria of H3a are satisfied at the point estimate, not with statistical confidence:
+with $309$ Severe images, about $62$ per validation fold, the internal Sev-NR interval
+extends to $2.8\%$, and the external intervals cannot be computed from the published
+counts. At the observed rate, about $650$ severe images would be needed for the upper
+bound to fall below $2\%$ (\cref{sec:roadmap}). The DGTS ablation rests on five folds.
+
+\paragraph{External validity.}
+Each system was tested externally on a single retrospective public dataset (EyePACS for
+DGTS, Messidor-2 for DOTS), and no dataset provides demographic information.
+
+\paragraph{Clinical validity.}
+No prospective, multi-site or clinical evaluation was conducted, no reader study compared
+the systems with human graders, and the federated variant is a simulation. Neither system
+defers uncertain images to a human grader, although the calibrated probabilities of DOTS
+make such a mechanism possible. Finally, the relational and topological axes (TOPORET,
+DGTS) and the ordinal-safety axis (DOTS) are evaluated in separate systems.
 
 \subsection{Outcome of the Hypotheses}
 

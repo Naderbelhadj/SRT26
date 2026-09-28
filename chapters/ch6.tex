@@ -405,7 +405,33 @@ The mapping of \cref{tab:regmap} documents a regulatory-oriented \emph{architect
 stage interfaces, a risk analysis, a logging design and explanatory outputs of the kind that
 a notified body would expect to examine. It does not constitute the conformity
 assessment, clinical evaluation or notified-body review required before CE marking; those
-remain later activities outside the scope of a doctoral thesis. The FHIR gap of
+remain later activities outside the scope of a doctoral thesis. \Cref{tab:status} states
+the status of each component.
+
+\begin{table}[!htbp]
+\centering
+\caption[Implementation status of the components]{Implementation status of the components
+of the pipelines and of their clinical integration.}
+\label{tab:status}
+\small
+\begin{tabular}{@{}P{6.6cm}P{7.4cm}@{}}
+\toprule
+Component & Status \\
+\midrule
+Grading pipelines (TOPORET, DGTS, DOTS) & Implemented as research code; evaluated retrospectively \\
+Stage-level verification plan (\cref{tab:unittests}) & Specified \\
+Risk analysis (FMEA, \cref{tab:fmea}) & Performed at design level \\
+Audit trail and Article~13 template (\cref{sec:audit}) & Designed \\
+Automatic deferral of uncertain images & Not implemented \\
+FHIR adapter and hospital integration (\cref{sec:fhir}) & Designed, not implemented \\
+Clinical deployment and prospective evaluation & Not performed \\
+Conformity assessment, CE marking, FDA clearance & Not performed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The table makes the boundary explicit: the chapter is an engineering-oriented mapping
+exercise, not a conformity assessment, clinical evaluation or certification. The FHIR gap of
 \cref{sec:fhir} is the concrete reason why the pipelines could not be connected to a live
 clinical workflow today, and the absence of an automatic deferral mechanism leaves
 Hazard~5 of \cref{tab:fmea} only partly mitigated. The results of
@@ -422,7 +448,7 @@ evaluation: Level~1 computational evidence, Level~2 prospective agreement with h
 readers, Level~3 randomised patient outcomes, and Level~4 regulatory clearance. This
 thesis provides Level~1 evidence only.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Four-phase clinical translation roadmap (planned)]{Four-phase clinical
 translation roadmap. Phases~2--4 are planned directions, not commitments; they depend on

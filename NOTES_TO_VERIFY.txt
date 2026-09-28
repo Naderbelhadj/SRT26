@@ -498,3 +498,13 @@ v25 (coherence and calibrated claims):
 - "demonstrated/confirmed" removed from the conclusion and intro claims.
 - General Conclusion: new "Statistical uncertainty" limitation (five folds, interval, single split seed 42); explicit Perspectives list: patient-level split, multi-seed validation, new external datasets, unified model with deferral, reader study, prospective study, true multi-site/federated validation, clinical validation.
 - Checks: 0 errors, 0 undefined, 67/67 floats OK, 0 stacked, resume/abstract one page each, summary one page (margins slightly reduced).
+
+v26 (defensibility pass, no new experiments):
+- Intro: "Nature of the contributions" (scientific / methodological / engineering); coherence paragraph states a three-axis research framework, not a single model; new Table 1 "Nature of the evidence provided by each system" (TOPORET transductive, DGTS inductive/external, DOTS screening-oriented point estimate); projection called "illustrative operational projection".
+- Ch.4 (TOPORET): nodes are images; task statement notes the transductive setting; H1 verdict "converging but limited statistical evidence"; ablation significance stated as uncorrected for fold overlap; H2 small effect = complementary information; threats to validity now internal / statistical / external / construct / clinical; "not equivalent to a strictly inductive, patient-independent evaluation".
+- Ch.5: "Dataset provenance and independence" (fused-corpus CV = internal multi-source evidence; external evaluations weigh more); section renamed "Illustrative Operational Projection" (not an estimate of clinical impact); "What the results do not establish" -> "Threats to Validity" (internal / statistical / external / clinical).
+- Ch.6: new Table 6.6 "Implementation status of the components" (FHIR designed, not implemented; no deployment; no certification).
+- General Conclusion: structured paragraph (shown directly / supported not conclusively / not evaluated / remaining contribution); Table GC.2 claim-evidence-limitation matrix with evidence level; Figure GC.1 evidence architecture; "Scope of the claims" paragraph; figures of the conclusion numbered GC.x.
+- Abstract/resume: final sentence "retrospective evidence ... support further clinical validation but establish neither prospective clinical safety nor regulatory compliance"; H3 phrased as screening-oriented targets.
+- Fixed a wrong cross-reference (perspectives appeared as "Section 6.10"); 3 sub-2pt overfull boxes removed.
+- Checks: 0 errors, 0 undefined, 0 overfull, 71 floats OK (GC flags = running-header false positives), 0 stacked, resume/abstract one page each.

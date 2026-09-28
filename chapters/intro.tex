@@ -86,11 +86,11 @@ side, it delivers two research systems trained on $5{,}859$ public images. DGTS 
 Topological System) reaches a quadratic weighted kappa (QWK) of $0.925$ without retraining on
 $35{,}126$ EyePACS images. DOTS (Deep Ordinal Training System) reaches a QWK of $0.931$
 and a Sev-NR of $1.4\%$ on the independent Messidor-2 dataset, with an inference time of
-about $75$~ms per image on a single T4 GPU. For an illustrative
-programme of $500{,}000$ patients a year, the lower non-referral rate of DOTS corresponds
-to a \emph{projected} reduction of about $1{,}100$ non-referred severe cases compared with a
-CNN baseline, under the explicit prevalence assumptions of \cref{sec:impact}; this is a
-projection, not an observed clinical outcome.
+about $75$~ms per image on a single T4 GPU. In an illustrative
+operational projection for a programme of $500{,}000$ patients a year, the lower
+non-referral rate of DOTS corresponds to about $1{,}100$ fewer non-referred severe cases
+than a CNN baseline, under the explicit prevalence assumptions of \cref{sec:impact}; this
+calculation is not an estimate of clinical impact.
 
 The central claim of the thesis is deliberately bounded. The thesis does not claim that
 its systems are clinically validated or regulatory-ready, nor that the three axes have
@@ -159,17 +159,58 @@ audit-trail design, together with a regulatory-oriented mapping to IEC~62304, IS
 the EU AI Act (not a conformity assessment).
 \end{description}
 
+\paragraph{Nature of the contributions.}
+The contributions are of three kinds. The \emph{scientific} contributions are the
+evidence obtained for relational information (C3, and DGTS in C4), the statistical
+association of topological descriptors with severity (C2, C3), and the screening-oriented
+evaluation of ordinal grading (DOTS in C4). The \emph{methodological} contributions are the
+graph template with interpretable descriptors (C1), the dual-similarity graph (C3), the
+feature-space topological regularisation and the ordinal pipeline (C4), and the
+pre-specified evaluation protocol. The \emph{engineering} contributions are the modular
+architecture, the released code and the regulatory-oriented mapping (C5).
+
 \paragraph{Coherence of the contributions.}
 TOPORET, DGTS and DOTS are three complementary contributions to a single objective:
 exploiting the relations between images, the topology of the retinal structures and the
-order of the grades to improve DR grading. TOPORET tests the first two ingredients
-together on three public benchmarks (L1, L2; H1, H2). DGTS carries them into an inductive
-population graph regularised by persistent homology on a fused multi-source corpus, and
-checks them on a second corpus and on external data. DOTS, trained on the same corpus,
+order of the grades to improve DR grading. The thesis proposes a three-axis research
+framework rather than a single unified model: each axis is instantiated by a dedicated
+system, so that its contribution can be studied separately. TOPORET tests the first two
+ingredients together on three public benchmarks (L1, L2; H1, H2). DGTS carries them into
+an inductive population graph regularised by feature-space persistent homology on a fused
+multi-source corpus, and checks them on external data. DOTS, trained on the same corpus,
 adds the third ingredient, ordinality, and evaluates it against screening safety criteria
-(L3, H3). Each system therefore answers one part of the same question, and C1 and C2
-motivate the design choices on which they rest; combining the three ingredients in one
-model is the first perspective of the thesis (\cref{sec:persp-gc}).
+(L3, H3). \Cref{tab:evidence} shows that the three systems provide different kinds of
+evidence.
+
+\begin{table}[H]
+\centering
+\caption[Nature of the evidence provided by each system]{Nature of the evidence provided
+by each system.}
+\label{tab:evidence}
+\small
+\begin{tabular}{@{}P{3.3cm}P{3.9cm}P{3.6cm}P{3.6cm}@{}}
+\toprule
+Property & TOPORET (\cref{ch:toporet}) & DGTS (\cref{ch:dots}) & DOTS (\cref{ch:dots}) \\
+\midrule
+Axes & Relational, structural & Relational, structural & Ordinal safety \\
+Topology & Vessel skeleton (six persistence statistics) & Feature-space neighbourhoods (training regulariser) & None \\
+Training data & Each benchmark separately & Fused corpus, $5{,}859$ images & Fused corpus, $5{,}859$ images \\
+Split unit & Image (both eyes in Kaggle DR, Messidor-2) & Image, equal to patient here & Image, equal to patient here \\
+Test images in the graph & Yes, unlabelled nodes & No (graph of the training fold) & No graph \\
+Protocol & Transductive & Inductive & Per-image \\
+External evaluation & None (within-benchmark) & EyePACS, zero-shot & Messidor-2 \\
+Safety metrics & Not measured & Sev-NR reported & Criteria of H3 \\
+Kind of evidence & Transductive (H1, H2) & Inductive, external & Screening-oriented, point estimate (H3) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The three systems should therefore not be read as providing identical forms of evidence.
+TOPORET gives evidence for the contribution of relational and topological information
+under a transductive protocol, DGTS gives the corresponding inductive and external
+evidence, and DOTS addresses the ordinal-safety axis. C1 and C2 motivate the design
+choices on which they rest, and combining the three ingredients in one model is one of the
+perspectives listed in the \hyperref[sec:persp-gc]{General Conclusion}.
 
 \Cref{tab:pubmap} shows which publications support each chapter of the thesis.
 
@@ -214,7 +255,7 @@ that structural features help DR grading.
 and H2.
 \item \textbf{Topology-Regularised Graphs and Safety-Oriented Ordinal Grading}
 (\cref{ch:dots}): DGTS and DOTS on a multi-source corpus, their external validation, the
-safety criteria (H3), a projection of the clinical impact and a comparison of the two
+safety criteria (H3), an illustrative operational projection and a comparison of the two
 systems.
 \item \textbf{Software Architecture and Regulatory-Oriented Design} (\cref{ch:reg}): how
 the design of the pipelines was shaped by regulatory-oriented principles for

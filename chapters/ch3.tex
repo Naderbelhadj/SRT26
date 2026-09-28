@@ -4,7 +4,7 @@
 The previous chapter showed that global structural features carry useful information for
 DR grading, and that graph and topological signals are worth combining. This chapter turns
 these observations into a complete grading framework, TOPORET~\cite{belhadj2025plos}.
-TOPORET connects patients in a population graph, processed by the inductive GraphSAGE
+TOPORET connects fundus images in a population graph, processed by the GraphSAGE
 architecture, whose edges combine two similarities: how alike the fundus images look to a CNN, and how alike their vessel
 networks are topologically. The same topological descriptors are also appended to the
 features of each patient, so that topology plays a double role. This thesis introduces
@@ -52,13 +52,15 @@ information in a population graph before this work.
 \label{sec:ch3-problem}\label{sec:hyp}
 
 Let $\{(I_j,y_j)\}$ be a set of fundus images with ICDR grades $y_j\in\{0,\ldots,4\}$. The
-task is to predict the grade $\hat y_i$ of a new image $I_i$ that was not seen during
-training, using both its own content and the content of similar patients. The chapter tests
+task is to predict the grade $\hat y_i$ of an image $I_i$ whose grade was not seen during
+training, using both its own content and the content of similar images; in the
+transductive protocol of this chapter, the image itself is an unlabelled node of the
+graph. The chapter tests
 two pre-specified hypotheses; their tests and decision thresholds were fixed before the
 experiments of this chapter were run.
 
 \paragraph{H1 -- The Relational Hypothesis.}
-A population graph connecting patients through a dual-similarity metric (visual
+A population graph connecting images through a dual-similarity metric (visual
 embedding similarity $+$ topological distance) provides a statistically significant
 improvement over independent per-image classification.
 \emph{Pre-specified test:} paired two-tailed $t$-test across the five cross-validation folds, TOPORET
@@ -450,9 +452,12 @@ overlap and gives smaller statistics: $t=2.45$ ($p=0.070$) on Kaggle DR, $2.63$
 ($p=0.058$) on Messidor-2 and $2.25$ ($p=0.088$) on APTOS~2019, each below the
 pre-specified threshold. The three benchmarks are
 independent datasets, so their corrected $p$-values can be combined by Fisher's method,
-which gives $p=0.015$. The pre-specified test and the combined corrected evidence of the three benchmarks
-therefore provide evidence supporting H1, not a proof: with five folds, the corrected test
-is not significant on any single benchmark.
+which gives $p=0.015$. H1 is therefore supported by converging but limited statistical evidence. The gain in
+QWK is consistent across the folds and the benchmarks, and the combined analysis remains
+significant after correction for the overlap of the folds; the corrected per-benchmark
+tests, however, do not reach the $0.05$ level on their own. The results are evidence
+supporting the contribution of relational information under the evaluated, transductive
+conditions, not a proof of a general advantage of population graphs.
 
 \paragraph{Where the gain comes from.}
 \Cref{fig:toporetcm} compares the normalised confusion matrices of the CNN baseline and of
@@ -508,8 +513,9 @@ small: over the $35{,}126$ images of the test, $F=84.3$ corresponds to $\eta^2\a
 (\cref{eq:eta}), so the grade groups explain about $1\%$ of the variance of $\Pi_{H_1}$.
 Because the two eyes of a patient are not independent, the effective sample size is smaller
 than the number of images; even if it were halved, $F$ would remain about $42$, far above
-the critical value. A small effect is consistent with the ablation: topology is a
-complementary signal ($+0.02$ QWK), not a substitute for the visual features. Consistently, intra-grade
+the critical value. The small effect size indicates that topology alone does not explain
+disease severity; consistently with the ablation, it is complementary information
+($+0.02$ QWK), not a substitute for the visual features. Consistently, intra-grade
 topological distances are systematically smaller than inter-grade distances for all
 grades~\cite{belhadj2025plos}. The analysis shows a statistical association between the extracted topological
 descriptors and ICDR severity; it does not show causality, nor a demonstrated biological
@@ -525,15 +531,8 @@ the feature, which would quantify the trend, are natural complementary analyses.
 \label{sec:ablation3}
 
 \Cref{tab:ablation3} isolates the contribution of each component of TOPORET on Kaggle DR.
-Topological node features alone (B) add $+0.02$ QWK ($+0.6$ percentage points of accuracy);
-the graph with CNN-only node features (C), in which topology enters only the edge
-similarity, adds $+0.03$ QWK ($+1.0$~pp) and is the larger single contributor; the full model
-adds $+0.04$ QWK ($+1.5$~pp). All improvements are statistically significant under the
-paired two-tailed $t$-test across the five folds~\cite{belhadj2025plos}. The contributions are therefore complementary but roughly
-additive: the full gain is close to, and not larger than, the sum of the individual gains
-($+0.02+0.03$ QWK; $+0.6+1.0$~pp of accuracy).
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption[Ablation of TOPORET]{Ablation of TOPORET on Kaggle DR (mean over five
 folds)~\cite{belhadj2025plos}.}
@@ -550,6 +549,15 @@ Configuration & Accuracy (\%) & QWK & Macro-F1 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Topological node features alone (B) add $+0.02$ QWK ($+0.6$ percentage points of accuracy);
+the graph with CNN-only node features (C), in which topology enters only the edge
+similarity, adds $+0.03$ QWK ($+1.0$~pp) and is the larger single contributor; the full model
+adds $+0.04$ QWK ($+1.5$~pp). All improvements are statistically significant under the
+paired two-tailed $t$-test across the five folds, without correction for fold overlap~\cite{belhadj2025plos}. The contributions are therefore complementary but roughly
+additive: the full gain is close to, and not larger than, the sum of the individual gains
+($+0.02+0.03$ QWK; $+0.6+1.0$~pp of accuracy).
+
 
 \subsection{Computational Cost}
 \label{sec:toporet-cost}
@@ -685,9 +693,15 @@ in the graph aggregation of GraphSAGE and in the topology. The evaluation is
 transductive: the test images are unlabelled nodes of the graph during training, so their
 features, but not their grades, influence the representations of their neighbours. The
 reported figures are those of this setting; an inductive evaluation of the same model was
-not run, and the inductive setting is evaluated with DGTS (\cref{ch:dots}). Hyperparameters were selected
+not run, and the inductive setting is evaluated with DGTS (\cref{ch:dots}). The TOPORET
+results should therefore not be read as equivalent to a strictly inductive,
+patient-independent evaluation. Hyperparameters were selected
 on validation data only, and the decision thresholds of the tests were fixed before the
 experiments.
+
+\paragraph{Statistical validity.}
+Five folds, drawn with one seed, give H1 four degrees of freedom; corrected for fold
+overlap, it is significant only for the three benchmarks combined (\cref{sec:h1}).
 
 \paragraph{External validity.}
 Each benchmark is evaluated within itself; the results show that the gain is reproduced on
@@ -703,17 +717,19 @@ provides demographic information.
 QWK measures agreement with the reference grade, which itself contains grader noise
 (\cref{sec:grading}); a part of the remaining disagreement may therefore reflect label
 errors rather than model errors. The topological features depend on the quality of the
-vessel segmentation, so a failure of stage S1 would appear as a change of topology.
+vessel segmentation, so a failure of stage S1 would appear as a change of
+topology.
+
+\paragraph{Clinical validity.}
+All data are retrospective and public; no reader study or prospective evaluation was
+carried out.
 
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
 TOPORET~\cite{belhadj2025plos} improves on a strong CNN baseline on three benchmarks
 ($+1.5$ to $+2.3$ percentage points of accuracy, $+0.04$ to $+0.07$ QWK). Its pre-specified
-tests provide evidence supporting H1 ($t_4=3.82$, $p=0.019$ two-tailed, $d_z=1.71$; with five
-folds, the fold-overlap correction leaves $p=0.015$ only for the three benchmarks combined)
-and show a statistical association for H2 ($F=84.3$, $p<0.001$), without causal or
-biological interpretation; the graph is the larger contributor, the topology a complementary
-one. These results were obtained transductively, with image-level folds. TOPORET, however, is trained on one dataset at a time, ignores the
-order of the grades and does not measure missed referrals; the next chapter addresses
-these gaps with DGTS and DOTS.
+tests provide transductive evidence supporting H1 ($t_4=3.82$, $p=0.019$; corrected for
+fold overlap, $p=0.015$ for the three benchmarks combined) and a statistical, not causal,
+association for H2 ($F=84.3$, $p<0.001$); the graph is the larger contributor. TOPORET, however, is trained on one dataset at a time, ignores the order of the grades
+and does not measure missed referrals; the next chapter addresses these gaps.
