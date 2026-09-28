@@ -319,7 +319,7 @@ test_manifest.csv reproduces Table 5.3 exactly.
   a DIFFERENT system than thesis Ch.5 / J1: EfficientNet-B3 + Transformer encoder + CORAL + TTA,
   no RETFound, no entropy abstention, 5,859 images (APTOS + KaggleDR-F1), internal 5-fold CV,
   QWK 0.9527, Sev-NR 0.97% internal / 1.4% Messidor-2, NR defined as "predicted No-DR or Mild".
-  NOT added to the thesis. Author decision needed: (a) keep it out of the thesis, or
+  NOT added to the thesis -- AUTHOR DECISION: keep it out (confirmed).
   (b) list it as a separate journal paper with an explicit sentence saying it is an earlier
   multi-source variant of DOTS. Same name "DOTS" for two different systems is a jury risk.
   Also: SN Computer Science is listed for J2 SAMF-GB; confirm that both are submitted there.
