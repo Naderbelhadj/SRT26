@@ -99,8 +99,10 @@ Resource-utilisation Gini coefficient & 0.41 & 0.18 ($-56.1\%$) \\
 The second publication~\cite{belhadj2026invariants} tests whether the augmentation of
 \cref{eq:invariants} gives statistically significant and stable gains across six
 benchmarks with heterogeneous graph structure: a synthetic controlled graph, two
-network-intrusion datasets (KDD Cup~1999, CICIDS~2017), a modern endpoint-detection
-dataset (UNSW-NB15), a refined intrusion benchmark (NSL-KDD) and a production
+network-intrusion datasets (KDD Cup~1999~\cite{tavallaee2009nslkdd},
+CICIDS~2017~\cite{sharafaldin2018cicids}), a more recent network-intrusion
+dataset (UNSW-NB15~\cite{moustafa2015unsw}), a refined intrusion benchmark
+(NSL-KDD~\cite{tavallaee2009nslkdd}) and a production
 microservice trace (SockShop/Istio).
 
 \Cref{tab:invariants} reports the six results. Each row is one benchmark: its domain,
@@ -123,7 +125,7 @@ Benchmark & Domain & F1 (GNN) & F1 ($+I(v)$) & $\Delta$ recall \\
 Synthetic graph & Controlled network & 85.3\% & 93.5\% & $+5.0$~pp \\
 KDD Cup 1999 & Network intrusion (classic) & 88.1\% & 94.2\% & $+4.6$~pp \\
 CICIDS 2017 & Multi-protocol IDS & 86.7\% & 92.0\% & $+4.1$~pp \\
-UNSW-NB15 & Modern endpoint detection & 84.9\% & 90.8\% & $+3.1$~pp \\
+UNSW-NB15 & Network intrusion (recent) & 84.9\% & 90.8\% & $+3.1$~pp \\
 NSL-KDD & Intrusion (refined) & 87.4\% & 93.1\% & $+4.4$~pp \\
 SockShop/Istio & Production microservices & 89.2\% & 95.3\% & $+4.4$~pp \\
 \midrule
@@ -135,7 +137,7 @@ Mean (SD) & & 87.0\% (1.5) & 93.2\% (1.6) & $+4.2$~pp (0.6) \\
 \subsection{Transfer Architecture and Its Justification}
 \label{sec:transfer}
 
-The transfer from distributed systems to DR grading is exact at the level of the
+The transfer from distributed systems to DR grading is direct at the level of the
 architecture: GraphSAGE with $L=2$, $d_h=256$, dropout $p=0.30$, Adam with learning rate
 $10^{-3}$ and $S=25$ is used unchanged. The structural augmentation
 $h_{\mathrm{aug}}=[\,h_{\mathrm{GNN}}\Vert I(v)\,]$ becomes
@@ -180,9 +182,10 @@ Recall-prioritised anomaly detection (rare-event sensitivity) & Class-weighted C
 \paragraph{Why hyperparameters transfer without re-tuning.}
 A natural objection is that hyperparameters validated on network-traffic and microservice
 graphs may not suit a population graph of patients. Two considerations mitigate this.
-First, the benchmarks of \cref{tab:invariants} already span a wide range of graph sizes
-(from the 48-node SimPy testbed to traffic graphs with several thousand nodes) and
-densities, and the augmentation gain is stable across this range. Second, the population
+First, the graphs of Part~A already span a wide range of sizes (from the 48-node SimPy
+testbed of \cref{tab:msorch} to the traffic graphs of \cref{tab:invariants}, with several
+thousand nodes) and densities, and the augmentation gain of \cref{tab:invariants} is stable
+across the six benchmarks. Second, the population
 graphs of \cref{ch:toporet,ch:dots} (several thousand to tens of thousands of nodes,
 $k=15$ neighbours per node) fall within that range, so the transfer is an interpolation
 rather than an extrapolation. The hyperparameter sensitivity analysis was nevertheless
@@ -217,18 +220,22 @@ repeated on retinal data (\cref{sec:dualsim}) instead of relying on Part~A alone
 \label{sec:partb}
 
 Part~B presents three convergent proof-of-concept validations of the structural axis
-(the answer to L2). Three independent methodologies -- deep learning, gradient boosting
-and feature attribution -- each show that global structural priors improve DR grading.
+(the answer to L2). Three methodologies -- a deep hybrid model, gradient boosting with SHAP attribution, and
+a leave-one-family-out ablation -- each indicate that global structural priors improve DR
+grading.
 This convergence motivates the formal statistical test of H2 in \cref{ch:toporet}.
 
 \paragraph{Experimental setting.}
 The three studies of Part~B use the public datasets of \cref{sec:datasets}. The hybrid
-CNN--GNN model was developed on APTOS~2019 with a binary referable/non-referable target,
+CNN--GNN model was developed on APTOS~2019 with a binary target (No DR versus any DR),
 which allowed many ablation runs at low cost. SAMF-GB and LightGBM-HC were evaluated on the
 five-grade task on Kaggle EyePACS, the benchmark used for TOPORET and DOTS in the following
-chapters, with five-fold cross-validation stratified by grade. In all three studies, the
-same pre-processing (CLAHE and Zhang--Suen skeletonisation) was used to extract the vessel
-network, so that differences in results reflect the models rather than the input.
+chapters, with five-fold cross-validation stratified by grade. SAMF-GB and LightGBM-HC
+extract the vessel network with the same pre-processing (CLAHE and Zhang--Suen
+skeletonisation); the hybrid model instead computes its descriptors from
+structure-enhanced intensity responses, without explicit vessel segmentation. The three
+studies therefore differ in data, task and input representation, and their results are
+compared qualitatively rather than numerically.
 
 \subsection{Hybrid CNN--GNN with Geometric and Topological Invariants}
 \label{sec:hybrid}
@@ -384,8 +391,8 @@ vessels, which are the structures that ophthalmologists examine when they look f
 beading, capillary closure and new vessels.
 
 \Cref{tab:samf} compares SAMF-GB with
-EfficientNet-B3: SAMF-GB gains $+0.042$ QWK, runs 40 times faster on a 16-core CPU at
-about 13 times lower cost, and its predictions can be explained with SHAP.
+EfficientNet-B3: SAMF-GB gains $+0.042$ QWK, its classifier runs on a 16-core CPU instead
+of a GPU at about 13 times lower cost, and its predictions can be explained with SHAP.
 
 \begin{table}[H]
 \centering
@@ -399,9 +406,13 @@ System & QWK & Inference & Hardware & Art.~13 support \\
 EfficientNet-B3 & 0.840 & 85~ms & NVIDIA A100 & No (opaque) \\
 SAMF-GB & 0.882 & 2.1~ms & 16-core CPU & Yes (SHAP per prediction) \\
 \midrule
-Difference & $+0.042$ & $\times 40$ faster & $\times 13$ cheaper & -- \\
+Difference & $+0.042$ & $\times 40$ (classifier only) & $\times 13$ cheaper & -- \\
 \bottomrule
 \end{tabular}
+\tabnote{The $2.1$~ms of SAMF-GB is the inference time of the gradient-boosting model on
+pre-computed features. Feature extraction is not included: the persistent-homology stage
+alone takes about $18$~ms per image on the same CPU (\cref{tab:latency}). The speed ratio
+therefore compares classifiers, not complete pipelines.}
 \end{table}
 
 \subsection{LightGBM-HC}
@@ -410,9 +421,12 @@ Difference & $+0.042$ & $\times 40$ faster & $\times 13$ cheaper & -- \\
 Publication~\cite{belhadj2026icpram} validates a reduced 128-dimensional hand-crafted
 feature set with LightGBM, reaching QWK $=0.858$ at $1.6$~ms CPU inference on the same
 benchmark. The hyperparameters, each selected by five-fold cross-validated grid search,
-are listed in \cref{tab:lgbm-hp}. The lower QWK than SAMF-GB ($0.858$ versus $0.882$) is
-explained by the exclusion of the 7-D persistent-homology features: removing them costs
-$0.024$ QWK, which independently confirms the value of the topological component. The same conclusion is reached with a different learning algorithm and a different feature set, which makes it unlikely to be an artefact of one model.
+are listed in \cref{tab:lgbm-hp}. The QWK is lower than that of SAMF-GB ($0.858$ versus $0.882$, a difference of $0.024$).
+LightGBM-HC omits the 7-D persistent-homology features, but also the radial FFT and
+LBP families and most of the Gabor responses; the difference therefore cannot be
+attributed to topology alone. It is consistent with, but does not isolate, a contribution
+of the topological component; the isolated contribution of the TDA features is measured
+in the TOPORET ablation ($+0.016$ QWK, \cref{tab:ablation3}).
 
 \begin{table}[H]
 \centering
@@ -479,8 +493,10 @@ beyond the CNN baseline (\cref{tab:hybrid}).
 \item \textbf{Gradient boosting}~\cite{belhadj2026samfgb}: SAMF-GB outperforms GPU
 EfficientNet-B3 by $+0.042$ QWK at about 13 times lower cost; topology ranks third of
 seven families by SHAP (\cref{tab:shap}).
-\item \textbf{Reduced gradient boosting}~\cite{belhadj2026icpram}: removing the TDA
-features costs $0.024$ QWK, independently replicating the topological signal.
+\item \textbf{Reduced gradient boosting}~\cite{belhadj2026icpram}: the reduced feature set
+without topology (and without three other families) loses $0.024$ QWK, and the
+leave-one-family-out ablation ranks global vascular morphology first
+(\cref{tab:lgbm-abl}).
 \item \textbf{Formal ANOVA} (\cref{sec:h2}): $F(4,4995)=1308.9$, $\eta^2=0.51$.
 \end{enumerate}
 
@@ -523,8 +539,8 @@ Study & Data & Main result & Publication \\
 GNN-MSOrchest & 48-service microservice simulation & Cascade containment $81\%$ vs.\ $34\%$ & P1 \\
 Structural invariants & Six graph benchmarks & Mean recall $+4.2$~pp, CV $14\%$ & P2 \\
 Hybrid CNN--GNN & APTOS 2019 (binary) & $95.1\%$ accuracy ($+7.0$~pp), AUC $0.970$; synergistic gains & P3, B2 \\
-SAMF-GB & Kaggle EyePACS & QWK $0.882$ on CPU ($2.1$~ms) vs.\ $0.840$ & J2 \\
-LightGBM-HC & Kaggle EyePACS & QWK $0.858$; removing TDA costs $0.024$ & P4 \\
+SAMF-GB & Kaggle EyePACS & QWK $0.882$ vs.\ $0.840$; CPU classifier ($2.1$~ms) & J2 \\
+LightGBM-HC & Kaggle EyePACS & QWK $0.858$ with a reduced 128-D set & P4 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -532,15 +548,16 @@ LightGBM-HC & Kaggle EyePACS & QWK $0.858$; removing TDA costs $0.024$ & P4 \\
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
-This chapter established three empirical facts. (F1)~The GraphSAGE template with
-structural descriptors is generic: it improves detection on six heterogeneous benchmarks
+This chapter established three empirical findings. (F1)~The GraphSAGE template with
+structural descriptors gives stable gains on six heterogeneous benchmarks
 (mean recall gain $+4.2$~pp, coefficient of variation $14\%$). (F2)~On DR data, relational and
 topological contributions are complementary: the full hybrid model gains $+7.0$~pp over the
 CNN baseline, more than the sum of the individual gains ($6.3$~pp). (F3)~Global
 structural and topological features carry discriminative information, as shown
 independently by a deep hybrid model, by gradient boosting with SHAP attribution and by a
-leave-one-family-out ablation. As a practical by-product, SAMF-GB grades images on a
-standard CPU in $2.1$~ms with a higher QWK than a GPU EfficientNet-B3.
+leave-one-family-out ablation. As a practical by-product, SAMF-GB reaches a higher QWK than a GPU EfficientNet-B3 with a
+gradient-boosting classifier that runs on a standard CPU ($2.1$~ms per image once the
+features are extracted).
 
 These results do not prove that a population graph will work on retinal images, but they
 show that it is worth testing, with topology fused into the similarity that builds the

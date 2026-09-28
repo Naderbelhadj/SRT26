@@ -63,8 +63,9 @@ TOPORET (\cref{ch:toporet}) supports H1 and H2: a population graph and topologic
 features are each associated with better ordinal grading accuracy. Yet TOPORET does not
 meet the safety-oriented target of this thesis. At Sev-NR $=3.4\%$, under the illustrative
 assumptions of \cref{sec:impact}, a programme screening $500{,}000$ patients a year would
-leave a projected $850$ of its $25{,}000$ severe cases unreferred -- a rate incompatible with the $2\%$ threshold adopted in this thesis
-from national screening practice~\cite{scanlon2017english}.
+leave a projected $850$ of its $25{,}000$ severe cases unreferred -- a rate above the $2\%$ target adopted in this thesis, which is
+informed by national screening practice~\cite{scanlon2017english} but is not a published
+regulatory threshold.
 
 DOTS (Deep Ordinal Transformer System) is the architectural response to this
 residual gap: a system designed, from the outset, around the seven predefined
@@ -120,7 +121,8 @@ predictions in \cref{sec:h3a-eval}).
 
 Even with Gaps~A and~B addressed, a system that must classify every input
 will misclassify some genuinely ambiguous cases. The Grade~$2/3$ boundary is
-the most clinically ambiguous (inter-rater $\kappa\approx 0.55$--$0.65$).
+the most clinically ambiguous, with substantial disagreement between expert
+graders~\cite{krause2018grader}.
 DOTS addresses Gap~C with two coordinated mechanisms: (i)~a dynamic graph
 attention network (\cref{sec:gat}) that refines node embeddings using
 per-edge attention recomputed at inference time; and (ii)~an entropy-based
@@ -376,10 +378,20 @@ of the three axes. All systems share the same data splits, pre-processing and nu
 training epochs.
 
 The graph parameters are inherited from TOPORET ($\alpha=0.65$, $k=15$, $L=2$ layers,
-$S=25$ sampled neighbours, hidden dimension $256$). The two parameters specific to DOTS are
+$S=25$ sampled neighbours, hidden dimension $256$). The parameters specific to DOTS are
 the class weights of the CORAL loss, $\lambda=(1.0,2.5,3.0,8.0,6.0)$ for Grades~0--4
-(\cref{tab:weights}), and the abstention threshold $\tau_U=0.73$~nats (\cref{tab:tau}).
-Both were selected on the validation folds only. The complete list of hyperparameters is
+(\cref{tab:weights}), a label smoothing of $\epsilon=0.05$ (\cref{tab:hyper}), and the
+abstention threshold $\tau_U=0.73$~nats (\cref{tab:tau}). All were selected on the
+validation folds only.
+
+\paragraph{Referral rule.}
+Sev-NR counts a severe image (Grade~3 or~4) as \emph{referred} when it is either deferred
+by the abstention rule or referred by the rank-consistent rule ``refer if
+$\hat P(Y\geq 3)>t$'' of \cref{sec:coral}, whose threshold $t$ is chosen on validation
+data and kept fixed for the test sets. Because referral uses the cumulative probability
+rather than the most probable grade, the Sev-NR of a system is not the same quantity as
+the fraction of severe images whose \emph{predicted grade} is below~3 in a confusion
+matrix. The complete list of hyperparameters is
 given in \cref{app:hyper}.
 
 \paragraph{Unit of analysis.}
@@ -414,7 +426,7 @@ Threshold $\tau_U$ optimisation & Grid search on the validation fold only; test 
 Class weights $\lambda_0,\ldots,\lambda_4$ selection & Validation-fold Sev-NR minimisation; frozen before test. \\
 $\alpha=0.65$ (dual metric) & 5-fold CV on training data only. \\
 $k=15$ (neighbours) & Validation-fold QWK maximisation. \\
-Multi-seed stability & Means over 3 seeds; variance within $\pm 0.003$ QWK. \\
+Multi-seed stability & Three seeds; standard deviation between $0.003$ and $0.005$ QWK across benchmarks (\cref{tab:seeds}). \\
 Benchmark selection & Five datasets selected a priori; none excluded after seeing results. \\
 \bottomrule
 \end{tabular}
@@ -485,8 +497,8 @@ criterion is not established.}
 
 The seven criteria are not arbitrary: QWK and AUC are the standard ordinal and
 discriminative metrics of the DR literature; ECE operationalises calibration
-for triage; the Sev-NR and PDR-NR targets are adopted from national screening
-practice~\cite{scanlon2017english} as evaluation targets for this thesis; coverage stops abstention from trivially buying safety; rank
+for triage; the Sev-NR and PDR-NR targets are informed by national screening
+practice~\cite{scanlon2017english} and fixed as evaluation targets for this thesis; coverage stops abstention from trivially buying safety; rank
 violations are the architectural guarantee of CORAL.
 
 \subsection{Cross-Benchmark Performance}
@@ -499,7 +511,9 @@ the smallest dataset ($N=516$ images), RETFound remains higher ($0.901$ against 
 The lower performance observed on IDRiD may be associated with its substantially smaller
 sample size and consequently smaller population graph. This provides a plausible
 methodological explanation for the observed gap, but the present experiments do not
-establish a causal relationship between graph size and cross-dataset performance.
+establish a causal relationship between graph size and cross-dataset performance. IDRiD is
+also the only benchmark on which the multi-seed Sev-NR of DOTS ($2.1\pm0.3\%$,
+\cref{tab:seeds}) lies above the $2\%$ target.
 
 \begin{table}[H]
 \centering
@@ -557,7 +571,10 @@ $2\%$ safety line on its own.}
 \subsubsection{Confusion Matrix}
 
 \Cref{tab:confusion} gives the DOTS confusion matrix on the $9{,}380$ test images that were
-not deferred (coverage $93.8\%$ of the $10{,}000$ held-out predictions).
+not deferred (coverage $93.8\%$ of the $10{,}000$ held-out predictions). The columns give
+the most probable grade; as explained in \cref{sec:ch4-protocol}, referral is decided by the
+cumulative probability $\hat P(Y\geq 3)$, so the off-diagonal cells of the Grade~3 and
+Grade~4 rows are not, by themselves, non-referrals.
 
 \begin{table}[!htb]
 \centering
@@ -580,9 +597,8 @@ Grade 4 & 0.0\% & 0.0\% & 0.6\% & 8.2\% & \textbf{91.2\%} \\
 
 The dominant
 error is adjacent-grade confusion (Grade~$k\leftrightarrow k\pm1$), consistent with the
-known difficulty of the ICDR scale at grade boundaries, where inter-rater agreement among
-ophthalmologists is only moderate ($\kappa\approx0.55$--$0.65$ at the Grade~2/3
-boundary). There are no clinically dangerous multi-grade jumps: no Grade~0 image is
+known difficulty of the ICDR scale at grade boundaries, where agreement among expert graders is
+imperfect~\cite{krause2018grader}. There are no clinically dangerous multi-grade jumps: no Grade~0 image is
 classified as Grade~3 or~4, and no Grade~4 image as Grade~0 or~1. This is consistent with,
 although not implied by, the rank-consistency guarantee of CORAL.
 
@@ -718,7 +734,10 @@ on the ImageNet backbone; systems 5 and 6 keep the complete axis.}
 \subsection{Results of the Exhaustive Enumeration}
 
 \Cref{tab:h3b} reports the Sev-NR of each reduced system on the $10{,}000$-image test
-set used for H3a.
+set used for H3a. Because this test set differs from the five-fold Kaggle EyePACS protocol
+of \cref{tab:ablation3,tab:ablate}, systems with the same description can show slightly
+different values in these tables (for example $\{S\}$: QWK $0.849$ here, $0.856$ for
+``TDA features only'' in \cref{tab:ablation3}).
 
 \begin{table}[H]
 \centering
@@ -965,7 +984,7 @@ safety target at the point estimate required all three axes.
 
 The ``$7/7$ at the point estimate'' result of \cref{tab:h3a} establishes that, on the
 retrospective held-out test set, DOTS's point estimates clear every predefined threshold,
-including the Sev-NR target adopted from national screening practice. It does not
+including the Sev-NR target informed by national screening practice. It does not
 establish that the Sev-NR target is met with statistical confidence, since the upper bound
 of its 95\% interval ($2.4\%$) lies above $2\%$. It does not establish that DOTS will continue to clear these
 thresholds on prospective data, nor that the specific threshold values are

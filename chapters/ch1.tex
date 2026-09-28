@@ -173,10 +173,7 @@ scale~\cite{wilkinson2003icdr} used to grade every image in this thesis. Grades~
 require urgent referral; missing them is the error counted by the Severe-DR Non-Referral
 Rate (Sev-NR).
 
-Fundus photographs are colour images of the back of the eye, usually centred on the macula
-with a field of view of about $45^\circ$. They can be taken with or without pupil dilation;
-non-mydriatic cameras are preferred in screening because they are faster and more
-comfortable, at the cost of a higher rate of ungradable images. Grading is a visual task:
+Grading the colour fundus photographs of \cref{sec:imaging} is a visual task:
 the grader counts and locates microaneurysms, haemorrhages, exudates, venous beading and
 new vessels, and maps them to a grade. Even among experts, agreement is only moderate at
 the boundaries between neighbouring grades, which is why screening programmes use double
@@ -186,7 +183,9 @@ the reference labels themselves are uncertain near the grade boundaries.
 \begin{table}[H]
 \centering
 \caption[International Clinical Diabetic Retinopathy (ICDR) severity scale]{International Clinical Diabetic Retinopathy (ICDR) severity
-scale~\cite{wilkinson2003icdr}. Grades 3--4 are safety-critical.}
+scale~\cite{wilkinson2003icdr}. Grades 3--4 are safety-critical. The referral intervals
+are indicative: they are not part of the ICDR definition and vary between screening
+programmes.}
 \label{tab:icdr}
 \footnotesize
 \begin{tabular}{@{}c l P{6.4cm} l@{}}
@@ -195,8 +194,8 @@ Grade & Clinical name & Primary vascular signs & Referral urgency \\
 \midrule
 0 & No DR & None & Annual recall \\
 1 & Mild NPDR & Microaneurysms only & 12 months \\
-2 & Moderate NPDR & Haemorrhages and exudates, below the 4-2-1 rule & 6 months \\
-3 & Severe NPDR & 4-2-1 rule: $\geq 20$ haemorrhages per quadrant, venous beading or IRMA & 2--4 weeks \\
+2 & Moderate NPDR & More than microaneurysms only (e.g.\ haemorrhages, exudates), below the 4-2-1 rule & 6 months \\
+3 & Severe NPDR & 4-2-1 rule: $>20$ intraretinal haemorrhages in each of four quadrants, or venous beading in $\geq2$ quadrants, or IRMA in $\geq1$ quadrant; no PDR & 2--4 weeks \\
 4 & Proliferative DR & Neovascularisation; vitreous or pre-retinal haemorrhage & Emergency \\
 \bottomrule
 \end{tabular}
@@ -241,12 +240,12 @@ system can give is often to indicate which images deserve this second look. In t
 \label{sec:screening}
 
 Population-scale screening is therefore a public-health imperative, and automated
-grading is the only way to make it affordable at national scale~\cite{ting2017jama,
-abramoff2018pivotal}. The safety of such a programme is measured by how many
+grading is widely seen as a way to make it more affordable at national
+scale~\cite{ting2017jama,abramoff2018pivotal}. The safety of such a programme is measured by how many
 sight-threatening cases it fails to refer. At a Severe-DR Non-Referral Rate of
 $4.3\%$ -- the value reached by EfficientNet-B3 in this thesis -- a programme screening
 $500{,}000$ patients a year, of whom about $25{,}000$ have severe disease, would leave
-roughly $1{,}100$ sight-threatening cases unreferred every year (the assumptions of this
+a projected $1{,}075$ severe cases unreferred every year (the assumptions of this
 projection are stated in \cref{sec:impact}).
 
 Organised screening has been shown to work at the scale of a country. In England, the
@@ -318,8 +317,9 @@ IDRiD, and the correspondingly smaller population graph, is a plausible but not
 demonstrated explanation of its performance gap (\cref{sec:bench}).
 Messidor-2 (France) and DDR (China) extend the geographic range of the evaluation,
 although no dataset provides per-image demographic annotations, so geographic diversity
-is only a proxy for population diversity. Grades~3 and~4 are the smallest classes in
-every dataset (from $3.9\%$ to $22.1\%$ combined), which motivates the class-weighted
+is only a proxy for population diversity. Grades~3 and~4 together are a minority in
+every dataset (from $3.9\%$ to $22.1\%$ combined), and they are the two smallest classes in
+every dataset except IDRiD, where Grade~1 is the rarest, which motivates the class-weighted
 CORAL loss of \cref{eq:coral} and the sensitivity analysis of \cref{tab:weights}: a
 system trained without correcting this imbalance would under-predict exactly the two
 safety-critical grades on which Sev-NR and PDR-NR are measured.
@@ -379,7 +379,7 @@ indirectly. Their main impact on DR grading has come through \emph{foundation mo
 networks pre-trained on very large unlabelled datasets and adapted to many tasks with
 little labelled data~\cite{bommasani2021foundation}. RETFound~\cite{zhou2023retfound},
 pre-trained by masked autoencoding on $1.6$ million retinal images, is the most prominent
-example in ophthalmology and currently gives the best grading accuracy on several
+example in ophthalmology and was reported to improve grading accuracy on several
 benchmarks.
 
 \subsection{Graph-Based and Population Approaches}

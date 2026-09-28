@@ -148,11 +148,15 @@ h^{(l)}_v &= \sigma\bigl(W^{(l)}\cdot\bigl[\,h^{(l-1)}_v \,\Vert\, h^{(l)}_{\mat
 \label{eq:sage-upd}
 \end{align}
 With $S=25$ samples per layer and $L=2$ layers, each prediction aggregates $S^L=625$
-neighbour embeddings at $O(S^L)$ cost, independent of the size of the cohort. This
-inductiveness is a deployment prerequisite: a new patient receives a prediction in
-$1.2$~ms without retraining the graph. Transductive alternatives such as
-GCN~\cite{kipf2017gcn} and the original GAT~\cite{velickovic2018gat} require the full
-graph at training time (\cref{sec:gnnvariants}). For a screening service, where the population grows continuously, this difference is decisive: an inductive model can be deployed once and used for years, whereas a transductive one would have to be retrained whenever new patients join the graph.
+neighbour embeddings at $O(S^L)$ cost, independent of the size of the cohort. In the
+$k$-nearest-neighbour graphs of this thesis ($k=15$), a node usually has fewer than $S$
+neighbours, in which case all of them are used; $625$ is therefore an upper bound. This
+inductiveness is a prerequisite for a screening service: the graph stage of a new
+patient's prediction takes $1.2$~ms (\cref{tab:latency}) without retraining the graph. GCN
+in its original formulation~\cite{kipf2017gcn} is transductive and requires the full
+graph at training time; GAT~\cite{velickovic2018gat} can be applied inductively (it was
+evaluated on an inductive benchmark in the original paper), but it attends over complete
+neighbourhoods, so its per-node cost grows with node degree (\cref{sec:gnnvariants}). For a screening service, where the population grows continuously, this difference is decisive: an inductive model can be deployed once and used for years, whereas a transductive one would have to be retrained whenever new patients join the graph.
 
 \subsection{Choosing a Graph Architecture for Screening}
 \label{sec:gnnvariants}
@@ -164,7 +168,8 @@ Act~\cite{euaiact2024}.
 
 \begin{table}[H]
 \centering
-\caption[GNN variant comparison]{GNN variant comparison; inductive GraphSAGE is the deployable choice.}
+\caption[GNN variant comparison]{GNN variant comparison; inductive models with sampled
+neighbourhoods suit a growing screening cohort.}
 \label{tab:gnn}
 \small
 \begin{tabular}{@{}lllP{3.3cm}c@{}}
@@ -172,14 +177,14 @@ Act~\cite{euaiact2024}.
 Model & Inference & Per-patient cost & Retraining for a new patient & Art.~13 \\
 \midrule
 GCN~\cite{kipf2017gcn} & Transductive & $O(|E|)$ per layer & Yes, full graph & Low \\
-GAT~\cite{velickovic2018gat} & Full graph & $O(|E|)$ per layer & Yes, full graph & Medium \\
+GAT~\cite{velickovic2018gat} & Inductive & $O(|\mathcal{N}(v)|)$ per layer & No & Medium \\
 GraphSAGE~\cite{hamilton2017graphsage} & Inductive & $O(S^L)$, constant & No ($1.2$~ms) & Low \\
 Dynamic GAT (DOTS) & Inductive & $O(S^L)$, constant & No ($1.2$~ms) & High \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-GraphSAGE inductiveness is a deployment prerequisite. The dynamic GAT layer of DOTS adds
+Inductiveness is therefore a prerequisite for screening. The dynamic GAT layer of DOTS adds
 per-edge attention weights $\alpha_{ij}$ that are recomputed at inference time
 (\cref{eq:att}); they give Article~13 transparency without any post-hoc attribution
 machinery.

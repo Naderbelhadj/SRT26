@@ -134,7 +134,7 @@ Mode and Effects Analysis (FMEA) of DOTS identifies six hazards, each with a sev
 \begingroup
 \small\setstretch{1.0}
 \setlength{\tabcolsep}{4pt}
-\begin{longtable}{@{}c l P{4.3cm} P{3.4cm} P{5.4cm}@{}}
+\begin{longtable}{@{}c l P{4.1cm} P{3.2cm} P{5.0cm}@{}}
 \caption[Complete FMEA across the six identified hazards]{Complete FMEA across the six identified hazards.}\label{tab:fmea}\\
 \toprule
 \# & Severity & Failure mode & Potential effect & Mitigation \\
@@ -226,7 +226,7 @@ Stage & Complexity & Latency per patient \\
 \midrule
 S1 -- Pre-processing & $O(W\times H)$ & 4.2~ms \\
 S2 -- CNN/ViT extraction & $O(1)$ per image & 6.8~ms \\
-S3 -- TDA (Rips filtration) & $O(n\log n)$, $n$ skeleton points & 18.0~ms (CPU, 16 cores) \\
+S3 -- TDA (Rips filtration) & Polynomial in the number $m$ of simplices ($O(m^3)$ worst case) on $n$ branch points & 18.0~ms (CPU, 16 cores) \\
 S4 -- Feature fusion & $O(1)$ & $<0.1$ ms \\
 S5 -- Graph construction (FAISS) & $O(k\log N)$ per query & 1.2~ms \\
 S6 -- GAT/GraphSAGE ($S=25$, $L=2$) & $O(S^L)=O(625)$ & 1.2~ms \\
@@ -293,7 +293,7 @@ not to require re-verification of Tier~2, provided the Tier~2 software version i
 unchanged; whether this holds for a given regulatory pathway would have to be confirmed
 during conformity assessment.
 This property is directly relevant to the ``locked'' versus ``continuously learning''
-distinction in FDA guidance~\cite{fda2017samd}.
+distinction discussed by the FDA~\cite{fda2017samd,fda2019aiml}.
 
 \begin{table}[H]
 \centering
@@ -349,6 +349,8 @@ thesis, is to turn the quantities already logged by DOTS into an evidence-ground
 narrative adapted to its reader, clinician or patient. \Cref{fig:llm} presents the
 architecture proposed for this purpose. It is organised in eight modules.
 
+\input{figures/fig_llm}
+
 \begin{enumerate}[leftmargin=1.6em,itemsep=2pt]
 \item \textbf{Input layer.} The fundus image and the clinical data of the patient (age,
 sex, diabetes duration, HbA1c, blood pressure, comorbidities).
@@ -379,7 +381,6 @@ explain it. For example, when the entropy of the prediction is high, the
 uncertainty-aware strategy would state explicitly that the case was ambiguous and why it
 was deferred, rather than presenting a confident narrative.
 
-\input{figures/fig_llm}
 
 Such an extension raises questions outside the scope of this thesis, chiefly how to
 prevent a fluent narrative from overriding or contradicting the CORAL ranking and the

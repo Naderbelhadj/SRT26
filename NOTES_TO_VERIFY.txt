@@ -109,3 +109,59 @@ Please confirm before submission
 4. "To our knowledge" statements (TOPORET, persistence descriptors as graph edges, CORAL
    in graph-based DR grading): keep only if the literature search is up to date at the
    submission date.
+
+Coherence / references / floats audit (second pass)
+====================================================
+Corrected in the text:
+- Ch.3: LightGBM-HC's 0.024 QWK gap was attributed to the PH features alone, but the
+  128-D set also drops radial FFT, LBP and most Gabor features -> no longer attributed to
+  topology alone (TDA contribution taken from the TOPORET ablation, +0.016).
+- Ch.3: SAMF-GB "2.1 ms" cannot include feature extraction (the PH stage alone takes
+  18 ms, Table 6.x) -> now stated as classifier time; "x40 faster" = classifier only.
+- Ch.3: hybrid model task harmonised (No DR vs any DR, not "referable"); pre-processing
+  no longer claimed identical across the three studies; UNSW-NB15 is a network-intrusion
+  dataset (not "endpoint detection"); citations added for KDD99/NSL-KDD, CICIDS2017,
+  UNSW-NB15.
+- Ch.2: the original GAT is not transductive (it was evaluated inductively on PPI) ->
+  table and text corrected; S=25 > k=15 explained (625 is an upper bound).
+- Ch.6: Vietoris-Rips persistent homology is not O(n log n) -> polynomial in simplices.
+- Ch.1: ICDR 4-2-1 rule stated correctly; referral intervals flagged as programme-specific;
+  duplicated fundus-photography paragraph removed; Grades 3-4 are not the rarest class in
+  IDRiD (Grade 1 is); "the only way" -> "widely seen as a way".
+- Ch.5: "two DOTS-specific parameters" contradicted Appendix B (label smoothing 0.05)
+  -> three; "variance within +/-0.003 QWK" contradicted Table D (SD up to 0.005);
+  H3b table values differ from Table 4.x/5.x ablations because the evaluation sets differ
+  -> explained; referral rule for Sev-NR stated (refer if P(Y>=3) > t, or deferred);
+  IDRiD multi-seed Sev-NR 2.1% (> 2%) now acknowledged.
+- The "kappa ~ 0.55-0.65" inter-grader figure had no source -> replaced by a cited
+  qualitative statement (Krause et al. 2018).
+- The 2% target is described as "informed by" national screening practice (Scanlon 2017
+  does not state a 2% threshold).
+- FDA "locked vs continuously learning" now cites the 2019 FDA AI/ML discussion paper
+  (the 2017 SaMD clinical-evaluation guidance does not discuss it).
+- Bibliography: all 147 entries checked (authors, venue, volume, pages, year); no
+  bibliographic error found besides the above. Kaggle dataset URLs added.
+- Figure 6.1 moved next to its first mention; FMEA table no longer overflows the margin.
+
+DATA QUESTIONS A JURY IS LIKELY TO ASK (cannot be fixed without your experimental logs)
+--------------------------------------------------------------------------------------
+A. Referral threshold t: the value of t in "refer if P(Y>=3) > t" is not reported
+   anywhere. Add it to Table B.1 and Appendix D (Parameter Selection Record). If referral
+   was instead "predicted grade >= 3", the confusion matrix (Table 5.x) implies a
+   Sev-NR of about 5%, not 1.9% -- please check.
+B. Tau sweep = test result: Table 5.x (validation sweep) gives coverage 93.8% and
+   Sev-NR 1.9% at tau = 0.73, exactly the held-out test values. Either confirm this is a
+   coincidence or state which data the sweep used; a jury may suspect test-set tuning.
+C. Test-set composition: the 10,000 held-out images (APTOS + EyePACS) have 52% Grade 0
+   and 6.4% Grade 4 (644 images). With at most 3,662 APTOS images this is not possible
+   by random sampling (EyePACS is 74% Grade 0, 1.4% Grade 4) -> the test set was
+   enriched. Describe the sampling scheme, and confirm these images were excluded from
+   the 5-fold EyePACS training folds.
+D. Confidence intervals: with ~1,256 severe test images, a binomial 95% CI around 1.9%
+   is about [1.2%, 2.7%], wider than the reported [1.4%, 2.4%]; and the coverage CI
+   [91.2%, 96.4%] on 10,000 images is much wider than a binomial one (+/-0.5 pp). State
+   how the bootstrap was done (images? folds?) so the widths can be defended.
+E. EfficientNet-B3 at 85 ms on an A100 (Table 3.x) versus RETFound ViT-L at 6.8 ms
+   (Table 6.x) looks inverted; state what each timing includes.
+F. GraphDR (Table 1.x, 2022) has no citation: say explicitly that it is a re-implemented
+   visual-similarity baseline rather than a published system, or cite its source.
