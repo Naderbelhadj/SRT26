@@ -145,10 +145,10 @@ $95\%$ confidence intervals and Wilcoxon tests. Under this protocol the invarian
 \emph{not} improve F1: on UNSW-NB15, $94.79\%$ $[94.5,\,95.1]$ with invariants against
 $94.91\%$ without ($\Delta=-0.12$~pp, $p=0.958$); on the synthetic benchmark, $90.77\%$
 against $92.35\%$ ($\Delta=-1.58$~pp, $p=0.752$). No difference is statistically
-significant. The contribution of the invariants is therefore \emph{interpretability}
-(each alert is linked to a named quantity, such as the source time-to-live on UNSW-NB15)
-and robustness to drift (under a controlled linear drift, adaptive bounds kept the false
-alarm rate below $8\%$, against $41\%$ for a static threshold), not accuracy. The
+significant. The contribution of the invariants is therefore not accuracy but interpretability and
+robustness to drift. Each alert is linked to a named quantity, such as the source
+time-to-live on UNSW-NB15, and under a controlled linear drift, adaptive bounds kept the
+false alarm rate below $8\%$, against $41\%$ for a static threshold. The
 extension explicitly revises the conference result, and this thesis adopts the revised
 conclusion. The same study also notes that its evaluation is transductive: the test
 nodes were present when the $k$-NN graph was built. The same invariants were also
@@ -253,10 +253,10 @@ than numerically.
 The first retinal study~\cite{belhadj2026hybrid}, extended in the book
 chapter~\cite{mezghich2026lnaitopo}, tests whether global structural descriptors add
 information to a deep CNN--GNN pipeline. An EfficientNet-B0 backbone extracts local visual
-features, a graph neural network models relations between image regions, and two families
+features, and a graph neural network models relations between image regions. Two families
 of global descriptors are added: curvature-based geometric descriptors of the vessels,
-computed from Gaussian-smoothed image derivatives, and persistent-homology invariants (the
-lifespans of $H_0$ and $H_1$ features of a Rips complex built on salient vascular points).
+computed from Gaussian-smoothed image derivatives, and persistent-homology invariants, the
+lifespans of the $H_0$ and $H_1$ features of a Rips complex built on salient vascular points.
 In the conference version~\cite{belhadj2026hybrid}, the graph module is a two-layer graph
 attention network over a $k$-nearest-neighbour graph ($k=8$) of $300$ superpixel
 centroids, complemented by a Transformer encoder on image patches; the streams are fused
@@ -590,13 +590,13 @@ LightGBM-HC & Messidor-2 & QWK $0.858$; 210-D hand-crafted, no topology & P4 \\
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
 This chapter established three findings. (F1)~Outside medicine, the graph template behaves
-well on anomaly-detection data (F1 between $94.4\%$ and $97.0\%$ in the conference study),
-but the ten-run re-evaluation shows that appending local invariants brings
-interpretability and robustness to drift rather than a significant accuracy gain; the
-transfer to retinal grading is therefore a design analogy, not a validated result.
-(F2)~On DR data, relational and topological contributions appear complementary: the full
-hybrid model gains $+7.0$~pp over the CNN baseline, more than the sum of the individual
-gains ($6.3$~pp) on a single split. (F3)~Global vascular structure carries discriminative
+well on anomaly-detection data (F1 between $94.4\%$ and $97.0\%$ in the conference study).
+The ten-run re-evaluation, however, shows that appending local invariants brings
+interpretability and robustness to drift rather than a significant accuracy gain, so the
+transfer to retinal grading is a design analogy, not a validated result. (F2)~On DR data,
+relational and topological contributions appear complementary: the full hybrid model gains
+$+7.0$~pp over the CNN baseline, more than the sum of the individual gains ($6.3$~pp), on a
+single split. (F3)~Global vascular structure carries discriminative
 information, as indicated by a deep hybrid model, by gradient boosting with SHAP
 attribution and by a family-level ablation on another dataset. As a practical by-product,
 SAMF-GB reaches a higher QWK than a GPU EfficientNet-B3 with a gradient-boosting classifier

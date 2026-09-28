@@ -465,3 +465,9 @@ v20 (floats separated by text everywhere; figure-text consistency):
   CORRECTED: Figure 3.2 text said accuracy "saturates" - it still rises (0.72 -> 0.89 over 10 epochs); only training curves, so no claim about overfitting.
 - Ch.4: Table 4.1 / S1 text / Figure 4.2 / S2-S4 text + Eq. 4.1 / Figure 4.3; leftover Norm() removed from z_i; Figure 4.1 text "five patient-aware splits" -> "five-fold cross-validation"; sentence on typed contracts added.
 - Figure 4.4 checked against text: consistent.
+
+v21 (clarity pass):
+- Sentences >= 48 words reduced from 28 to 14 (split without changing content: H1 robustness, fold-overlap correction, fellow-eye threat, Ch.3 findings/invariants/hybrid model, AI Act, Phase exit criteria, tiers, LLM criteria, C4, conclusion caveats).
+- Abstract rewritten in short sentences (same content + eta^2 of H2), still one page; Resume: H2 "faible mais robuste, eta^2 ~ 0,01".
+- 12 abbreviations added (CAM, CICIDS, CV, DRIVE, GELU, GUDHI, KDD, LIME, STARE, UID, UNSW-NB15, VGG); list sorted.
+- Checks: 0 errors, 0 undefined refs, 0 overfull > 2pt, 68/68 floats OK, 0 stacked floats, no duplicated sentence.

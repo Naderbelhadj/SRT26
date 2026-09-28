@@ -86,10 +86,10 @@ injury possible) under a conservative reading, pending formal classification by 
 notified body.
 
 Class~B requires documented unit verification. The TOPORET framework is organised in six
-stages with typed interfaces (\cref{tab:stages})~\cite{belhadj2026enase}: each stage has an
-explicit input and output contract (for example, stage S3 accepts the skeleton of a
-vessel map and returns a topological vector of fixed length), so that it can be tested,
-replaced and audited in isolation. \Cref{tab:unittests} gives the verification plan
+stages with typed interfaces (\cref{tab:stages})~\cite{belhadj2026enase}. Each stage has an
+explicit input and output contract, so that it can be tested, replaced and audited in
+isolation; for example, stage S3 accepts the skeleton of a vessel map and returns a
+topological vector of fixed length. \Cref{tab:unittests} gives the verification plan
 associated with each stage; it lists what must be checked at each boundary, and is a
 design document rather than a report of test results.
 
@@ -171,11 +171,11 @@ integration of the pipeline into the hospital information system.
 \section{EU AI Act: High-Risk Classification}
 \label{sec:aiact}
 
-Under Article~6(1) of the EU AI Act, an AI system that is itself a medical device, or a
-safety component of one, is high-risk when the device requires a third-party conformity
-assessment under the Medical Device Regulation (EU)~2017/745, listed in Annex~I of the
-Act; a DR grading system that informs referral decisions falls in this case, since
-Rule~11 of the Regulation places such software in Class~IIa or higher. This
+Under Article~6(1) of the EU AI Act, an AI system that is a medical device, or a safety
+component of one, is high-risk when the device requires a third-party conformity assessment
+under the Medical Device Regulation (EU)~2017/745, listed in Annex~I of the Act. A DR grading
+system that informs referral decisions falls in this case, since Rule~11 of the Regulation
+places such software in Class~IIa or higher. This
 triggers the requirements of Articles~9--15, assessed together with the CE marking of the
 device. The design includes mechanisms relevant to each of them; whether they are
 sufficient would be decided only by a formal conformity assessment.
@@ -272,11 +272,10 @@ evaluated research pipelines and a clinical product.
 \section{Three-Tier Deployment Architecture}
 \label{sec:tiers}
 
-\Cref{tab:tiers} describes a proposed three-tier deployment. Because Tier~2 (inference) is
-decoupled from Tier~3 (site-specific integration), a new Tier~3 implementation at a new
-site is intended not to require re-verification of Tier~2, provided the Tier~2 software
-version is unchanged; whether this holds for a given regulatory pathway would have to be
-confirmed during conformity assessment. This property is relevant to the ``locked''
+\Cref{tab:tiers} describes a proposed three-tier deployment. Tier~2 (inference) is decoupled from Tier~3 (site-specific integration). A new Tier~3
+implementation at a new site is therefore intended not to require re-verification of
+Tier~2, provided the Tier~2 software version is unchanged; whether this holds for a given
+regulatory pathway would have to be confirmed during conformity assessment. This property is relevant to the ``locked''
 versus ``continuously learning'' distinction discussed by the
 FDA~\cite{fda2017samd,fda2019aiml}.
 
@@ -364,10 +363,10 @@ Such an extension raises questions outside the scope of this thesis, chiefly how
 prevent a fluent narrative from overriding or contradicting the grade and its confidence.
 No LLM experiments were conducted; this subsection is a scoped direction for future work.
 Should such a layer be built, it would need its own evaluation criteria, distinct from
-those of the grading model: \emph{faithfulness} (every statement must be traceable to a
-logged quantity), \emph{consistency} (the narrative must never contradict the grade or the
-confidence), and \emph{usefulness}, measured with clinicians and patients in the reader
-study of Phase~2.
+those of the grading model. Every statement must be traceable to a logged quantity
+(faithfulness); the narrative must never contradict the grade or the confidence
+(consistency); and its usefulness must be measured with clinicians and patients in the
+reader study of Phase~2.
 
 \section{Ethical Considerations}
 \label{sec:ethics}
@@ -437,10 +436,10 @@ is, about $25{,}000$ screened images at a $5\%$ prevalence of severe disease.
 The dates of Phases~2--4 are indicative.
 
 Each phase would end with an explicit exit criterion, so that the next one starts only on
-evidence. Phase~2 would close when the upper bound of the Sev-NR interval lies below $2\%$
-and the FHIR adapter has passed integration testing at every site; Phase~3 when the
+evidence. Phase~2 would close when the upper bound of the Sev-NR interval lies below $2\%$ and the
+FHIR adapter has passed integration testing at every site. Phase~3 would close when the
 randomised trial shows that AI-assisted screening is not inferior to standard care for the
-referral of sight-threatening disease; and Phase~4 when a notified body accepts the
+referral of sight-threatening disease, and Phase~4 when a notified body accepts the
 technical documentation and the clinical evaluation.
 
 \begin{table}[H]

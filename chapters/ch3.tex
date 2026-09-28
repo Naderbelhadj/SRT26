@@ -424,26 +424,26 @@ in~\cite{belhadj2025plos}.}
 \end{table}
 
 \paragraph{H1 supported.}
-On the primary benchmark, $t_4=3.82$ ($p=0.019$, two-tailed),
-$d_z=1.71$, which measures the consistency of the gain across the folds rather than its
-size ($+0.04$ QWK), with a margin of $\times1.37$ over the pre-specified critical
-value; the test is also passed on Messidor-2 and APTOS~2019. The population graph is
-associated with a gain of $+0.04$ QWK and $+1.5$ percentage points of accuracy over
-independent classification. Because the inferential unit is the cross-validation fold,
+On the primary benchmark, $t_4=3.82$ ($p=0.019$, two-tailed), a margin of $\times1.37$ over
+the pre-specified critical value; the test is also passed on Messidor-2 and APTOS~2019.
+The population graph is associated with a gain of $+0.04$ QWK and $+1.5$ percentage points
+of accuracy over independent classification; the effect size $d_z=1.71$ measures the
+consistency of this gain across the folds rather than its size. Because the inferential unit is the cross-validation fold,
 each paired $t$-test has four degrees of freedom.
 
 \paragraph{Statistical robustness of H1.}
 Five folds are a small sample for a paired $t$-test, even though each fold contains
-thousands of images. Two supplementary analyses on the same five differences address this
-concern: (i)~a bootstrap interval ($10{,}000$ resamples of the fold differences) for the QWK
-gain, $95\%$ CI $[+0.021,\,+0.059]$, which excludes zero; (ii)~an exact sign-flip permutation
-test over all $2^5=32$ sign assignments, which gives $p_{\mathrm{perm}}=1/32\approx0.031$, the
-smallest value attainable with five folds, since the gain is positive in every fold. Both,
-like the $t$-test, treat the folds as independent. Cross-validation folds, however, share
-most of their training data, and the corrected resampled $t$-test of Nadeau and
-Bengio~\cite{nadeau2003inference}, which accounts for this overlap, gives smaller
-statistics: $t=2.45$ ($p=0.070$) on Kaggle DR, $2.63$ ($p=0.058$) on Messidor-2 and $2.25$
-($p=0.088$) on APTOS~2019, each below the pre-specified threshold. The three benchmarks are
+thousands of images. Two supplementary analyses on the same five differences address this concern. The
+first is a bootstrap interval ($10{,}000$ resamples of the fold differences) for the QWK
+gain: $95\%$ CI $[+0.021,\,+0.059]$, which excludes zero. The second is an exact sign-flip
+permutation test over all $2^5=32$ sign assignments: it gives $p_{\mathrm{perm}}=1/32\approx
+0.031$, the smallest value attainable with five folds, since the gain is positive in every
+fold. Both,
+like the $t$-test, treat the folds as independent. Cross-validation folds, however, share most of their training data. The corrected
+resampled $t$-test of Nadeau and Bengio~\cite{nadeau2003inference} accounts for this
+overlap and gives smaller statistics: $t=2.45$ ($p=0.070$) on Kaggle DR, $2.63$
+($p=0.058$) on Messidor-2 and $2.25$ ($p=0.088$) on APTOS~2019, each below the
+pre-specified threshold. The three benchmarks are
 independent datasets, so their corrected $p$-values can be combined by Fisher's method,
 which gives $p=0.015$. H1 is therefore supported by the pre-specified test and by the
 combined corrected evidence of the three benchmarks, but not by the corrected test on any
@@ -697,11 +697,10 @@ experiments.
 \paragraph{External validity.}
 Each benchmark is evaluated within itself; the results show that the gain is reproduced on
 three datasets from three continents, not that a model trained on one transfers to another
-without retraining. The folds are drawn at the image level. On Kaggle DR and Messidor-2,
-which contain both eyes of each patient, a test image can therefore be connected in the
-graph to the fellow eye of the same patient, whose grade is usually the same, and part of
-the gain attributed to the graph may come from this fellow-eye information, which a
-patient-level split would remove. The gain is also observed on APTOS~2019, which provides
+without retraining. The folds are drawn at the image level. Kaggle DR and Messidor-2 contain both eyes of each patient. A test image can therefore be
+connected in the graph to the fellow eye of the same patient, whose grade is usually the
+same. Part of the gain attributed to the graph may come from this fellow-eye information,
+which a patient-level split would remove. The gain is also observed on APTOS~2019, which provides
 one image per patient~\cite{belhadj2026dgts}, where this effect cannot occur. No dataset
 provides demographic information.
 
