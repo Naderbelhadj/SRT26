@@ -20,9 +20,11 @@ relational information, retinal vascular topology, and ordinal prediction with s
 abstention. The study began with the clinical context of the disease and the
 methodological tools needed for the three axes: graph neural networks, persistent
 homology, ordinal regression and calibrated abstention. We then evaluated the graph
-template outside medicine, on microservice and network-security graphs, and gathered first
-evidence, with three independent methods, that structural and topological features of the
-retina carry information complementary to deep visual features. These results led to
+template outside medicine, on microservice and network-security graphs -- where a ten-run
+re-evaluation showed that appended invariants bring interpretability rather than a
+significant accuracy gain -- and gathered first evidence, with three independent methods,
+that vascular and topological features of the retina carry information complementary to
+deep visual features. These results led to
 TOPORET, an inductive population graph whose edges combine visual and topological
 similarity, and then to DOTS, which adds a retinal foundation model, an ordinal head with
 guaranteed rank consistency and entropy-based abstention. Finally, the software of DOTS
@@ -57,9 +59,9 @@ would fail.
 
 The three research questions of the thesis can therefore be answered as follows. Does
 the relational context between patients carry information beyond that of a per-image
-classifier? In our experiments, yes, provided that the graph is built with a similarity
-that includes the topology of the vessels; a visual similarity alone did not give a
-significant gain. Is the global topology of the vascular network related to the severity
+classifier? In our experiments, yes, provided that the topology of the vessels
+enters the graph, through both its similarity and its node features; a visual similarity
+alone did not give a significant gain. Is the global topology of the vascular network related to the severity
 of the disease? It is strongly associated with it, with the largest effects for the
 loop-related features that plausibly reflect neovascularisation. Can a single architecture
 meet all the predefined criteria of accuracy, calibration and safety, and does any reduced
@@ -91,7 +93,9 @@ separately: every system in this thesis gained QWK long before it reached the sa
 target, and optimising the former does not guarantee the latter. Second, evaluating an
 architectural idea outside medicine, where data are plentiful and labels unambiguous, made
 the medical experiments easier to design and to interpret, although the transfer remains
-an analogy. Third, fixing hypotheses, tests and thresholds before running the experiments
+an analogy; it also showed, through a negative result, that appending interpretable
+descriptors does not by itself guarantee an accuracy gain, which is why the value of
+topology on retinal data was tested separately. Third, fixing hypotheses, tests and thresholds before running the experiments
 turned some results that could have been discarded, such as the non-significant
 visual-only graph, into informative findings. Fourth, taking regulatory-oriented principles
 into account from the start cost little and avoided late changes to the architecture.

@@ -165,3 +165,47 @@ E. EfficientNet-B3 at 85 ms on an A100 (Table 3.x) versus RETFound ViT-L at 6.8 
    (Table 6.x) looks inverted; state what each timing includes.
 F. GraphDR (Table 1.x, 2022) has no citation: say explicitly that it is a re-implemented
    visual-similarity baseline rather than a published system, or cite its source.
+
+Alignment with the uploaded publications (P2, B1, P3, P4) -- third pass
+=======================================================================
+Rewritten to match the papers:
+- Ch.3 Part A (P2 + B1): invariants are success rate, local centrality/normalised
+  degree and a delay invariant (not degree/clustering/betweenness/entropy); models are
+  a two-layer GCN (P2) and SGCN + MLP (B1), not GraphSAGE; datasets are synthetic
+  microservices + KDD99 + CICIDS2017 + UNSW-NB15 (4, not 6: NSL-KDD and SockShop/Istio
+  removed); Table 3.2 now reports P2's real values; B1's ten-run NULL result
+  (Delta F1 = -0.12 pp on UNSW-NB15, p = 0.958) is stated and adopted, with
+  interpretability/drift robustness as the benefit. "Hyperparameters transfer without
+  re-tuning" removed. Propagated to C1 (intro), Appendix A, Appendix B, Ch.5 limits,
+  General Conclusion.
+- Ch.3 LightGBM-HC (P4): Messidor-2 (1,748), 210-D descriptor WITHOUT persistent
+  homology, P4 hyperparameters, P4 ablation (wavelet -0.073, vesselness -0.057,
+  FFT -0.029, fractal -0.024), accuracy 89.7%, macro-F1 0.895. The comparison with
+  SAMF-GB (different datasets) and the "topology costs 0.024" claim are removed.
+- Ch.3 hybrid (P3): conference architecture described (GAT on k-NN graph of 300
+  superpixels + Transformer); the P3 ablation (GNN/Transformer decomposition) is
+  mentioned next to the B2 ablation of Table 3.3.
+- GraphDR: no year, described as a baseline built in the thesis; backbone harmonised
+  with Ch.4 (EfficientNet-B3); Ch.4 no longer says GraphDR and TOPORET differ only by
+  the similarity (TOPORET also has TDA node features), and the H1 success is no longer
+  attributed to the Wasserstein term alone.
+
+Problems INSIDE your papers that a jury reading them may notice
+---------------------------------------------------------------
+- P3: says "Kaggle Diabetic Retinopathy 224x224 (2019 data), 35,126 images"; that
+  Kaggle dataset is a resized APTOS 2019 (3,662 images), which is what the thesis says.
+  P3's abstract gives 89.34% five-class accuracy while its Table 2 gives 87.54%; P3's
+  Table 4 gives 90.00% binary test accuracy "with topology" versus 95.10% in Table 3.
+- P4: feature extraction ~45 ms/image (Table 2) vs ~120 ms/image (Table 8); inference
+  1.6 ms (Table 2) vs ~4 ms (Table 8). The thesis uses 1.6 ms.
+- P2 vs B1: B1 states explicitly that it revises P2 (null result). The thesis now
+  follows B1.
+
+Still NOT verifiable (papers not provided)
+------------------------------------------
+- P5 (PLOS ONE, TOPORET): earlier notes say P5 uses 6 TDA features, a threshold graph
+  (tau = 0.65, alpha = 0.6), APTOS instead of IDRiD, and reports F = 84.3 for the H2
+  ANOVA, while the thesis says 7 features, k-NN graph (alpha = 0.65, k = 15), IDRiD,
+  F = 1308.9. This is now the largest remaining risk: send P5 to align Ch.4.
+- B2 (LNAI extension of P3): source of Table 3.3 and the Messidor-2 92.1% result.
+- P1 (GNN-MSOrchest), P6 (ENASE), P7 (MIUA), J1 (DOTS), J2 (SAMF-GB).

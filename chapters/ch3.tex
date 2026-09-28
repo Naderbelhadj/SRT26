@@ -426,8 +426,10 @@ closer to neighbours with the same grade.
 \Cref{tab:ablation3} isolates the contribution of each component of TOPORET. The combined
 gain ($+0.040$) exceeds the sum of the individual contributions ($+0.016+0.010=+0.026$)
 by a factor of $1.54$: an interaction effect consistent with synergy between the dual
-graph and the TDA features. The Wasserstein component improves neighbourhood purity,
-which in turn amplifies the discriminative value of TDA through message passing.
+graph and the TDA features. A plausible mechanism is that the Wasserstein component
+improves neighbourhood purity (\cref{tab:graphstruct}), which in turn amplifies the
+discriminative value of TDA through message passing; the ablation does not isolate this
+mechanism.
 
 \begin{table}[H]
 \centering
@@ -515,10 +517,14 @@ TOPORET & 0.880 & 3.4\% & \cmark & \cmark & \xmark \\
 A critical finding of \cref{tab:h1} is that the visual-only graph (GraphDR) fails the
 pre-specified H1 threshold ($t_4=1.71$, $p=0.08$, n.s.), whereas the dual-metric graph
 passes it ($t_4=3.82$, $p=0.009$). This is not a marginal difference: it separates a
-non-significant gain from a very large confirmed effect. The Wasserstein topological
-component is therefore, in these experiments, the component that makes the H1 test pass;
-without it, the population graph provided no statistically significant benefit over
-per-image classification.
+non-significant gain from a very large effect. In these experiments, the topological
+information -- the Wasserstein term of the dual metric together with the TDA node
+features -- is therefore what makes the H1 test pass; without it, the population graph
+provided no statistically significant benefit over per-image classification. Neither the H1 test nor
+the ablation of \cref{tab:ablation3} isolates the Wasserstein term: the ablation shows that
+the full combination ($+0.040$) exceeds TDA features without a graph ($+0.016$) plus a
+visual graph without TDA ($+0.010$), but it contains no configuration with the dual metric
+and without TDA node features.
 
 \subsection{Biological Interpretation of the TDA Features}
 \label{sec:tda-bio}
@@ -577,8 +583,9 @@ together with the measure taken against it.
 The main risk is that the gain attributed to the graph comes from another difference
 between the systems, such as a different backbone or a different amount of tuning. All
 three systems share the same frozen EfficientNet-B3 features, the same folds and the same
-training budget, and the only difference between GraphDR and TOPORET is the similarity used
-to build the graph. The hyperparameters were selected on training folds only, and the
+training budget. GraphDR and TOPORET differ in two respects -- the similarity used to build
+the graph and the TDA node features of TOPORET -- and the ablation of \cref{tab:ablation3}
+separates these two contributions. The hyperparameters were selected on training folds only, and the
 decision thresholds of the tests were fixed before the experiments.
 
 \paragraph{External validity.}
@@ -604,9 +611,9 @@ with five folds, the permutation test cannot give a $p$-value below $1/32$.
 
 The pre-specified tests of TOPORET supported H1 ($t_4=3.82$, $p=0.009$, $d_z=1.71$, over
 five folds) and H2 as a statistical association ($F(4,4995)=1308.9$, $p<0.001$,
-$\eta^2=0.51$). The dual-similarity metric is a
-prerequisite rather than an option: the visual-only graph gives a non-significant gain,
-whereas the Wasserstein-augmented graph gives a very large one, with higher Grade-3
+$\eta^2=0.51$). Topological information is what made the graph
+useful in these experiments: the visual-only graph gives a non-significant gain, whereas
+the graph with the dual metric and TDA node features gives a very large one, with higher Grade-3
 neighbourhood purity and larger out-of-distribution gains. The remaining gap -- Sev-NR
 $=3.4\%$ against the $2\%$ threshold -- reflects the absence of a mechanism to defer
 ambiguous cases, which the next chapter adds in the DOTS system.

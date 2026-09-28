@@ -428,7 +428,7 @@ System & Year & Key method & QWK & L1 & L2 & L3 \\
 Gulshan et al.~\cite{gulshan2016jama} & 2016 & Deep CNN (Inception-v3) & n/a$^{\dagger}$ & \xmark & \xmark & \xmark \\
 EfficientNet-B3~\cite{tan2019efficientnet} & 2019 & Compound-scaled CNN & 0.840 & \xmark & \xmark & \xmark \\
 CABNet~\cite{he2021cabnet} & 2021 & Category attention, ResNet & 0.830 & \xmark & \xmark & \xmark \\
-GraphDR$^{\ddagger}$ & 2022 & ResNet $+$ GCN (visual graph) & 0.850 & partial & \xmark & \xmark \\
+GraphDR$^{\ddagger}$ (baseline) & -- & EfficientNet-B3 $+$ visual population graph & 0.850 & partial & \xmark & \xmark \\
 RETFound~\cite{zhou2023retfound} & 2023 & ViT-L/16, retinal pre-training & 0.920 & \xmark & \xmark & \xmark \\
 SAMF-GB~\cite{belhadj2026samfgb} & 2026 & LightGBM $+$ structural features & 0.882 & \xmark & partial & \xmark \\
 \midrule
@@ -437,8 +437,10 @@ DOTS~\cite{belhadj2026dots}$^{\star}$ & 2026 & RETFound $+$ CORAL $+$ GAT $+$ ab
 \bottomrule
 \end{tabular}
 \tabnote{$^{\dagger}$Gulshan et al.\ report AUC $=0.991$ for referable DR, not QWK.
-$^{\ddagger}$Visual-similarity GCN population graph; re-implemented in this thesis as
-the ablation control of \cref{ch:toporet}. $^{\star}$This thesis. QWK values other than
+$^{\ddagger}$Visual-similarity population graph on the same frozen EfficientNet-B3 features, built in this thesis as the ablation
+control of \cref{ch:toporet}, representative of graph-based DR approaches that use visual
+similarity only; it is not the reproduction of a specific published system, and its QWK is
+measured under the protocol of this thesis. $^{\star}$This thesis. QWK values other than
 those of the original papers are measured on Kaggle EyePACS under the protocol of
 \cref{ch:toporet}.}
 \end{table}
@@ -454,9 +456,10 @@ capture part of the missing information.
 
 \paragraph{Pattern 2: domain-matched pre-training is more productive than architectural
 refinement.}
-From EfficientNet-B3 to GraphDR (2019--2022), three years of architectural refinement
-gained $+1.0$~pp. RETFound (2023) gained $+7.0$~pp in a single step by changing the
-initialisation rather than the architecture.
+Architectural refinements of ImageNet-initialised networks changed the QWK only
+marginally in \cref{tab:sota} (CABNet $0.830$; the visual-graph baseline GraphDR, $0.850$,
+$+1.0$~pp over EfficientNet-B3), whereas RETFound (2023) gained $+8.0$~pp over
+EfficientNet-B3 by changing the initialisation rather than the architecture.
 
 \paragraph{Pattern 3: the safety--accuracy gap is persistent.}
 The best system without abstention (RETFound, QWK $=0.920$) still has Sev-NR

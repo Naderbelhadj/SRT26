@@ -53,7 +53,8 @@ are forced through, and the rate of severe cases that are not referred (Sev-NR) 
 above the $2\%$ evaluation target adopted in this thesis.
 \end{itemize}
 In the experiments of this thesis these limitations interact: the graph brings a
-significant gain only when its similarity includes topological information, topology
+significant gain only when topological information enters both its similarity and its
+node features, topology
 alone gives only a partial gain, and abstention reaches the Sev-NR target only when the
 underlying predictions are accurate enough. This motivates addressing them together, in a
 single architecture. \Cref{fig:map} summarises how each limitation leads to
@@ -115,7 +116,7 @@ independent replications. No held-out test set was used to choose the backbone, 
 parameters, the class weights, the abstention threshold, the final architecture or any
 other hyperparameter; each test set was consulted once, after these choices were frozen
 (\cref{sec:protocol}). The components were introduced progressively, from a generic
-graph template validated outside medicine, to TOPORET, and finally to DOTS, so that the
+graph template evaluated outside medicine, to TOPORET, and finally to DOTS, so that the
 contribution of each component can be measured separately. All experiments use public
 datasets, fixed random seeds and released code (\cref{app:repro}), so that they can be
 reproduced independently. Sample sizes are reported in retinal images: the $108{,}301$
@@ -136,8 +137,10 @@ The typed interfaces between stages make each stage testable on its own, a prope
 The main contributions of this thesis, supported by eleven publications (see the List of
 Publications), are the following.
 \begin{description}[leftmargin=2.2em,style=sameline,itemsep=3pt]
-\item[C1.] A GraphSAGE template with structural descriptors, validated on six
-heterogeneous graph benchmarks outside medicine
+\item[C1.] A graph template that augments node features with interpretable node-level
+descriptors, evaluated outside medicine on microservice orchestration and on four
+anomaly-detection datasets; its ten-run re-evaluation shows that the descriptors bring
+interpretability and robustness to drift rather than a significant accuracy gain
 \cite{belhadj2025icaart,belhadj2026invariants,belhadj2026lnaiinv}.
 \item[C2.] Evidence, obtained with three independent methods, that topological and
 structural features of the retina carry information that deep visual features miss,
@@ -193,7 +196,7 @@ they share.
 persistent homology, ordinal regression, calibration and abstention -- and the evaluation
 metrics.
 \item \textbf{Structural and Topological Priors for Retinal Image Grading}
-(\cref{ch:found}): validation of the graph template outside medicine, and first evidence
+(\cref{ch:found}): evaluation of the graph template outside medicine, and first evidence
 that structural features help DR grading.
 \item \textbf{Topology-Aware Population Graph for Diabetic Retinopathy Grading}
 (\cref{ch:toporet}): TOPORET, the dual-similarity population graph, and the tests of H1
