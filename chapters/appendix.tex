@@ -74,6 +74,8 @@ Dropout $p$ & 0.30 & 0.30 \\
 Class weights & $w_c=N/(C\,N_c)$ & $1.0, 2.5, 3.0, 8.0, 6.0$ \\
 Label smoothing $\epsilon$ & -- & 0.05 \\
 Abstention threshold $\tau_U$ & -- & 0.73~nats \\
+Severe-DR referral threshold $t$ & -- & \refT{} (validation; frozen before test) \\
+Referral rule & Not applicable & Refer if $\hat P(Y\geq3)>t$ or $H_i>\tau_U$ (\cref{eq:referral}) \\
 Optimiser & Adam, lr $10^{-3}\to10^{-5}$ (cosine) & Adam, lr $=10^{-3}$ \\
 Batch size & 64 & 32 \\
 Epochs & $\leq200$, early stopping (20) & 100 \\
@@ -239,7 +241,9 @@ under the Apache~2.0 licence at \url{https://github.com/Nader-BelHadj/plosene} u
 acceptance of the DOTS article~\cite{belhadj2026dots}. The release includes the source
 code of the six pipeline stages (\cref{tab:stages}), the 47-test verification suite
 (\cref{tab:unittests}), YAML configurations for the twelve principal experiments
-(\cref{app:results}) and a Dockerfile that pins every software dependency. The five
+(\cref{app:results}), a Dockerfile that pins every software dependency, and the
+evaluation manifest \texttt{test\_manifest.csv} listing the identifier, source dataset and
+grade of each image of the H3a test set (\cref{tab:testcomp}). The five
 datasets are public and must be obtained from their original distributors
 (\cref{app:datasets}).
 
@@ -380,6 +384,8 @@ the H3a test.
 test.
 \item \textbf{Class weights $\lambda_0,\ldots,\lambda_4$}: grid search on validation-fold Sev-NR and macro-F1
 (\cref{tab:weights}); fixed before the H3a test.
+\item \textbf{Referral threshold $t=\refT$}: selected on the validation folds together with
+$\tau_U$; fixed before the H3a test.
 \item \textbf{Abstention threshold $\tau_U=0.73$ nats}: smallest threshold meeting Sev-NR
 $<2\%$ with coverage above $90\%$ on the validation fold (\cref{tab:tau}); fixed before
 the H3a test.

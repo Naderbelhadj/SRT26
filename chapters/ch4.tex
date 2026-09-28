@@ -377,11 +377,35 @@ Kaggle EyePACS. Its grade distribution (\cref{tab:abstention}) is $52.3\%$, $10.
 $24.9\%$, $6.1\%$ and $6.4\%$ for Grades~0--4, so that $1{,}256$ images ($12.6\%$) are
 severe. A random sample of $10{,}000$ images from these two sources could contain at most
 about $7\%$ severe images (\cref{tab:datasets}), so the test set over-represents the severe
-grades. This enrichment increases the number of severe cases on which Sev-NR and PDR-NR
-are estimated, but it also means that prevalence-dependent metrics, such as QWK and
+grades. The test set was therefore deliberately enriched in severe grades; its
+composition by source dataset and grade is given in \cref{tab:testcomp}, and the exact list
+of test images (identifier, source dataset and grade) is recorded in an evaluation
+manifest, \texttt{test\_manifest.csv}, generated from the evaluation outputs and released
+with the code (\cref{app:repro}). This enrichment increases the number of severe cases on
+which Sev-NR and PDR-NR are estimated, but it also means that prevalence-dependent metrics, such as QWK and
 accuracy, describe this test set rather than a screening population with natural
 prevalence. The other benchmarks are used to measure performance across acquisition
 conditions.
+
+\begin{table}[H]
+\centering
+\caption[Composition of the H3a test set]{Composition of the $10{,}000$-image H3a test set by
+source dataset and true grade.}
+\label{tab:testcomp}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Source & Grade 0 & Grade 1 & Grade 2 & Grade 3 & Grade 4 & Total \\
+\midrule
+APTOS 2019 & \tcAa & \tcAb & \tcAc & \tcAd & \tcAe & \tcAn \\
+Kaggle EyePACS & \tcEa & \tcEb & \tcEc & \tcEd & \tcEe & \tcEn \\
+\midrule
+Total & 5{,}234 & 1{,}021 & 2{,}489 & 612 & 644 & 10{,}000 \\
+\bottomrule
+\end{tabular}
+\tabnote{The exact image list is recorded in the evaluation manifest
+\texttt{test\_manifest.csv}.}
+\end{table}
 
 Four reference systems are compared with DOTS: EfficientNet-B3~\cite{tan2019efficientnet},
 the most common convolutional baseline; RETFound~\cite{zhou2023retfound}, a leading
@@ -401,10 +425,16 @@ abstention threshold $\tau_U=0.73$~nats (\cref{tab:tau}). All were selected on t
 validation folds only.
 
 \paragraph{Referral rule.}
-Sev-NR counts a severe image (Grade~3 or~4) as \emph{referred} when it is either deferred
-by the abstention rule or referred by the rank-consistent rule ``refer if
-$\hat P(Y\geq 3)>t$'' of \cref{sec:coral}, whose threshold $t$ is chosen on validation
-data and kept fixed for the test sets. Because referral uses the cumulative probability
+The complete safety mechanism of DOTS is
+\begin{equation}
+\text{refer image } i \iff \hat P(Y_i\geq 3) > t \quad\text{or}\quad H_i>\tau_U ,
+\qquad t=\refT,\ \tau_U=0.73~\text{nats},
+\label{eq:referral}
+\end{equation}
+where the second condition is the entropy abstention of \cref{eq:ent} (the deferred image
+is referred to a human grader). Both thresholds were selected on the validation folds and
+frozen before the test evaluation. Sev-NR counts a severe image (Grade~3 or~4) as
+\emph{not referred} when neither condition holds. Because referral uses the cumulative probability
 rather than the most probable grade, the Sev-NR of a system is not the same quantity as
 the fraction of severe images whose \emph{predicted grade} is below~3 in a confusion
 matrix. The complete list of hyperparameters is
@@ -487,7 +517,8 @@ achieved at the point-estimate level, with moderate evidential strength
 (\cref{tab:claims}), rather than as definitive statistical confirmation of the safety
 criterion.
 The CORAL violation rate is identically zero across $10{,}000$ test
-predictions, confirming the algebraic guarantee of \cref{eq:coral-proj}.
+predictions, confirming the algebraic guarantee of \cref{eq:coral-proj}. For comparison, on the validation folds used to select $\tau_U$
+(\cref{tab:tau}), the coverage was \valCov{} and the Sev-NR \valSevNR{}.
 
 \begin{table}[H]
 \centering

@@ -276,3 +276,18 @@ Please check:
 - Dedication and acknowledgements say "Prof. Jaouher Fattahi"; P5 says "Dr. Jaouher
   Fattahi (Laval University)". Use his actual title.
 - Title page: jury names and defence date are still blank (chapters/title.tex).
+
+Seventh pass: reproducibility of the safety mechanism and of the test set
+=========================================================================
+Added to the thesis: the complete referral rule (Eq. 5.x: refer if P(Y>=3) > t or
+H_i > 0.73), t in Appendix B and in the parameter selection record, the dataset x grade
+composition table of the 10,000-image test set (Table 5.3), the evaluation manifest
+test_manifest.csv (Appendix D), the validation coverage/Sev-NR at tau = 0.73 next to the
+test values, and the justification of ANOVA for H2.
+These values are printed IN RED until you run:
+    python tools/verify_h3a.py predictions.csv --t <your t>
+which writes chapters/h3a_values.tex and test_manifest.csv from your real predictions.
+Commit both files and release test_manifest.csv with the code. Do not submit the thesis
+while any red value remains (LaTeX also warns "Missing value ...").
+If the test selection used a specific algorithm and seed, add one sentence stating them
+next to Table 5.3 (the script cannot recover them from the predictions).

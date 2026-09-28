@@ -1,23 +1,35 @@
-"""Recompute the H3a quantities that the manuscript cannot document without the raw data.
+"""Document the H3a evaluation from the real DOTS predictions and fill the thesis.
 
 Input: one CSV of DOTS predictions (validation AND test rows), with columns
     image_id, dataset, split, true_grade, p0, p1, p2, p3, p4
-where split is "val" or "test" and p0..p4 are the five grade probabilities.
+where split is "val" or "test", dataset is "APTOS" or "EyePACS" for the test rows,
+and p0..p4 are the five grade probabilities.
 
-Outputs, for the thesis:
-  1. the referral threshold t (read from your config, or chosen here on validation),
-  2. coverage and Sev-NR on VALIDATION at tau_U = 0.73 (to report next to the test values),
-  3. the dataset x grade composition of the 10,000-image test set,
-  4. Sev-NR and coverage 95% CIs by grade-stratified bootstrap (B = 10,000).
+Usage:
+    python tools/verify_h3a.py predictions.csv --t 0.XX [--seed 42]
 
-Usage: python verify_h3a.py predictions.csv [--t 0.5]
+--t is the Severe-DR referral threshold of YOUR CODE/CONFIG (refer if P(Y>=3) > t).
+Do not choose it here: it must be the value that produced the reported results.
+
+Outputs:
+  * chapters/h3a_values.tex  -- LaTeX macros read by the thesis (replaces the red
+                                placeholders): t, validation coverage and Sev-NR at
+                                tau_U = 0.73, and the dataset x grade test composition.
+  * test_manifest.csv        -- the exact list of the test images (image_id, dataset,
+                                true_grade), to release with the code.
+  * console report           -- test metrics recomputed with the same rule, and
+                                grade-stratified bootstrap 95% CIs, to compare with
+                                the values printed in the thesis.
 """
 import argparse
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 TAU_U = 0.73  # nats, abstention threshold used in the thesis
+ROOT = Path(__file__).resolve().parents[1]
+REPORTED = {"coverage": 0.938, "sev_nr": 0.019}  # test values printed in the thesis
 
 
 def entropy(p):
@@ -27,64 +39,79 @@ def entropy(p):
 def metrics(df, t):
     p = df[["p0", "p1", "p2", "p3", "p4"]].to_numpy()
     deferred = entropy(p) > TAU_U
-    p_ge3 = p[:, 3] + p[:, 4]
-    referred = deferred | (p_ge3 > t)
-    severe = df["true_grade"].to_numpy() >= 3
-    pdr = df["true_grade"].to_numpy() == 4
+    referred = deferred | ((p[:, 3] + p[:, 4]) > t)
+    g = df["true_grade"].to_numpy()
     return {
         "coverage": 1 - deferred.mean(),
-        "sev_nr": (~referred[severe]).mean(),
-        "pdr_nr": (~referred[pdr]).mean(),
-        "n_severe": int(severe.sum()),
+        "sev_nr": (~referred[g >= 3]).mean(),
+        "pdr_nr": (~referred[g == 4]).mean(),
+        "n_severe": int((g >= 3).sum()),
     }
 
 
-def choose_t_on_validation(val):
-    # Largest t keeping validation Sev-NR < 2% (fewest referrals); adapt if your code differs.
-    best = 0.0
-    for t in np.round(np.arange(0.05, 0.96, 0.01), 2):
-        if metrics(val, t)["sev_nr"] < 0.02:
-            best = t
-    return best
-
-
-def stratified_bootstrap(test, t, b=10_000, seed=42):
+def stratified_bootstrap(test, t, b, seed):
     rng = np.random.default_rng(seed)
     groups = [g for _, g in test.groupby("true_grade")]
     sev, cov = [], []
     for _ in range(b):
-        sample = pd.concat([g.sample(len(g), replace=True, random_state=rng.integers(1 << 31))
-                            for g in groups])
-        m = metrics(sample, t)
+        s = pd.concat([g.sample(len(g), replace=True, random_state=rng.integers(1 << 31))
+                       for g in groups])
+        m = metrics(s, t)
         sev.append(m["sev_nr"])
         cov.append(m["coverage"])
-    q = lambda x: np.percentile(x, [2.5, 97.5])
-    return q(sev), q(cov)
+    return np.percentile(sev, [2.5, 97.5]), np.percentile(cov, [2.5, 97.5])
+
+
+def pct(x):
+    return f"{100 * x:.1f}\\%"
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("csv")
-    ap.add_argument("--t", type=float, default=None, help="referral threshold from your config")
+    ap.add_argument("--t", type=float, required=True, help="referral threshold from your config")
     ap.add_argument("--b", type=int, default=10_000)
+    ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
     df = pd.read_csv(args.csv)
     val, test = df[df.split == "val"], df[df.split == "test"]
+    mv, mt = metrics(val, args.t), metrics(test, args.t)
 
-    t = args.t if args.t is not None else choose_t_on_validation(val)
-    print(f"1. Referral threshold t = {t}  ({'from config' if args.t is not None else 'chosen on validation'})")
+    comp = pd.crosstab(test["dataset"], test["true_grade"]).reindex(
+        index=["APTOS", "EyePACS"], columns=range(5), fill_value=0)
 
-    mv, mt = metrics(val, t), metrics(test, t)
-    print(f"2. tau_U=0.73  VALIDATION: coverage={mv['coverage']:.1%}  Sev-NR={mv['sev_nr']:.1%}")
-    print(f"               TEST      : coverage={mt['coverage']:.1%}  Sev-NR={mt['sev_nr']:.1%}  "
-          f"PDR-NR={mt['pdr_nr']:.1%}  (n_severe={mt['n_severe']})")
+    lines = ["% Generated by tools/verify_h3a.py from the DOTS predictions -- do not edit.",
+             f"\\renewcommand{{\\refT}}{{{args.t:.2f}}}",
+             f"\\renewcommand{{\\valCov}}{{{pct(mv['coverage'])}}}",
+             f"\\renewcommand{{\\valSevNR}}{{{pct(mv['sev_nr'])}}}"]
+    for ds, tag in (("APTOS", "A"), ("EyePACS", "E")):
+        for gr in range(5):
+            lines.append(f"\\renewcommand{{\\tc{tag}{'abcde'[gr]}}}{{{comp.loc[ds, gr]:,}}}"
+                         .replace(",", "{,}"))
+        lines.append(f"\\renewcommand{{\\tc{tag}n}}{{{comp.loc[ds].sum():,}}}".replace(",", "{,}"))
+    (ROOT / "chapters" / "h3a_values.tex").write_text("\n".join(lines) + "\n")
+    test[["image_id", "dataset", "true_grade"]].sort_values("image_id").to_csv(
+        ROOT / "test_manifest.csv", index=False)
 
-    print("3. Test composition (dataset x grade):")
-    print(pd.crosstab(test["dataset"], test["true_grade"], margins=True))
-
-    (s_lo, s_hi), (c_lo, c_hi) = stratified_bootstrap(test, t, b=args.b)
-    print(f"4. Bootstrap 95% CI: Sev-NR [{s_lo:.1%}, {s_hi:.1%}]  coverage [{c_lo:.1%}, {c_hi:.1%}]")
+    print(f"Referral threshold t = {args.t}")
+    print(f"VALIDATION (tau=0.73): coverage={mv['coverage']:.1%}  Sev-NR={mv['sev_nr']:.1%}")
+    print(f"TEST       (tau=0.73): coverage={mt['coverage']:.1%}  Sev-NR={mt['sev_nr']:.1%}  "
+          f"PDR-NR={mt['pdr_nr']:.1%}  n_severe={mt['n_severe']}  n={len(test)}")
+    print("Test composition (dataset x grade):\n", comp.assign(total=comp.sum(axis=1)))
+    (s_lo, s_hi), (c_lo, c_hi) = stratified_bootstrap(test, args.t, args.b, args.seed)
+    print(f"Bootstrap 95% CI: Sev-NR [{s_lo:.1%}, {s_hi:.1%}]  coverage [{c_lo:.1%}, {c_hi:.1%}]")
+    expected = [5234, 1021, 2489, 612, 644]  # grade totals printed in the thesis
+    if comp.sum(axis=0).tolist() != expected:
+        print(f"WARNING: test grade totals {comp.sum(axis=0).tolist()} differ from the thesis "
+              f"{expected}; check the CSV (split/dataset columns) before recompiling.")
+    for k, v in REPORTED.items():
+        if abs(mt[k] - v) > 0.001:
+            print(f"WARNING: recomputed test {k} = {mt[k]:.1%} differs from the thesis ({v:.1%}).")
+    if abs(mv["coverage"] - 0.938) < 0.0005 and abs(mv["sev_nr"] - 0.019) < 0.0005:
+        print("NOTE: validation values equal the test values to the printed precision; "
+              "say so explicitly in the thesis.")
+    print("Wrote chapters/h3a_values.tex and test_manifest.csv -- recompile the thesis.")
 
 
 if __name__ == "__main__":
