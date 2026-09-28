@@ -5,43 +5,43 @@
 
 \paragraph{Contexte.}
 La r\'etinopathie diab\'etique (RD) touche environ 103~millions d'adultes et reste une
-cause majeure de c\'ecit\'e \'evitable. Aucun des syst\`emes repr\'esentatifs \'etudi\'es ne traite, dans un m\^eme cadre
-\'evalu\'e, trois exigences~: L1, le contexte relationnel entre patients~; L2, la topologie vasculaire
-globale~; L3, un m\'ecanisme de s\'ecurit\'e (chaque image est class\'ee, et le taux de
-non-r\'ef\'erence des formes s\'ev\`eres, Sev-NR, reste sup\'erieur \`a la cible
-de $2\%$ adopt\'ee ici). La ``progression de la maladie'' est op\'erationnalis\'ee par la
-pr\'ediction transversale du grade ordinal ICDR \`a partir d'une seule image, et non par
-une pr\'ediction longitudinale.
+cause majeure de c\'ecit\'e \'evitable. Aucun des syst\`emes repr\'esentatifs \'etudi\'es ne
+traite trois exigences~: L1, le contexte relationnel entre patients~; L2, la topologie
+vasculaire globale~; L3, un classement orient\'e s\'ecurit\'e (l'ordre des grades et la
+non-r\'ef\'erence des formes s\'ev\`eres sont rarement mod\'elis\'es ou mesur\'es). La
+``progression de la maladie'' est op\'erationnalis\'ee par la pr\'ediction transversale du
+grade ordinal ICDR \`a partir d'une seule image, et non par une pr\'ediction longitudinale.
 
 \paragraph{M\'ethodes.}
-Cette th\`ese s'appuie sur un programme de onze publications et teste trois hypoth\`eses
-fix\'ees avant les exp\'eriences~: H1, un graphe de population inductif apporte une
-information au-del\`a de celle d'un classifieur image par image~; H2, l'homologie
-persistante $H_0/H_1$ du r\'eseau vasculaire r\'etinien est associ\'ee \`a la s\'ev\'erit\'e~;
-H3, la combinaison des trois axes atteint sept crit\`eres pr\'ed\'efinis (H3a) et, dans la
-famille d'architectures \'etudi\'ee, aucun sous-ensemble propre des axes ne les atteint
-(H3b). TOPORET construit un graphe de population \`a double similarit\'e, visuelle et
-topologique~; DOTS y ajoute RETFound, CORAL et l'abstention par entropie.
+Cette th\`ese s'appuie sur douze publications et teste trois hypoth\`eses~: H1, un graphe
+de population inductif apporte une information au-del\`a de celle d'un classifieur image
+par image~; H2, l'homologie persistante $H_0/H_1$ du r\'eseau vasculaire r\'etinien est
+associ\'ee \`a la s\'ev\'erit\'e~; H3, une cha\^ine ordinale atteint des crit\`eres de
+s\'ecurit\'e du d\'epistage (QWK $\geq0{,}80$, taux de non-r\'ef\'erence des formes
+s\'ev\`eres et prolif\'erantes $\leq2\,\%$, aucune confusion entre les grades~0 et~4) en
+interne et sur donn\'ees externes (H3a), alors qu'aucune de ses variantes r\'eduites ne
+les atteint (H3b). TOPORET construit un graphe de population \`a double similarit\'e,
+visuelle et topologique~; DGTS et DOTS sont entra\^in\'es sur un corpus fusionn\'e de
+$5\,859$ images.
 
 \paragraph{R\'esultats.}
 H1 est soutenue ($t_4=3{,}82$, $p=0{,}019$ bilat\'eral, sur cinq partitions par patient~;
 $+0{,}04$ de QWK). H2 est soutenue sous la forme d'une association statistique
-($F=84{,}3$, $p<0{,}001$). Sur cinq bases publiques
-($108\,301$ images r\'etiniennes au total, pas n\'ecessairement des patients
-ind\'ependants), DOTS atteint QWK $=0{,}951$, AUC $=0{,}988$, ECE $=0{,}040$,
-Sev-NR $=1{,}9\,\%$, une couverture de $93{,}8\,\%$ et $0\,\%$ de violations d'ordre. L'IC \`a
-$95\,\%$ du Sev-NR, $[1{,}2\,\%~;~2{,}8\,\%]$, d\'epasse la cible~: H3a n'est atteinte
-qu'en estimation ponctuelle. Dans la famille \'etudi\'ee, aucun des six sous-ensembles
-propres n'atteint Sev-NR $<2\,\%$ (H3b).
+($F=84{,}3$, $p<0{,}001$). DGTS atteint un QWK de $0{,}941$ en validation crois\'ee et de
+$0{,}925$ sans r\'eentra\^inement sur $35\,126$ images EyePACS. DOTS atteint un QWK de
+$0{,}953$ avec un Sev-NR de $0{,}97\,\%$ en interne, et un QWK de $0{,}931$ avec un Sev-NR de
+$1{,}4\,\%$ sur la base ind\'ependante Messidor-2, o\`u aucune des quatre variantes
+r\'eduites n'atteint $2\,\%$ (H3a et H3b soutenues en estimation ponctuelle). Avec
+$309$ images s\'ev\`eres, l'IC \`a $95\,\%$ du Sev-NR interne ($[0{,}2\,\%~;~2{,}8\,\%]$)
+d\'epasse encore $2\,\%$.
 
 \paragraph{Conclusions.}
-Sans revendiquer de validation clinique ni de conformit\'e r\'eglementaire, la th\`ese
-montre que, dans la famille d'architectures \'etudi\'ee, des m\'ecanismes
-relationnels, structurels/topologiques et ordinaux de s\'ecurit\'e peuvent \^etre
-int\'egr\'es dans un m\^eme syst\`eme aux performances favorables, orient\'ees s\'ecurit\'e,
-sur des bases publiques r\'etrospectives. Il s'agit d'une preuve
-calculatoire de niveau~1, non d'une s\'ecurit\'e clinique prospective~; une feuille de
-route pr\'evisionnelle vers la validation prospective est esquiss\'ee.
+Sans revendiquer de validation clinique ni de conformit\'e r\'eglementaire, et sans avoir
+r\'euni les trois axes dans un m\^eme mod\`ele, la th\`ese montre sur des donn\'ees
+publiques r\'etrospectives que les m\'ecanismes relationnels, topologiques et ordinaux de
+s\'ecurit\'e apportent chacun un b\'en\'efice mesurable et valid\'e sur donn\'ees
+externes. Il s'agit d'une preuve calculatoire de niveau~1~; une feuille de route vers un
+mod\`ele unifi\'e et une validation prospective est esquiss\'ee.
 
 \vspace{0.6em}
 \noindent\textbf{Mots-cl\'es~:} r\'etinopathie diab\'etique~; r\'eseaux de neurones sur

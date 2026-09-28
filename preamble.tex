@@ -176,19 +176,3 @@
 
 \graphicspath{{img/}{figures/}}
 
-% ------------------------------------------------------------------
-% Values that must come from the evaluation outputs (tools/verify_h3a.py).
-% Until the script is run, they are printed in red and a warning is issued.
-% ------------------------------------------------------------------
-\newcommand{\missingvalue}[1]{\textcolor{red}{\textbf{[#1]}}%
-  \PackageWarningNoLine{thesis}{Missing value #1: run tools/verify_h3a.py}}
-\newcommand{\refT}{\missingvalue{t}}
-\newcommand{\valCov}{\missingvalue{val.\ coverage}}
-\newcommand{\valSevNR}{\missingvalue{val.\ Sev-NR}}
-\newcommand{\tcAa}{\missingvalue{?}}\newcommand{\tcAb}{\missingvalue{?}}
-\newcommand{\tcAc}{\missingvalue{?}}\newcommand{\tcAd}{\missingvalue{?}}
-\newcommand{\tcAe}{\missingvalue{?}}\newcommand{\tcAn}{\missingvalue{?}}
-\newcommand{\tcEa}{\missingvalue{?}}\newcommand{\tcEb}{\missingvalue{?}}
-\newcommand{\tcEc}{\missingvalue{?}}\newcommand{\tcEd}{\missingvalue{?}}
-\newcommand{\tcEe}{\missingvalue{?}}\newcommand{\tcEn}{\missingvalue{?}}
-\InputIfFileExists{chapters/h3a_values}{}{}

@@ -1,38 +1,48 @@
-% Figure 4.1 --- complete DOTS architecture
+% Figure 5.1 --- the two systems of Chapter 5 and the gaps they address
 \begin{figure}[!tb]
 \centering
 \resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
   font=\footnotesize,
   box/.style={draw, rounded corners=2.5pt, align=center, inner sep=2pt,
-              minimum height=1.5cm, text width=1.7cm},
+              minimum height=1.55cm, text width=2.05cm},
   card/.style={draw, rounded corners=2pt, align=center, font=\scriptsize,
-               text width=4.3cm, inner sep=4pt},
+               text width=4.4cm, inner sep=4pt},
   arr/.style={-{Latex[length=2mm]}, thick}
 ]
-\def\dx{2.27}
-\node[box, fill=black!4, draw=black!55] (in) at (0,0) {\textbf{Input}\\fundus\\image $I_i$};
-\node[box, fill=black!6, draw=black!55] (s1) at (\dx,0) {\textbf{S1}\\CLAHE,\\skeleton};
-\node[box, fill=axisOf, draw=axisO] (s2) at (2*\dx,0) {\textbf{S2 (O)}\\RETFound\\ViT-L/16};
-\node[box, fill=fusionf, draw=fusion] (s4) at (3*\dx,0) {\textbf{S4}\\fusion\\1031-D};
-\node[box, fill=axisRf, draw=axisR] (s5) at (4*\dx,0) {\textbf{S5 (R)}\\graph $+$\\GAT, $k{=}15$};
-\node[box, fill=axisOf, draw=axisO] (s6) at (5*\dx,0) {\textbf{S6 (O)}\\CORAL $+$\\abstention};
-\node[box, fill=okf, draw=okgreen] (out) at (6*\dx,0) {\textbf{Output}\\grade 0--4\\or defer};
-\node[box, fill=axisSf, draw=axisS] (s3) at (2.5*\dx,-2.0) {\textbf{S3 (S)}\\$H_0/H_1$\\7-D TDA};
-\foreach \a/\b in {in/s1,s1/s2,s2/s4,s4/s5,s5/s6,s6/out} \draw[arr] (\a) -- (\b);
-\draw[arr, axisS] (s1.south) |- (s3.west);
-\draw[arr, axisS] (s3.east) -| (s4.south);
-\node[font=\scriptsize, text=black!65, align=center] at (5.5*\dx,-1.55) {defer if $H_i>0.73$ nats};
-
-\node[card, fill=axisRf, draw=axisR] at (0.9*\dx,-3.75) {\textbf{Axis R closes L1}\\neighbours share signal\\H1: $t_4=3.82$, $p=0.019$};
-\node[card, fill=axisSf, draw=axisS] at (3*\dx,-3.75) {\textbf{Axis S closes L2}\\vessel loops $H_0/H_1$\\H2: $F=84.3$, $p<0.001$};
-\node[card, fill=axisOf, draw=axisO] at (5.1*\dx,-3.75) {\textbf{Axis O closes L3}\\CORAL: $0\%$ rank violations\\Sev-NR $=1.9\%$ $[1.4,\,2.4]$};
+\def\dx{2.45}
+% shared input
+\node[box, fill=black!4, draw=black!55] (in) at (0,-1.4) {\textbf{Fused corpus}\\APTOS $+$\\KaggleDR-F1\\$5{,}859$ images};
+\node[box, fill=black!6, draw=black!55] (cl) at (\dx,-1.4) {\textbf{CLAHE}\\5-fold CV,\\seed 42};
+\draw[arr] (in) -- (cl);
+% DGTS row
+\node[font=\small\bfseries, text=axisR, anchor=west] at (1.9*\dx,1.3) {DGTS (relational $+$ topological)};
+\node[box, fill=axisRf, draw=axisR] (d1) at (2*\dx,0) {EfficientNet-B4\\(frozen)};
+\node[box, fill=axisRf, draw=axisR] (d2) at (3*\dx,0) {$k$-NN graph\\$k=8$ $+$\\GraphSAGE};
+\node[box, fill=axisSf, draw=axisS] (d3) at (4*\dx,0) {PH of neigh-\\bourhood\\(training only)};
+\node[box, fill=okf, draw=okgreen] (d4) at (5*\dx,0) {Softmax head\\focal loss};
+\node[box, fill=black!4, draw=black!55] (d5) at (6*\dx,0) {EyePACS\\zero-shot\\$35{,}126$};
+\foreach \a/\b in {d1/d2,d2/d3,d3/d4,d4/d5} \draw[arr] (\a) -- (\b);
+% DOTS row
+\node[font=\small\bfseries, text=axisO, anchor=west] at (1.9*\dx,-4.1) {DOTS (ordinal safety)};
+\node[box, fill=axisOf, draw=axisO] (o1) at (2*\dx,-2.8) {EfficientNet-B3\\(fine-tuned)};
+\node[box, fill=axisOf, draw=axisO] (o2) at (3*\dx,-2.8) {Projection\\$+$ FRE\\(residual MLP)};
+\node[box, fill=axisOf, draw=axisO] (o3) at (4*\dx,-2.8) {CORAL\\ordinal head};
+\node[box, fill=axisOf, draw=axisO] (o4) at (5*\dx,-2.8) {TTA $\times5$};
+\node[box, fill=black!4, draw=black!55] (o5) at (6*\dx,-2.8) {Messidor-2\\external\\$1{,}744$};
+\foreach \a/\b in {o1/o2,o2/o3,o3/o4,o4/o5} \draw[arr] (\a) -- (\b);
+\draw[arr] (cl.east) -- ++(0.25,0) |- (d1.west);
+\draw[arr] (cl.east) -- ++(0.25,0) |- (o1.west);
+% cards
+\node[card, fill=axisRf, draw=axisR] at (1.1*\dx,-5.35) {\textbf{Gap A: single-source training}\\fused corpus; external validation\\on unseen datasets};
+\node[card, fill=axisOf, draw=axisO] at (3.5*\dx,-5.35) {\textbf{Gap B: grade-agnostic loss}\\CORAL ordinal head;\\no Grade $0\leftrightarrow4$ confusion};
+\node[card, fill=okf, draw=okgreen] at (5.9*\dx,-5.35) {\textbf{Gap C: unmeasured safety}\\Sev-NR $0.97\%$ internal,\\$1.4\%$ on Messidor-2 (DOTS)};
 \end{tikzpicture}}
-\caption[Complete DOTS architecture]{Complete DOTS architecture, read left to right.
-Blue: Axis~R (graph, L1); green: Axis~S (topology, L2); purple: Axis~O (ordinal $+$
-safety, L3); grey and orange: shared pre-processing and fusion. The skeleton produced by
-S1 feeds the topological branch S3, whose 7-D vector is fused with the RETFound
-embedding in S4. The three cards name the limitation each axis closes and the result
-that confirms it.}
+\caption[The two systems of Chapter 5]{The two systems of this chapter, trained on the same
+fused corpus with the same pre-processing and folds. DGTS (top) extends the relational and
+topological axes of TOPORET with a population graph regularised by persistent homology of
+feature-space neighbourhoods; DOTS (bottom) addresses the safety axis with ordinal
+supervision. The cards name the residual gap of TOPORET that each part of the chapter
+addresses.}
 \label{fig:dots}
 \end{figure}

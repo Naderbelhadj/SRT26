@@ -3,11 +3,11 @@
 
 The previous chapter showed that current DR grading systems share three architectural
 limitations: they ignore the relations between patients, they ignore the global
-structure of the vascular tree, and they cannot decline to answer. Each limitation calls
-for a family of methods that is well established on its own but rarely used in medical
-image grading: graph neural networks for relations between patients, topological data
-analysis for the structure of the vessels, and ordinal prediction with calibrated
-abstention for safety-oriented decisions.
+structure of the vascular tree, and they are rarely trained or evaluated with the
+referral decision in mind. Each limitation calls for a family of methods that is well
+established on its own but rarely used in medical image grading: graph neural networks for
+relations between patients, topological data analysis for the structure of the vessels,
+and ordinal prediction with calibrated probabilities for safety-oriented decisions.
 
 This chapter introduces these methods and the tools used to evaluate them. We first
 recall the deep-learning models used for medical images, from convolutional networks to
@@ -83,8 +83,9 @@ the same image~\cite{chen2020simclr} or reconstructing masked image patches~\cit
 Models pre-trained in this way on very large and diverse data, and then adapted to many
 downstream tasks, are called \emph{foundation models}~\cite{bommasani2021foundation}.
 RETFound~\cite{zhou2023retfound} is a vision transformer pre-trained with masked
-autoencoding on $1.6$ million unlabelled retinal images; it is the backbone of the DOTS
-system of \cref{ch:dots}.
+autoencoding on $1.6$ million unlabelled retinal images. The systems of this thesis use
+ImageNet-pre-trained EfficientNet backbones; replacing them by a retinal foundation model
+is a direction for future work.
 
 \subsection{Training Deep Networks}
 
@@ -148,11 +149,12 @@ h^{(l)}_v &= \sigma\bigl(W^{(l)}\cdot\bigl[\,h^{(l-1)}_v \,\Vert\, h^{(l)}_{\mat
 \label{eq:sage-upd}
 \end{align}
 With $S=25$ samples per layer and $L=2$ layers, each prediction aggregates $S^L=625$
-neighbour embeddings at $O(S^L)$ cost, independent of the size of the cohort. In the
-$k$-nearest-neighbour graph of DOTS ($k=15$), a node usually has fewer than $S$
-neighbours, in which case all of them are used; $625$ is therefore an upper bound. This
-inductiveness is a prerequisite for a screening service: the graph stage of a new
-patient's prediction takes $1.2$~ms (\cref{tab:latency}) without retraining the graph. GCN
+neighbour embeddings at $O(S^L)$ cost, independent of the size of the cohort. In a
+$k$-nearest-neighbour graph with small $k$ (for example $k=8$ in DGTS, \cref{ch:dots}), a
+node usually has fewer than $S$ neighbours, in which case all of them are used; $625$ is
+therefore an upper bound. This inductiveness is a prerequisite for a screening service: a
+new patient is graded by retrieving its neighbours from the reference index, without
+retraining the graph (\cref{tab:latency}). GCN
 in its original formulation~\cite{kipf2017gcn} is transductive and requires the full
 graph at training time; GAT~\cite{velickovic2018gat} can be applied inductively (it was
 evaluated on an inductive benchmark in the original paper), but it attends over complete
@@ -169,7 +171,8 @@ Act~\cite{euaiact2024}.
 \begin{table}[H]
 \centering
 \caption[GNN variant comparison]{GNN variant comparison; inductive models with sampled
-neighbourhoods suit a growing screening cohort.}
+neighbourhoods suit a growing screening cohort. ``Art.~13'': support for per-prediction
+transparency.}
 \label{tab:gnn}
 \small
 \begin{tabular}{@{}lllP{3.3cm}c@{}}
@@ -178,16 +181,15 @@ Model & Inference & Per-patient cost & Retraining for a new patient & Art.~13 \\
 \midrule
 GCN~\cite{kipf2017gcn} & Transductive & $O(|E|)$ per layer & Yes, full graph & Low \\
 GAT~\cite{velickovic2018gat} & Inductive & $O(|\mathcal{N}(v)|)$ per layer & No & Medium \\
-GraphSAGE~\cite{hamilton2017graphsage} & Inductive & $O(S^L)$, constant & No ($1.2$~ms) & Low \\
-Dynamic GAT (DOTS) & Inductive & $O(S^L)$, constant & No ($1.2$~ms) & High \\
+GraphSAGE~\cite{hamilton2017graphsage} & Inductive & $O(S^L)$, constant & No & Medium$^{\ast}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Inductiveness is therefore a prerequisite for screening. The dynamic GAT layer of DOTS adds
-per-edge attention weights $\alpha_{ij}$ that are recomputed at inference time
-(\cref{eq:att}); they give Article~13 transparency without any post-hoc attribution
-machinery.
+Inductiveness is therefore a prerequisite for screening, which is why the graph-based
+systems of this thesis use GraphSAGE. ($^{\ast}$) Although GraphSAGE has no attention
+weights, the neighbours it aggregates are themselves an explanatory signal: DGTS returns
+the retrieved similar cases with their verified grades (\cref{sec:audit}).
 
 In practice, building a population graph requires three choices: the feature vector that
 describes each patient, the similarity used to compare two patients, and the number $k$
@@ -294,24 +296,21 @@ are the two most widely used deep ordinal methods with a rank-consistency proper
 
 \subsection{CORAL and CORN}
 
-CORAL~\cite{cao2020coral} guarantees rank consistency through an architectural
-constraint rather than a loss penalty. A shared weight vector $w\in\mathbb{R}^d$ and
-$K-1$ ordered biases $b_1\geq\cdots\geq b_{K-1}$ are used, the ordering being enforced by
-the projection
+CORAL~\cite{cao2020coral} obtains rank consistency from the architecture rather than from
+a loss penalty. All $K-1$ binary tasks share the same weight vector $w\in\mathbb{R}^d$ and
+differ only by their biases $b_1,\ldots,b_{K-1}$, so that
+$\hat P(Y\geq k)=\sigma(w^{\top}h+b_k)$. Cao et al.\ show that the biases minimising the
+CORAL loss are ordered, $b_1\geq\cdots\geq b_{K-1}$; the ordering can also be enforced
+explicitly during training by the projection
 \begin{equation}
 b_k \leftarrow \min(b_k,\, b_{k-1} - \epsilon), \qquad k=2,\ldots,K-1 .
 \label{eq:coral-proj}
 \end{equation}
-This guarantees $\hat P(Y\geq 1)\geq \hat P(Y\geq 2)\geq\cdots$ for every possible input
-and every weight configuration. It is an algebraic identity, not a statistical tendency:
-it yields $0\%$ rank violations at inference time. CORN~\cite{shi2023corn} obtains rank
+With ordered biases, $\hat P(Y\geq 1)\geq \hat P(Y\geq 2)\geq\cdots$ holds for every input:
+the cumulative probabilities cannot cross. CORN~\cite{shi2023corn} obtains rank
 consistency differently: its $K-1$ binary tasks estimate conditional probabilities
 $\hat P(Y>k\mid Y>k-1)$, and the cumulative probabilities are their chain-rule product,
-which cannot increase with $k$. The guarantee therefore depends on how the outputs are
-read at inference: if each binary output is used directly as $\hat P(Y>k)$, as in the
-ordinal variant of TOPORET that serves as the starting point of DOTS (\cref{ch:dots}),
-nothing prevents inconsistent rankings. CORAL's guarantee, in contrast, holds whatever
-the decoding.
+which cannot increase with $k$ provided the outputs are decoded in this way.
 
 \Cref{fig:coral} summarises the resulting architecture. The single shared weight vector
 is what makes the guarantee possible: all binary questions use the same score $s_i$, and
@@ -324,8 +323,9 @@ Rank consistency matters beyond elegance. A model that gives a higher probabilit
 meaning and cannot be explained to a grader. It also makes the choice of a referral rule
 ambiguous, since different thresholds on the cumulative probabilities can lead to
 contradictory decisions. With CORAL, the cumulative probabilities form a proper survival
-function over the grades, so that any referral rule of the form ``refer if
-$\hat P(Y\geq 3)>t$'' is well defined and monotone in $t$. In this thesis, such thresholds are always chosen on validation data and then kept fixed for the test sets.
+function over the grades, and the grade is decoded by counting the binary tasks whose
+probability exceeds $0.5$, $\hat y=\sum_k\mathbb{1}[\hat P(Y\geq k)>0.5]$; this is the
+decoding used by DOTS (\cref{ch:dots}).
 
 \section{Uncertainty, Calibration and Selective Prediction}
 \label{sec:calib}
@@ -339,8 +339,11 @@ confidence:
 \mathrm{ECE} = \sum_{m=1}^{M} \frac{|B_m|}{n}\,\bigl|\operatorname{acc}(B_m) - \operatorname{conf}(B_m)\bigr| .
 \label{eq:ece}
 \end{equation}
-DOTS reaches ECE $=0.040$: on average, its predicted confidence departs from empirical
-accuracy by $4.0$ percentage points.
+An ECE of $0.031$, the value reached by DOTS after temperature scaling (\cref{ch:dots}),
+means that on average its predicted confidence departs from empirical accuracy by about
+$3$ percentage points. Temperature scaling~\cite{guo2017calibration} divides the logits
+by a single scalar $T$ fitted on validation data, which changes the confidence but not the
+predicted grade.
 
 \subsection{Sources of Uncertainty}
 
@@ -353,7 +356,9 @@ epistemic uncertainty usually requires several predictions per input, obtained w
 Carlo dropout~\cite{gal2016dropout} or with an ensemble of independently trained
 networks~\cite{lakshminarayanan2017ensembles}. In medical decision making, reporting
 uncertainty is increasingly seen as a requirement rather than an
-option~\cite{begoli2019uncertainty}. The system developed in this thesis uses a single-pass estimate of predictive uncertainty, for reasons of latency discussed in \cref{sec:ch4-rationale}.
+option~\cite{begoli2019uncertainty}. The systems of this thesis report calibrated
+single-pass probabilities; ensemble or Monte Carlo estimates of epistemic uncertainty are
+not used.
 
 \subsection{Selective Prediction and Abstention}
 
@@ -365,8 +370,9 @@ prediction exceeds a threshold, the case is deferred to a human expert instead o
 graded automatically~\cite{geifman2017selective}. Two quantities then describe the system:
 the \emph{coverage}, i.e.\ the fraction of cases graded automatically, and the error rate on
 the cases that are graded. Lowering the threshold defers more cases and reduces errors, at
-the cost of more work for human graders. In this thesis the uncertainty is measured by the
-predictive entropy of the grade distribution (\cref{sec:abst}).
+the cost of more work for human graders. Selective prediction is not implemented in the
+systems of this thesis; building it on the calibrated probabilities of DOTS is one of the
+perspectives of the General Conclusion.
 
 \section{Explainability}
 \label{sec:xai}
@@ -385,10 +391,10 @@ reasoning. \emph{Intrinsic} explanations, by contrast, come from quantities that
 computes to make its decision, such as attention weights or interpretable features.
 Intrinsic signals are not automatically faithful either: attention weights, in
 particular, are not guaranteed to measure the causal importance of each input. The
-systems of this thesis rely on such intrinsic, attention-derived explanatory signals --
-the similar patients selected by the graph, their attention weights and the topological
-features of the vessel network (\cref{sec:audit}) -- whose faithfulness was not evaluated
-in this thesis.
+systems of this thesis rely on such intrinsic explanatory signals -- the similar
+patients retrieved by the graph with their verified grades, the topological features of
+the vessel network and calibrated probabilities (\cref{sec:audit}) -- whose faithfulness was
+not evaluated in this thesis.
 
 \section{Evaluation Metrics and Statistical Tests}
 \label{sec:metrics}
@@ -411,11 +417,10 @@ challenges.
 images, independently of the decision threshold~\cite{hanley1982auc}.
 \item[Expected calibration error (ECE)] Gap between confidence and accuracy
 (\cref{eq:ece}).
-\item[Severe-DR non-referral rate (Sev-NR)] Fraction of images of Grades~3--4 that are
-neither referred nor deferred to a human grader. It is the primary safety metric of this
-thesis, with a target of $2\%$.
-\item[PDR non-referral rate (PDR-NR)] The same quantity restricted to Grade~4.
-\item[Coverage] Fraction of images graded automatically (not deferred).
+\item[Severe-DR non-referral rate (Sev-NR)] Fraction of Grade~3 images predicted as No DR
+or Mild, grades that do not trigger referral (\cref{eq:nr}). It is the primary safety
+metric of this thesis, with a threshold of $2\%$.
+\item[PDR non-referral rate (PDR-NR)] The same quantity for Grade~4.
 \item[Rank violations] Fraction of predictions for which the cumulative probabilities
 $\hat P(Y\geq k)$ are not decreasing in $k$.
 \end{description}
@@ -425,9 +430,11 @@ $\hat P(Y\geq k)$ are not decreasing in $k$.
 Each hypothesis of the thesis is tested with a statistical procedure fixed before the
 experiment. A paired $t$-test compares two systems evaluated on the same cross-validation
 folds; a one-way analysis of variance (ANOVA), followed by Tukey's post-hoc
-test~\cite{tukey1949}, tests whether a feature differs across the five grades; and
-bootstrap resampling~\cite{efron1993bootstrap} gives confidence intervals for the safety
-metrics. Effect sizes are reported with Cohen's $d$ and $\eta^2$~\cite{cohen1988}. The
+test~\cite{tukey1949}, tests whether a feature differs across the five grades; Wilcoxon
+and McNemar tests compare paired folds or paired predictions; bootstrap
+resampling~\cite{efron1993bootstrap} gives confidence intervals for QWK; and exact
+Clopper--Pearson intervals are used for the non-referral rates, which are proportions of
+small counts. Effect sizes are reported with Cohen's $d$ and $\eta^2$~\cite{cohen1988}. The
 formal statements are collected in \cref{app:stats}.
 
 \section{Summary of the Methods}
@@ -438,10 +445,10 @@ rest of the thesis and which limitation it addresses.
 
 Two observations follow from \cref{tab:methods}. First, each limitation is addressed by a
 method with a formal property rather than by a heuristic: inductiveness for the graph,
-stability for persistence diagrams, rank consistency for CORAL and calibration for
-abstention. Second, the methods are complementary rather than redundant: the graph and the
-topology act on the representation of a patient, whereas the ordinal head and the
-abstention act on the decision taken from that representation. The experimental chapters
+stability for persistence diagrams, rank consistency for CORAL and calibration for the
+confidence scores. Second, the methods are complementary rather than redundant: the graph
+and the topology act on the representation of a patient, whereas the ordinal head and
+calibration act on the decision taken from that representation. The experimental chapters
 test whether this complementarity holds in practice.
 
 \begin{table}[H]
@@ -453,13 +460,11 @@ test whether this complementarity holds in practice.
 \toprule
 Method & Role in the thesis & Limitation & Chapters \\
 \midrule
-EfficientNet-B3, RETFound & Visual features of the fundus image & -- & 3--5 \\
-GraphSAGE & Inductive population graph; constant-time grading of a new patient & L1 & 3--5 \\
-Graph attention (GAT) & Patient-specific neighbour weights; attention-derived explanatory signal & L1 & 5 \\
-Persistent homology & Topological descriptors of the vessel skeleton & L2 & 3--5 \\
-CORN & Ordinal head of the TOPORET variant used as DOTS starting point & L3 & 5 \\
+EfficientNet-B3/B4 & Visual features of the fundus image & -- & 3--5 \\
+GraphSAGE & Inductive population graph; grading of a new patient without retraining & L1 & 3--5 \\
+Persistent homology & Descriptors of the vessel skeleton (TOPORET) and of feature-space neighbourhoods (DGTS) & L2 & 3--5 \\
 CORAL & Rank-consistent ordinal head of DOTS & L3 & 5 \\
-Entropy-based abstention & Deferral of ambiguous cases to a human grader & L3 & 5 \\
+Temperature scaling & Calibrated confidence scores & L3 & 5 \\
 QWK, AUC, ECE, Sev-NR & Accuracy, calibration and safety evaluation & -- & 3--5 \\
 \bottomrule
 \end{tabular}
@@ -469,10 +474,10 @@ QWK, AUC, ECE, Sev-NR & Accuracy, calibration and safety evaluation & -- & 3--5 
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
 This chapter introduced the methodological tools on which the thesis relies. Deep
-networks and retinal foundation models provide the visual features; the inductive
+convolutional networks provide the visual features; the inductive
 GraphSAGE model exploits the similarity between patients while grading a new patient in
 constant time; persistent homology turns the shape of the vessel skeleton into stable
-descriptors; CORAL guarantees consistent grade rankings, and entropy-based abstention
-defers uncertain cases. The metrics separate accuracy (QWK, AUC) from safety (Sev-NR,
-PDR-NR) and reliability (ECE, coverage, rank violations). The next chapter tests these tools
+descriptors; CORAL yields consistent grade rankings, and temperature scaling calibrates
+the confidence scores. The metrics separate accuracy (QWK, AUC) from safety (Sev-NR,
+PDR-NR) and reliability (ECE, rank violations). The next chapter tests these tools
 on simpler settings before applying them to the retina.

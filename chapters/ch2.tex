@@ -59,8 +59,8 @@ $d_h=256$ and $S=25$ sampled neighbours per layer. The prediction $\hat y_v$ of
 
 \Cref{tab:msorch} compares GNN-MSOrchest with a static-threshold baseline. The cascade
 isolation mechanism -- withholding load from nodes whose predictive entropy exceeds a
-threshold -- is the methodological precursor of the entropy abstention of DOTS
-(\cref{sec:abst}).
+threshold -- is the methodological precursor of the deferral of uncertain images discussed
+as future work in the General Conclusion.
 
 \begin{table}[H]
 \centering
@@ -157,9 +157,9 @@ hyperparameters are not. First, the representation of entities as nodes of a
 $k$-nearest-neighbour graph, with two rounds of neighbourhood aggregation. Second, the
 augmentation of learned features with a small vector of interpretable descriptors: the
 local invariants $I(v)$ become the topological feature vector $x_i^{\mathrm{TDA}}$ of
-\cref{eq:tda}, so that $z_i=[\,x_i^{\mathrm{CNN}}\Vert x_i^{\mathrm{TDA}}\,]$. Third, the
-isolation of uncertain nodes, which becomes entropy abstention at threshold $\tau_U$. The
-graph model itself follows GNN-MSOrchest (GraphSAGE, $L=2$, $d_h=256$, $S=25$), but every
+\cref{eq:tda}, so that $z_i=[\,x_i^{\mathrm{CNN}}\Vert x_i^{\mathrm{TDA}}\,]$. Third,
+recall-prioritised detection of rare events, which becomes class-balanced training for the
+rare severe grades. The graph model itself follows GNN-MSOrchest (GraphSAGE, $L=2$, $d_h=256$, $S=25$), but every
 hyperparameter used on retinal data was re-examined on DR data (\cref{tab:hparam}).
 
 \paragraph{From distributed systems to retinal grading.}
@@ -168,9 +168,10 @@ The correspondence between the objects of the two domains is set out in
 carry: a service becomes a patient, the service health vector becomes the CNN embedding
 of the fundus image, and the local invariants become the topological feature vector. The
 fourth row defines the edges. The last three rows define behaviour: a cascade failure
-becomes diagnostic uncertainty spreading across a grade boundary, load shedding becomes
-abstention, and recall-prioritised anomaly detection becomes the class-weighted CORAL
-loss that favours the rare severe grades. The table is a design checklist, not evidence:
+becomes diagnostic uncertainty spreading across a grade boundary, load shedding would
+become the deferral of uncertain images (not implemented in this thesis), and
+recall-prioritised anomaly detection becomes class-balanced training that favours the rare
+severe grades. The table is a design checklist, not evidence:
 each correspondence is an analogy whose value on retinal data is tested in
 \cref{ch:toporet,ch:dots}.
 
@@ -189,8 +190,8 @@ Service health vector (CPU, memory, latency, \ldots) & CNN embedding $x_i^{\math
 Local invariants $I(v)$ (success rate, centrality, delay) & Topological feature vector $x_i^{\mathrm{TDA}}$ (\cref{eq:tda}) \\
 Graph edge ($k$-NN or dependency) & Population-graph edge (dual similarity $S_{ij}$, \cref{eq:dualsim}) \\
 Cascade failure (overload propagating across services) & Diagnostic uncertainty propagating across a grade boundary \\
-Load-shedding decision (withhold traffic from an overloaded node) & Abstention (defer to a specialist when $H_i>\tau_U$) \\
-Recall-prioritised anomaly detection (rare-event sensitivity) & Class-weighted CORAL loss ($\lambda_3=8$, $\lambda_4=6$) \\
+Load-shedding decision (withhold traffic from an overloaded node) & Deferral of an uncertain image to a specialist (future work) \\
+Recall-prioritised anomaly detection (rare-event sensitivity) & Class-balanced sampling and loss for the rare severe grades \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -233,7 +234,8 @@ The three studies of Part~B use public datasets of \cref{sec:datasets}, but not 
 ones. The hybrid CNN--GNN model was developed on APTOS~2019 (distributed on Kaggle as
 ``Diabetic Retinopathy 224$\times$224 (2019 data)''), with binary screening (No DR versus
 any DR) as the main task. SAMF-GB was evaluated on the five-grade task on Kaggle EyePACS,
-the benchmark used for TOPORET and DOTS in the following chapters. LightGBM-HC was
+a benchmark used for TOPORET in \cref{ch:toporet} and for the external validation of
+DGTS in \cref{ch:dots}. LightGBM-HC was
 evaluated on the five-grade task on Messidor-2. The three studies therefore differ in
 data, task and input representation, and their results are compared qualitatively rather
 than numerically.
@@ -328,7 +330,7 @@ from~\cite{mezghich2026lnaitopo}.}
 \paragraph{Topological descriptors of the vessel skeleton.}
 The later systems of this thesis describe the vascular network with a small fixed vector
 of persistence statistics: a six-dimensional vector in TOPORET (\cref{eq:tda-toporet})
-and the seven-dimensional vector below in DOTS. For each fundus image, the vessel skeleton is extracted with CLAHE
+and the seven-dimensional vector below in SAMF-GB (\cref{sec:samfgb}). For each fundus image, the vessel skeleton is extracted with CLAHE
 pre-processing~\cite{zuiderveld1994clahe} followed by Zhang--Suen
 thinning~\cite{zhang1984thinning}. The branch points of the skeleton form a point cloud
 $P_i=\{p_1,\ldots,p_n\}\subset\mathbb{R}^2$. The Vietoris--Rips filtration is computed
@@ -420,11 +422,10 @@ Difference & $+0.042$ & not comparable & $\times 13$ cheaper & -- \\
 \end{tabular}
 \tabnote{The two timings do not cover the same scope. The $2.1$~ms of SAMF-GB is the
 inference time of the gradient-boosting model on pre-computed features; feature extraction
-is not included (the persistent-homology stage alone takes about $18$~ms per image on the
-same CPU, \cref{tab:latency}). The $85$~ms of EfficientNet-B3 was measured in the SAMF-GB
-study under its own protocol; it is not comparable with the $6.8$~ms of the frozen RETFound
-feature-extraction stage of DOTS (\cref{tab:latency}), which was measured under a
-different protocol.}
+is not included, and persistent homology is the most expensive stage of topological
+pipelines (\cref{tab:latency}). The $85$~ms of EfficientNet-B3 was measured in the SAMF-GB
+study under its own protocol and is not comparable with the inference times reported in
+\cref{ch:dots}.}
 \end{table}
 
 \subsection{LightGBM-HC: A Compact Hand-Crafted Pipeline on Messidor-2}
@@ -527,8 +528,8 @@ optimisation idiosyncrasies and by a single data split; a SHAP attribution
 family-level ablation (\cref{tab:lgbm-abl}) by interactions between the removed and
 retained families. The four studies also use different datasets, so their agreement is
 qualitative. The same principle -- breadth of independent evidence rather than depth
-within one experimental paradigm -- guides the evaluation of TOPORET and DOTS in the next
-chapters.
+within one experimental paradigm -- guides the evaluation of TOPORET, DGTS and DOTS in
+the next chapters.
 
 \section{Synthesis of the First Contributions}
 \label{sec:ch3-synthesis}

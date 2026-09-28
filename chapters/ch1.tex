@@ -233,7 +233,7 @@ concentrated at the boundaries between grades. Any grading system, human or auto
 must therefore be judged against this intrinsic ambiguity, and a system that can recognise
 ambiguous cases is valuable in itself. This is also why many programmes grade each image
 twice and send disagreements to a senior grader: the most useful help that an automated
-system can give is often to indicate which images deserve this second look. In the systems developed in this thesis, this role is played by the abstention mechanism of \cref{ch:dots}. Such a system does not replace the second grader; it directs the grader's attention to the cases that need it most.
+system can give is often to indicate which images deserve this second look. In the systems developed in this thesis, calibrated grade probabilities and the display of similar reference cases (\cref{ch:dots}) are first steps towards this role; an automatic deferral of ambiguous images is left to future work. Such a system does not replace the second grader; it directs the grader's attention to the cases that need it most.
 
 \section{Screening Programmes and Patient Safety}
 \label{sec:screening}
@@ -242,9 +242,9 @@ Population-scale screening is therefore a public-health imperative, and automate
 grading is widely seen as a way to make it more affordable at national
 scale~\cite{ting2017jama,abramoff2018pivotal}. The safety of such a programme is measured by how many
 sight-threatening cases it fails to refer. At a Severe-DR Non-Referral Rate of
-$4.3\%$ -- the value reached by EfficientNet-B3 in this thesis -- a programme screening
-$500{,}000$ patients a year, of whom about $25{,}000$ have severe disease, would leave
-a projected $1{,}075$ severe cases unreferred every year (the assumptions of this
+$5.8\%$ -- the value of an EfficientNet-B3 baseline on the external Messidor-2 dataset in
+this thesis -- a programme screening $500{,}000$ patients a year, of whom about $25{,}000$
+have severe disease, would leave a projected $1{,}450$ severe cases unreferred every year (the assumptions of this
 projection are stated in \cref{sec:impact}).
 
 Organised screening has been shown to work at the scale of a country. In England, the
@@ -273,20 +273,21 @@ the threshold, as the next section shows. The metrics are defined formally in
 \label{sec:datasets}\label{app:datasets}
 
 Research on automated DR grading relies on a small number of public datasets of colour
-fundus photographs graded on the ICDR scale. Five of them are used in this thesis
-(\cref{tab:datasets}). Kaggle EyePACS~\cite{kaggle2015eyepacs} was released for a public
-competition in 2015 and remains by far the largest. APTOS~2019~\cite{aptos2019} was
-released for a second competition by an Indian tele-ophthalmology society.
-IDRiD~\cite{porwal2018idrid,porwal2020idrid} was collected at a single Indian clinic and
-also provides lesion segmentations. Messidor-2~\cite{decenciere2014messidor} comes from
-French hospitals, and DDR~\cite{li2019ddr} from several Chinese hospitals. Other public
-datasets, such as DRIVE~\cite{staal2004drive} and STARE~\cite{hoover2000stare}, provide
-manual vessel segmentations rather than grades; they have been central to the development
-of vessel segmentation methods.
+fundus photographs graded on the ICDR scale. Four of them are used in the DR experiments
+of this thesis (\cref{tab:datasets}). Kaggle EyePACS~\cite{kaggle2015eyepacs} was released
+for a public competition in 2015 and remains by far the largest. APTOS~2019~\cite{aptos2019}
+was released for a second competition by an Indian tele-ophthalmology society.
+Messidor-2~\cite{decenciere2014messidor} comes from French hospitals. KaggleDR-F1 is a
+smaller Kaggle collection with five-grade labels, fused with APTOS~2019 in
+\cref{ch:dots}. Other public datasets, such as IDRiD~\cite{porwal2018idrid,porwal2020idrid},
+collected at a single Indian clinic with lesion segmentations, and DDR~\cite{li2019ddr},
+from several Chinese hospitals, are also used in the literature; DRIVE~\cite{staal2004drive}
+and STARE~\cite{hoover2000stare} provide manual vessel segmentations rather than grades and
+have been central to the development of vessel segmentation methods.
 
 \begin{table}[H]
 \centering
-\caption[Grade distribution (\%) across the five public benchmarks]{Grade distribution (\%) across the five public benchmarks.}
+\caption[Grade distribution (\%) of the public datasets used in this thesis]{Grade distribution (\%) of the public datasets used in this thesis.}
 \label{tab:datasets}
 \small
 \begin{tabular}{@{}lrccccc l@{}}
@@ -295,33 +296,29 @@ Dataset & $N$ & G0 & G1 & G2 & G3 & G4 & Origin \\
 \midrule
 Kaggle EyePACS~\cite{kaggle2015eyepacs} & 88{,}702 & 74.2 & 6.8 & 15.1 & 2.5 & 1.4 & USA, multi-site \\
 APTOS 2019~\cite{aptos2019} & 3{,}662 & 49.3 & 10.1 & 27.3 & 5.3 & 8.0 & India \\
-IDRiD~\cite{porwal2018idrid} & 516 & 40.9 & 5.0 & 32.0 & 8.5 & 13.6 & India, single site \\
 Messidor-2~\cite{decenciere2014messidor} & 1{,}748 & 53.5 & 15.0 & 23.0 & 5.0 & 3.5 & France \\
-DDR~\cite{li2019ddr} & 13{,}673 & 46.0 & 12.6 & 29.3 & 5.0 & 7.1 & China, multi-site \\
-\midrule
-Total (images) & 108{,}301 & & & & & & \\
+KaggleDR-F1 & 2{,}197 & 49.3 & 10.1 & 27.3 & 5.3 & 8.1 & Kaggle collection \\
 \bottomrule
 \end{tabular}
-\tabnote{$N$ counts retinal images, not independent patients: some benchmarks contain
-several images of the same patient (for example both eyes in Kaggle EyePACS).}
+\tabnote{$N$ counts retinal images, not independent patients: Kaggle EyePACS contains
+both eyes of each patient. The full Kaggle EyePACS release has $88{,}702$ images, of which the
+$35{,}126$ training images are used for the external validation of \cref{ch:dots}; $1{,}744$
+of the $1{,}748$ Messidor-2 images are gradable.}
 \end{table}
 
-The five benchmarks differ in ways relevant to the cross-dataset results of
-\cref{tab:bench}. Kaggle EyePACS, by far the largest, aggregates images from many US
-clinical sites and camera models; it is the most heterogeneous benchmark and the main
-training and validation source for the twelve experiments of \cref{app:results}. APTOS
-2019 and IDRiD come from Indian screening programmes but differ in scale ($3{,}662$
-versus $516$ images) and in multi-site versus single-site acquisition; the small size of
-IDRiD, and the correspondingly smaller population graph, is a plausible but not
-demonstrated explanation of its performance gap (\cref{sec:bench}).
-Messidor-2 (France) and DDR (China) extend the geographic range of the evaluation,
-although no dataset provides per-image demographic annotations, so geographic diversity
-is only a proxy for population diversity. Grades~3 and~4 together are a minority in
-every dataset (from $3.9\%$ to $22.1\%$ combined), and they are the two smallest classes in
-every dataset except IDRiD, where Grade~1 is the rarest, which motivates the class-weighted
-CORAL loss of \cref{eq:coral} and the sensitivity analysis of \cref{tab:weights}: a
-system trained without correcting this imbalance would under-predict exactly the two
-safety-critical grades on which Sev-NR and PDR-NR are measured.
+The datasets differ in ways relevant to the results of this thesis. Kaggle EyePACS, by
+far the largest, aggregates images from many US clinical sites and camera models; it is
+the most heterogeneous dataset and serves both as a TOPORET benchmark and as the external
+validation set of DGTS. APTOS~2019 comes from an Indian screening programme. Messidor-2
+(France, Topcon cameras) is a TOPORET benchmark and the external validation set of DOTS.
+KaggleDR-F1 has exactly $60\%$ of the APTOS~2019 count in every grade, so its distribution
+is identical to that of APTOS~2019; whether the two collections share images has not been
+verified, a point discussed in \cref{ch:dots}. No dataset provides per-image demographic
+annotations, so geographic diversity is only a proxy for population diversity. Grades~3
+and~4 together are a minority in every dataset (from $3.9\%$ to $13.4\%$ combined), which
+motivates class-balanced training: a system trained without correcting this imbalance would
+under-predict exactly the two safety-critical grades on which Sev-NR and PDR-NR are
+measured.
 
 \section{Automated Grading: A Review of Methods}
 \label{sec:decade}
@@ -408,64 +405,54 @@ AI~\cite{kelly2019challenges,liu2019comparison,rajpurkar2022ai}.
 \subsection{Synthesis}
 
 \Cref{tab:sota} summarises the systems most relevant to this thesis, from 2016 to 2026.
-Despite a $+8.0$~pp QWK gain from EfficientNet-B3 (2019, QWK $=0.840$) to RETFound (2023,
-QWK $=0.920$), both measured in this thesis on Kaggle EyePACS, none of them addresses the three structural limitations defined in the next
-section. Within the representative systems reviewed in this thesis, these three
-requirements are not addressed simultaneously by a single evaluated architecture.
+Accuracy has improved steadily, through better backbones, attention mechanisms and
+retinal pre-training, but the three structural limitations defined in the next section
+are not addressed together by any of the representative systems reviewed here.
 
 \begin{table}[H]
 \centering
-\caption[Comparison of DR grading systems, 2016--2026]{Comparison of DR grading systems, 2016--2026. ``Retinal pre-training'' means
-initialisation on retinal rather than natural images.}
+\caption[Comparison of DR grading systems, 2016--2026]{Comparison of DR grading systems,
+2016--2026, with respect to the limitations L1--L3 of \cref{sec:limits}.}
 \label{tab:sota}
 \small
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}l c P{5.0cm} c c c c@{}}
+\begin{tabular}{@{}l c P{5.2cm} c c c c@{}}
 \toprule
 System & Year & Key method & QWK & L1 & L2 & L3 \\
 \midrule
-Gulshan et al.~\cite{gulshan2016jama} & 2016 & Deep CNN (Inception-v3) & n/a$^{\dagger}$ & \xmark & \xmark & \xmark \\
-EfficientNet-B3~\cite{tan2019efficientnet} & 2019 & Compound-scaled CNN & 0.840 & \xmark & \xmark & \xmark \\
-CABNet~\cite{he2021cabnet} & 2021 & Category attention, ResNet & 0.830 & \xmark & \xmark & \xmark \\
-Visual population graph$^{\ddagger}$ & -- & EfficientNet-B3 $+$ visual population graph & 0.87 & partial & \xmark & \xmark \\
-RETFound~\cite{zhou2023retfound} & 2023 & ViT-L/16, retinal pre-training & 0.920 & \xmark & \xmark & \xmark \\
-SAMF-GB~\cite{belhadj2026samfgb} & 2026 & LightGBM $+$ structural features & 0.882 & \xmark & partial & \xmark \\
+Gulshan et al.~\cite{gulshan2016jama} & 2016 & Deep CNN (Inception-v3) & --$^{\dagger}$ & \xmark & \xmark & \xmark \\
+CABNet~\cite{he2021cabnet} & 2021 & Category attention on a CNN backbone & --$^{\dagger}$ & \xmark & \xmark & \xmark \\
+RETFound~\cite{zhou2023retfound} & 2023 & ViT-L/16, retinal pre-training & --$^{\dagger}$ & \xmark & \xmark & \xmark \\
+SAMF-GB~\cite{belhadj2026samfgb}$^{\star}$ & 2026 & LightGBM $+$ structural features & 0.882 & \xmark & partial & \xmark \\
 \midrule
-TOPORET~\cite{belhadj2025plos}$^{\star}$ & 2026 & EfficientNet $+$ TDA $+$ GraphSAGE & 0.88 & \cmark & \cmark & \xmark \\
-DOTS~\cite{belhadj2026dots}$^{\star}$ & 2026 & RETFound $+$ CORAL $+$ GAT $+$ abstention & \textbf{0.951} & \cmark & \cmark & \cmark \\
+TOPORET~\cite{belhadj2025plos}$^{\star}$ & 2026 & EfficientNet-B3 $+$ vessel TDA $+$ GraphSAGE & 0.88 & \cmark & \cmark & \xmark \\
+DGTS~\cite{belhadj2026dgts}$^{\star}$ & 2026 & EfficientNet-B4 $+$ GraphSAGE $+$ PH regulariser & 0.941 & \cmark & partial & partial \\
+DOTS~\cite{belhadj2026dots}$^{\star}$ & 2026 & EfficientNet-B3 $+$ FRE $+$ CORAL $+$ TTA & \textbf{0.953} & \xmark & \xmark & \cmark \\
 \bottomrule
 \end{tabular}
-\tabnote{$^{\dagger}$Gulshan et al.\ report AUC $=0.991$ for referable DR, not QWK.
-$^{\ddagger}$Ablation variant~(C) of TOPORET (\cref{tab:ablation3}): a population graph
-built from visual similarity only, on the same frozen EfficientNet-B3 features,
-representative of graph-based DR approaches that use visual similarity only; it is not the
-reproduction of a specific published system. $^{\star}$This thesis. The QWK of
-EfficientNet-B3 and RETFound is measured in this thesis on Kaggle EyePACS (\cref{tab:bench});
-the original papers do not report DR QWK. The CABNet value is indicative, obtained under a
-different protocol, and not directly comparable.}
+\tabnote{$^{\dagger}$Not reported in a form comparable to five-grade QWK (for example,
+Gulshan et al.\ report AUC $=0.991$ for referable DR). $^{\star}$This thesis; QWK on the
+dataset and protocol of the corresponding chapter (TOPORET: Kaggle DR; DGTS and DOTS:
+five-fold cross-validation on the fused APTOS~2019 $+$ KaggleDR-F1 corpus), not directly
+comparable across rows. ``Partial'': DGTS uses feature-space rather than vascular topology,
+and reports but does not meet the safety criterion on external data.}
 \end{table}
 
-Three patterns emerge from \cref{tab:sota}.
+Two patterns emerge from \cref{tab:sota}.
 
 \paragraph{Pattern 1: accuracy gains do not resolve structural limitations.}
-Between 2019 and 2023 QWK improved by $+8.0$~pp (EfficientNet-B3 $\to$ RETFound), yet
-L1, L2 and L3 remain unaddressed in each of the reviewed systems. This suggests that the
-limitations relate to architectural choices rather than to hyperparameters or dataset
-size, although indirect mechanisms (for example global attention in transformers) may
-capture part of the missing information.
+Better backbones and retinal pre-training improve accuracy, yet L1, L2 and L3 remain
+unaddressed in each of the reviewed external systems. This suggests that the limitations
+relate to architectural choices rather than to hyperparameters or dataset size, although
+indirect mechanisms (for example global attention in transformers) may capture part of
+the missing information.
 
-\paragraph{Pattern 2: domain-matched pre-training is more productive than architectural
-refinement.}
-Architectural refinements of ImageNet-initialised networks changed the QWK only
-modestly in \cref{tab:sota} (CABNet $0.830$; the visual population graph of
-\cref{ch:toporet}, $0.87$), whereas RETFound (2023) gained $+8.0$~pp over EfficientNet-B3
-by changing the initialisation rather than the architecture.
-
-\paragraph{Pattern 3: the safety--accuracy gap is persistent.}
-The best system without abstention (RETFound, QWK $=0.920$) still has Sev-NR
-$\approx 3.1\%$, $1.1$~pp above the $2\%$ target. The further $+3.1$~pp QWK from
-RETFound to DOTS reduces Sev-NR by $38.7\%$ in relative terms: the remaining performance
-gap is concentrated in the safety-critical regime. The experiments of this thesis suggest that closing this gap benefits from changes to the architecture itself, rather than only from larger networks or more training data.
+\paragraph{Pattern 2: safety is rarely measured.}
+None of the reviewed external systems reports the rate at which severe or proliferative
+cases would be left unreferred under a five-grade protocol, and few are validated on a
+dataset acquired in another country. A high QWK does not guarantee a low non-referral
+rate: in \cref{ch:dots}, DGTS generalises well in QWK but its Sev-NR on external data
+remains slightly above $2\%$.
 
 \section{Challenges and Limits of Current Systems}
 \label{sec:challenges}
@@ -494,46 +481,48 @@ A system satisfies L2 if and only if its feature map $\varphi : I \to \mathbb{R}
 only operations with bounded receptive fields (convolutions, local attention). Such a
 map does not explicitly compute global topological invariants of the vascular network.
 
-\paragraph{Definition 1.3 (L3 -- No Clinical Safety).}
-A system satisfies L3 if and only if it must produce a grade for every input, with no
-mechanism for deferring genuinely ambiguous cases to a human grader.
+\paragraph{Definition 1.3 (L3 -- No Safety-Oriented Grading).}
+A system satisfies L3 if and only if it is trained with an objective that ignores the
+order of the grades and is evaluated without measuring the non-referral of severe and
+proliferative cases against a safety threshold. Such a system cannot show that its errors
+fall on the safe side of the referral decision.
 
-\subsection{Why the Limitations Are Addressed Jointly}
+\subsection{Why the Limitations Are Studied Together}
 \label{sec:coupled}
 
 A natural question is whether each limitation could be resolved by adding one component
-to an existing state-of-the-art system. Within the systems evaluated in this thesis, the
-answer was no.
+to an existing system. The experiments of this thesis suggest that the answers interact.
 
 Resolving \textbf{L1 alone} (adding a population graph built from visual similarity only)
 improves QWK by $0.03$ (\cref{tab:ablation3}), but leaves the topology of the vessels
 unused; a dual metric that includes the Wasserstein distance between persistence diagrams
-requires the TDA pipeline of L2 to be already in place.
+requires the topological pipeline of L2 to be already in place.
 
-Resolving \textbf{L2 alone} (adding TDA features without the graph) yields $+0.02$ QWK
-(\cref{tab:ablation3}) -- useful, but partial. The largest gain ($+0.04$ QWK) is obtained
-only when topology is used both as a patient feature and inside the similarity of the
-graph of L1.
+Resolving \textbf{L2 alone} (adding topological features without the graph) yields $+0.02$
+QWK (\cref{tab:ablation3}) -- useful, but partial. The largest gain ($+0.04$ QWK) is
+obtained only when topology is used both as a patient feature and inside the similarity of
+the graph of L1, and the same complementarity is observed on a second corpus with DGTS
+(\cref{ch:dots}).
 
-Resolving \textbf{L3 alone} (the ordinal-safety axis without graph or topology, subset
-$\{O\}$ of \cref{tab:h3b}) leaves Sev-NR $=3.6\%$, still above the $2\%$ target: the
-underlying predictions are not accurate enough for a coverage-preserving abstention
-threshold to bring the error below the line.
+Resolving \textbf{L3} requires more than an ordinal loss: on Messidor-2, CORAL alone leaves
+Sev-NR at $3.7\%$, and only the complete DOTS pipeline reaches $1.4\%$ (\cref{tab:h3b}).
+Conversely, DGTS improves accuracy and generalisation through L1 and L2 but does not meet
+the safety threshold on external data.
 
 \looseness=-1
-This interdependence, observed in the experiments of this thesis, is the motivating
-rationale for the joint three-axis architecture evaluated in \cref{ch:toporet,ch:dots},
-and it is tested, within the investigated family, by H3b in \cref{ch:dots}.
+This interaction is the motivating rationale for studying the three limitations in one
+research programme (\cref{ch:toporet,ch:dots}). The thesis addresses them in complementary
+systems; combining all three in one model is left to future work.
 
 \subsection{Positioning of This Thesis}
 \label{sec:position}
 
-\Cref{tab:sota} makes the gap concrete: over seven years and $+8.0$~pp of QWK, none of
-the representative systems reviewed resolves all three structural limitations, and only
+\Cref{tab:sota} makes the gap concrete: over a decade of progress in accuracy, none of
+the representative external systems reviewed resolves the three structural limitations, and only
 graph-based systems address L1 even partially. This is consistent with the diagnosis of
 \cref{sec:limits}: independent per-image CNN or ViT classifiers do not represent
-inter-patient relations explicitly, do not compute global topological invariants, and have
-no built-in mechanism for declining to answer. This thesis therefore investigates
+inter-patient relations explicitly, do not compute global topological invariants, and are
+rarely trained or evaluated with the referral decision in mind. This thesis therefore investigates
 architectural additions rather than further scaling.
 
 \Cref{tab:limits} summarises the three limitations, their clinical consequence and the
@@ -544,13 +533,13 @@ component of this thesis that addresses each of them.
 \caption{The three structural limitations and how this thesis addresses them.}
 \label{tab:limits}
 \footnotesize
-\begin{tabular}{@{}l P{4.4cm} P{4.6cm} c@{}}
+\begin{tabular}{@{}P{3.2cm} P{4.2cm} P{4.8cm} c@{}}
 \toprule
-Limitation & Clinical consequence & Component of this thesis & Chapters \\
+Limitation & Clinical consequence & Component of this thesis & Ch. \\
 \midrule
-L1 -- no relational context & Similar patients never inform each other's grade & Inductive dual-similarity population graph & 3--5 \\
-L2 -- no vascular topology & Loss of vessel loops and rarefaction is not measured & Persistent homology of the vessel skeleton & 3--5 \\
-L3 -- no right to abstain & Ambiguous severe cases are sent home & CORAL ordinal head and entropy-based abstention & 5 \\
+L1 -- no relational context & Similar patients never inform each other's grade & Inductive population graphs (TOPORET, DGTS) & 3--5 \\
+L2 -- no vascular topology & Loss of vessel loops and rarefaction is not measured & Persistent homology of the vessel skeleton (TOPORET); topological regulariser (DGTS) & 3--5 \\
+L3 -- no safety-oriented grading & Severe cases may be graded as No DR or Mild, unmeasured & CORAL ordinal head and safety evaluation with external validation (DOTS) & 5 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -559,9 +548,10 @@ L3 -- no right to abstain & Ambiguous severe cases are sent home & CORAL ordinal
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
 \looseness=-1
-This chapter presented the clinical problem addressed in this thesis. Despite a rise in
-grading accuracy from a QWK of $0.840$ to $0.920$ in four years, the representative systems
-reviewed here still grade each image in isolation (L1), ignore the topology of the
-vascular tree (L2) and must answer even when the image is ambiguous (L3). Addressing these coupled limitations requires
-learning on graphs, topological data analysis and ordinal prediction with abstention,
-which the next chapter introduces together with the evaluation metrics of the thesis.
+This chapter presented the clinical problem addressed in this thesis. Despite a decade of
+gains in grading accuracy, the representative systems reviewed here still grade each image
+in isolation (L1), ignore the topology of the vascular tree (L2) and are rarely trained or
+evaluated with the referral of severe cases in mind (L3). Addressing these limitations
+requires learning on graphs, topological data analysis, ordinal prediction and calibrated
+safety evaluation, which the next chapter introduces together with the evaluation metrics
+of the thesis.

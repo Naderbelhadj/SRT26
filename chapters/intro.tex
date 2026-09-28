@@ -18,11 +18,11 @@ patient is therefore the most effective way to prevent blindness at the scale of
 Screening relies on fundus photographs graded by trained experts on the five-level
 International Clinical Diabetic Retinopathy (ICDR) scale~\cite{wilkinson2003icdr}. The number of images to grade now far
 exceeds the number of available graders, especially in countries where ophthalmologists
-are scarce. Automated grading by deep learning has become the natural answer, and in recent years
-backbones have steadily improved: in the reproductions of this thesis on Kaggle EyePACS,
-the quadratic weighted kappa (QWK) rises from $0.840$ with EfficientNet-B3
-(2019~\cite{tan2019efficientnet}) to $0.920$ with the retinal foundation model RETFound
-(2023~\cite{zhou2023retfound}).
+are scarce. Automated grading by deep learning has become the natural answer: convolutional
+networks now match human graders for the detection of referable
+DR~\cite{gulshan2016jama,ting2017jama}, and backbones have steadily improved, from
+compound-scaled networks such as EfficientNet~\cite{tan2019efficientnet} to retinal
+foundation models such as RETFound~\cite{zhou2023retfound}.
 
 \paragraph{Scope of the term ``disease progression''.}
 In this thesis, the term ``disease progression'' used in the title is operationalised
@@ -36,97 +36,92 @@ considered a future extension (see the General Conclusion).
 
 \section*{Problem Statement}
 
-Despite this progress, none of the representative systems reviewed here simultaneously
-addresses the three architectural requirements defined in this thesis within a single
-evaluated framework. Several systems have been validated prospectively and deployed
-(\cref{ch:sota}); the point made here is architectural, not a statement about the whole
-literature. Three limitations recur across the representative systems reviewed in this
-thesis:
+Despite this progress, none of the representative systems reviewed here addresses the
+three architectural requirements defined in this thesis. Several systems have been
+validated prospectively and deployed (\cref{ch:sota}); the point made here is
+architectural, not a statement about the whole literature. Three limitations recur across
+the representative systems reviewed in this thesis:
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
 \item \textbf{L1 -- no relational context.} Each fundus image is graded in isolation, so
 patients who look alike, and who often share a grade, never inform one another.
 \item \textbf{L2 -- no vascular topology.} Convolutional and transformer networks see local
 texture; they do not explicitly measure the global structure of the vascular tree (its connected
 components and loops), which changes as the disease progresses.
-\item \textbf{L3 -- no right to abstain.} Every image receives a grade, even when it is
-ambiguous. The most difficult cases, at the boundary between moderate and severe disease,
-are forced through, and the rate of severe cases that are not referred (Sev-NR) stays
-above the $2\%$ evaluation target adopted in this thesis.
+\item \textbf{L3 -- no safety-oriented grading.} The grades are treated as unordered
+categories, so that confusing No DR with proliferative DR costs the same as confusing two
+neighbouring grades, and the rate of severe cases that would not be referred (Sev-NR) is
+rarely measured, let alone on data from another country.
 \end{itemize}
 In the experiments of this thesis these limitations interact: the population graph and the
-topological features each bring a partial gain, their combination brings the largest one,
-and abstention reaches the Sev-NR target only when the
-underlying predictions are accurate enough. This motivates addressing them together, in a
-single architecture. \Cref{fig:map} summarises how each limitation leads to
-a research question, to a component of the proposed system and to the result obtained in
-this thesis.
+topological features each bring a partial gain and their combination brings the largest
+one, while a model that generalises well in accuracy does not necessarily meet a safety
+threshold. This motivates studying them together, in one research programme.
+\Cref{fig:map} summarises how each limitation leads to a research question, to a component
+of the proposed systems and to the result obtained in this thesis.
 
 \input{figures/fig_map}
 
 \section*{Objectives and Value of the Work}
 
-This thesis aims to design, retrospectively evaluate and engineer a DR grading system that
-addresses the three limitations within a single architecture. More precisely, it aims to:
+This thesis aims to design and retrospectively evaluate DR grading systems that address
+the three limitations, and to engineer them as verifiable software. More precisely, it
+aims to:
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
 \item build an inductive population graph that lets similar patients share information,
-while grading a new patient in constant time;
+while grading a new patient without retraining;
 \item describe the retinal vascular network with persistent-homology features and use them
 both as patient features and inside the similarity that builds the graph;
-\item add ordinal prediction with guaranteed rank consistency and a calibrated abstention
-mechanism, so that ambiguous cases are sent to a human grader;
-\item evaluate each step with statistical tests fixed before the experiments, and design the
-software according to regulatory-oriented principles relevant to medical-device software.
+\item add ordinal prediction and evaluate it against screening safety criteria, internally
+and on an external dataset;
+\item evaluate each step with explicit statistical tests, and design the software according
+to regulatory-oriented principles relevant to medical-device software.
 \end{itemize}
 
-The work thus pursues a double ambition. On the scientific side, it shows that the three
-limitations can be addressed together and that, within the investigated architectural
-family and experimental specification, the complete relational--structural--ordinal
-configuration is the only evaluated configuration whose Sev-NR point estimate falls below
-the $2\%$ target while satisfying the complete set of predefined criteria. On the
-practical side, it delivers a research system that reaches QWK $=0.951$ and a Sev-NR point
-estimate of $1.9\%$ (95\% CI $[1.2\%,\,2.8\%]$) on retrospective public benchmarks, with a
-measured latency of $31.4$~ms per image under the laboratory configuration of
-\cref{app:repro}, and whose architecture was designed according to regulatory-oriented
-principles relevant to IEC~62304, ISO~14971 and the EU AI Act. For an illustrative
-programme of $500{,}000$ patients a year, the lower non-referral rate corresponds to a
-\emph{projected} reduction of about $600$ potentially non-referred severe cases under the
-explicit prevalence assumptions of \cref{sec:impact}; this is a projection, not an observed
-clinical outcome.
+The work thus pursues a double ambition. On the scientific side, it shows that relational
+and topological information improve DR grading on two different corpora, and that
+ordinal supervision combined with multi-source training and test-time augmentation meets
+screening safety thresholds where none of its reduced variants does. On the practical
+side, it delivers two research systems trained on $5{,}859$ public images: DGTS, which
+reaches a QWK of $0.925$ without retraining on $35{,}126$ EyePACS images, and DOTS, which
+reaches a QWK of $0.931$ and a Sev-NR of $1.4\%$ on the independent Messidor-2 dataset,
+with an inference time of about $75$~ms per image on a single T4 GPU. For an illustrative
+programme of $500{,}000$ patients a year, the lower non-referral rate of DOTS corresponds
+to a \emph{projected} reduction of about $1{,}100$ non-referred severe cases compared with a
+CNN baseline, under the explicit prevalence assumptions of \cref{sec:impact}; this is a
+projection, not an observed clinical outcome.
 
 The central claim of the thesis is deliberately bounded. The thesis does not claim that
-DOTS is clinically validated or regulatory-ready; it demonstrates that, within the
-investigated architectural family, relational, structural/topological and ordinal-safety
-mechanisms can be integrated into a single system that achieves favourable
-safety-oriented performance on retrospective public benchmarks.
+its systems are clinically validated or regulatory-ready, nor that the three axes have
+been combined in a single model; it demonstrates, on retrospective public data, that
+relational, topological and ordinal-safety mechanisms each bring a measurable and
+externally validated benefit to DR grading.
 
 \section*{Research Methodology}
 
 The work follows a hypothesis-driven methodology. Three research hypotheses structure the
 thesis: \textbf{H1}, a population graph adds information beyond that captured by a per-image
 classifier; \textbf{H2}, persistent-homology features of the vessel network are
-statistically associated with disease severity; and \textbf{H3}, the combination of the
-three axes meets seven predefined clinical-oriented criteria (H3a) and, within the
-investigated architectural family, no proper subset of the axes does (H3b). For each hypothesis, the statistical test, the decision threshold and the
+statistically associated with disease severity; and \textbf{H3}, ordinal supervision
+within the DOTS pipeline meets screening safety criteria internally and on an external
+dataset (H3a), whereas none of the reduced variants of its ablation does on the external
+dataset (H3b). For H1 and H2 the statistical test, the decision threshold and the
 effect-size measure were fixed before the corresponding experiment was run, so that a
-negative result could not be explained away afterwards; the falsification criteria are
-listed in \cref{tab:falsif}. Because the inferential unit of H1 is the cross-validation
-fold, its paired $t$-test has only four degrees of freedom; bootstrap and exact permutation
-analyses are therefore reported as complementary robustness checks rather than as
-independent replications. No held-out test set was used to choose the backbone, the graph
-parameters, the class weights, the abstention threshold, the final architecture or any
-other hyperparameter; each test set was consulted once, after these choices were frozen
-(\cref{sec:protocol}). The components were introduced progressively, from a generic
-graph template evaluated outside medicine, to TOPORET, and finally to DOTS, so that the
-contribution of each component can be measured separately. All experiments use public
-datasets, fixed random seeds and released code (\cref{app:repro}), so that they can be
-reproduced independently. Sample sizes are reported in retinal images: the $108{,}301$
-images of the five benchmarks (\cref{tab:datasets}) are not necessarily independent
-patients, so the results are image-level and patient-level generalisation is interpreted
-with caution.
+negative result could not be explained away afterwards; the H3 criteria are adopted from
+autonomous DR screening practice. The falsification criteria are listed in
+\cref{tab:falsif}. Because the inferential unit of H1 is the data split, its paired
+$t$-test has only four degrees of freedom; bootstrap and exact permutation analyses are
+therefore reported as complementary robustness checks rather than as independent
+replications. External datasets were used only for evaluation, after the models were
+trained (\cref{sec:protocol}). The components were introduced progressively, from a generic
+graph template evaluated outside medicine, to TOPORET, and finally to DGTS and DOTS, so
+that the contribution of each component can be measured separately. All experiments use
+public datasets and fixed random seeds (\cref{app:repro}), so that they can be reproduced
+independently. Sample sizes are reported in retinal images, which are not necessarily
+independent patients, so the results are image-level and patient-level generalisation is
+interpreted with caution.
 
-\Cref{fig:pipe} gives an overview of the system obtained at the end of this process. Each
-fundus image goes through six typed stages, and each stage belongs to one of the three
-axes that address the limitations L1--L3.
+\Cref{fig:pipe} gives an overview of the six-stage framework on which the systems are
+built. Each stage belongs to one of the three axes that address the limitations L1--L3.
 
 \input{figures/fig_pipeline}
 
@@ -134,7 +129,7 @@ The typed interfaces between stages make each stage testable on its own, a prope
 
 \section*{Contributions}
 
-The main contributions of this thesis, supported by eleven publications (see the List of
+The main contributions of this thesis, supported by twelve publications (see the List of
 Publications), are the following.
 \begin{description}[leftmargin=2.2em,style=sameline,itemsep=3pt]
 \item[C1.] A graph template that augments node features with interpretable node-level
@@ -149,15 +144,15 @@ its cost \cite{belhadj2026hybrid,mezghich2026lnaitopo,belhadj2026icpram,belhadj2
 \item[C3.] TOPORET, an inductive dual-similarity population graph for DR grading
 introduced in this thesis, with pre-specified tests supporting the contribution of the
 graph (H1) and the association of the topological features with severity (H2) \cite{belhadj2025plos,belhadj2026enase,belhadj2026miua}.
-\item[C4.] DOTS, a three-axis DR grading architecture combining relational,
-structural/topological and ordinal-safety mechanisms. On the evaluated retrospective
-benchmarks, DOTS reaches the predefined seven-criterion target at the point-estimate level
-(H3a), while exhaustive evaluation of the six proper subsets shows that none reaches the
-complete criterion set within the investigated architectural family (H3b)
-\cite{belhadj2026dots}.
-\item[C5.] A software architecture with typed, unit-tested stages, an audit trail and
-attention-derived explanatory signals, together with a regulatory-oriented mapping of its
-design to IEC~62304, ISO~14971 and the EU AI Act (not a conformity assessment).
+\item[C4.] Two systems trained on a fused multi-source corpus: DGTS, a population graph
+regularised by persistent homology of feature-space neighbourhoods and validated without
+retraining on $35{,}126$ EyePACS images \cite{belhadj2026dgts}; and DOTS, an ordinal
+safety-oriented grading pipeline that meets screening safety criteria at the point
+estimate internally and on Messidor-2, while none of its reduced variants does externally
+(H3) \cite{belhadj2026dots}.
+\item[C5.] A software architecture with six typed, testable stages, a risk analysis and an
+audit-trail design, together with a regulatory-oriented mapping to IEC~62304, ISO~14971 and
+the EU AI Act (not a conformity assessment).
 \end{description}
 
 \Cref{tab:pubmap} shows which publications support each chapter of the thesis.
@@ -175,13 +170,13 @@ Ch. & Content & Contribution & Publications \\
 2 & Graphs, topology, ordinal prediction, metrics & Methodological background & -- \\
 3 & Graph template outside medicine; structural evidence on DR & C1, C2 & P1--P4, B1, B2, J2 \\
 4 & TOPORET population graph; tests of H1 and H2 & C3 & J3, P5, P6 \\
-5 & DOTS system; seven criteria (H3a) and scoped necessity (H3b) & C4 & J1 \\
+5 & DGTS and DOTS; safety criteria (H3) & C4 & J1, J4 \\
 6 & Software architecture and regulatory-oriented design & C5 & P5 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-All eleven publications are listed, with the contribution of each author, after the Bibliography.
+All twelve publications are listed, with the contribution of each author, after the Bibliography.
 
 \section*{Thesis Organisation}
 
@@ -193,21 +188,20 @@ its grading scale, screening programmes, two decades of methods for automated gr
 they share.
 \item \textbf{Learning on Graphs, Topology and Ordinal Prediction}
 (\cref{ch:background}): the methodological background -- graph neural networks,
-persistent homology, ordinal regression, calibration and abstention -- and the evaluation
-metrics.
+persistent homology, ordinal regression and calibration -- and the evaluation metrics.
 \item \textbf{Structural and Topological Priors for Retinal Image Grading}
 (\cref{ch:found}): evaluation of the graph template outside medicine, and first evidence
 that structural features help DR grading.
 \item \textbf{Topology-Aware Population Graph for Diabetic Retinopathy Grading}
 (\cref{ch:toporet}): TOPORET, the dual-similarity population graph, and the tests of H1
 and H2.
-\item \textbf{Safety-Oriented Ordinal Grading of Diabetic Retinopathy with Abstention}
-(\cref{ch:dots}): DOTS, the complete system, the seven-criterion evaluation (H3a), the
-scoped necessity analysis (H3b), a projection of its clinical impact and its comparison
-with the literature.
+\item \textbf{Topology-Regularised Graphs and Safety-Oriented Ordinal Grading}
+(\cref{ch:dots}): DGTS and DOTS on a multi-source corpus, their external validation, the
+safety criteria (H3), a projection of the clinical impact and a comparison of the two
+systems.
 \item \textbf{Software Architecture and Regulatory-Oriented Design} (\cref{ch:reg}): how
-the design of DOTS was shaped by regulatory-oriented principles for medical-device
-software, and what this mapping does not establish.
+the design of the pipelines was shaped by regulatory-oriented principles for
+medical-device software, and what this mapping does not establish.
 \end{enumerate}
 
 Readers with different backgrounds may follow different paths through the document.
@@ -218,4 +212,3 @@ technical contributions, with their algorithms and experiments, in
 \cref{ch:found,ch:toporet,ch:dots}. Readers who wish to check the statistics or reproduce
 the experiments will find the formal tests in \cref{app:stats} and the software
 environment, seeds and computational cost in \cref{app:repro}.
-

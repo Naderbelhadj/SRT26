@@ -88,7 +88,8 @@ is connected to the existing cohort at inference time, without retraining, which
 screening service requires. Second, topology is used twice: as a feature of each patient
 and inside the similarity that decides which patients are neighbours. Third, each stage
 has a typed input and output, so that it can be tested, replaced or audited on its own;
-this modularity is reused by DOTS in \cref{ch:dots}.
+this modularity is described as a software framework in~\cite{belhadj2026enase} and
+reused in \cref{ch:dots,ch:reg}.
 
 \input{figures/fig_toporet}
 
@@ -96,8 +97,8 @@ this modularity is reused by DOTS in \cref{ch:dots}.
 \label{sec:stages}
 
 \Cref{tab:stages} gives the typed input/output contract of each stage. The contracts are
-what makes each stage unit-testable in isolation (\cref{sec:iec62304}); DOTS keeps the same
-six stages and changes the content of stages S2, S3, S5 and S6 (\cref{ch:dots}).
+what makes each stage unit-testable in isolation (\cref{sec:iec62304}); the systems of
+\cref{ch:dots} keep this decomposition and change the content of some stages.
 
 \begin{table}[H]
 \centering
@@ -172,7 +173,9 @@ n_\ell^{H_1}\bigr)^\top \in \mathbb{R}^6 ,
 and the node feature vector
 $z_i=[\,x_i^{\mathrm{CNN}}\,\Vert\,\mathrm{Norm}(x_i^{\mathrm{TDA}})\,]\in\mathbb{R}^{1542}$,
 where the CNN embedding is $\ell_2$-normalised and the topological features are z-scored.
-DOTS later uses a different, seven-dimensional topological vector (\cref{eq:tda}).
+SAMF-GB uses a different, seven-dimensional topological vector (\cref{eq:tda}), and DGTS
+computes persistent homology on feature-space neighbourhoods rather than on the vessels
+(\cref{ch:dots}).
 
 \subsection{Dual-Similarity Population Graph}
 \label{sec:dualsim}
@@ -217,7 +220,8 @@ the Kaggle DR images are Grade~0, the model is trained with a class-weighted cro
 $w_c=N/(C\,N_c)$ for grade $c$. Optimisation uses Adam~\cite{kingma2015adam} with a
 learning rate of $10^{-3}$ and cosine annealing to $10^{-5}$, batches of $64$, at most $200$
 epochs and early stopping on the validation loss (patience~$20$). The loss is nominal, not
-ordinal: TOPORET does not model the order of the grades, a limitation addressed by DOTS.
+ordinal: TOPORET does not model the order of the grades, a limitation addressed by DOTS
+in \cref{ch:dots}.
 
 \Cref{alg:toporet} summarises how TOPORET builds the population graph and grades a new
 patient. Training images are processed once; a new image only requires its own features,
@@ -286,8 +290,8 @@ than fixed a priori.
 The graph is built from the exact similarity of every pair of training images, which
 requires $O(N^2)$ Wasserstein distances: about four hours on eight CPU cores for Kaggle DR.
 This is acceptable for a research study but is the main scalability limitation of
-TOPORET; approximate nearest-neighbour search~\cite{johnson2021faiss}, adopted in DOTS
-(\cref{tab:latency}), removes it.
+TOPORET; a $k$-nearest-neighbour graph, as in DGTS (\cref{ch:dots}), or approximate
+nearest-neighbour search~\cite{johnson2021faiss} (\cref{tab:latency}) removes it.
 
 \section{Experimentation}
 \label{sec:ch3-exp}
@@ -536,12 +540,10 @@ TOPORET (this thesis) & -- & \textbf{95.5} & \textbf{96.1} & \textbf{94.6} \\
 \end{tabular}
 \end{table}
 
-Its QWK of $0.88$ on Kaggle DR remains below that reported for RETFound in this thesis
-($0.920$, \cref{tab:sota}); the difference is attributable at least in part to the
-backbone (RETFound uses a ViT-L/16 pre-trained on $1.6$ million retinal images, TOPORET an
-ImageNet EfficientNet-B3). This is by design: TOPORET was built to test H1 and H2 at a
-controlled backbone quality before adding RETFound in DOTS. Its contribution is not the
-highest QWK but the joint treatment of L1 and L2 in a single framework.
+TOPORET uses a frozen ImageNet EfficientNet-B3 backbone by design: it was built to test H1
+and H2 at a controlled backbone quality, not to maximise QWK. Its contribution is not the
+highest QWK but the joint treatment of L1 and L2 in a single framework; stronger
+backbones, such as retinal foundation models, are left to future work.
 
 \section{Discussion}
 \label{sec:ch3-discussion}
@@ -554,8 +556,9 @@ larger contributor: even with visual similarity only, it improves QWK by $0.03$,
 gain is statistically significant. Topological features add a smaller but significant
 gain on their own ($+0.02$ QWK). Together, used both as node features and inside the edge
 similarity, they give the largest gain ($+0.04$ QWK), close to the sum of the individual
-contributions. The two axes are therefore complementary, which justifies keeping both in
-DOTS, but there is no evidence of a super-additive interaction. The ablation does not
+contributions. The two axes are therefore complementary -- a result reproduced on a
+second corpus by DGTS (\cref{ch:dots}) -- but there is no evidence of a super-additive
+interaction. The ablation does not
 contain a configuration with the dual metric but without topological node features, so
 the specific contribution of the Wasserstein term to the edges is not isolated.
 
@@ -578,12 +581,10 @@ pre-specified ANOVA.
 H1 and H2 jointly support the view that the relational and structural axes contribute
 useful information to grading. They do not, however, address safety. TOPORET grades every
 image, does not model the order of the grades, and was evaluated with accuracy-type
-metrics only. When an ordinal variant of TOPORET is evaluated under the safety protocol of
-\cref{ch:dots}, its Severe-DR Non-Referral Rate is $3.4\%$, above the $2\%$ target: a
-$+0.04$ QWK gain and a significant ANOVA are what a methods paper reports as success, but
-neither certifies a system for triaging real patients. \Cref{ch:dots} is organised around
-closing this gap, together with two further gaps (domain mismatch and ordinal
-consistency).
+metrics only, on each benchmark separately. A $+0.04$ QWK gain and a significant ANOVA
+are what a methods paper reports as success, but neither shows how many severe cases a
+system would leave unreferred. \Cref{ch:dots} is organised around closing this gap,
+together with two further gaps (single-source training and the grade-agnostic loss).
 
 \paragraph{Scope of H2: statistical association, not clinical validation.}
 The ANOVA establishes that $\Pi_{H_1}$ is statistically associated with ICDR grade. Three
@@ -636,7 +637,5 @@ TOPORET~\cite{belhadj2025plos} improves on a strong CNN baseline on three benchm
 tests supported H1 ($t_4=3.82$, $p=0.019$ two-tailed, $d_z=1.71$, over five patient-aware
 splits) and H2 as a statistical association ($F=84.3$, $p<0.001$). The population graph
 is the larger contributor and the topological features add a complementary gain. TOPORET,
-however, grades every image and ignores the order of the grades; evaluated under the
-safety protocol of the next chapter, its ordinal variant leaves the Severe-DR Non-Referral
-Rate at $3.4\%$, above the $2\%$ target. The next chapter adds the missing axis in the DOTS
-system.
+however, is trained on one dataset at a time, ignores the order of the grades and does not
+measure missed referrals. The next chapter addresses these gaps with DGTS and DOTS.

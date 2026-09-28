@@ -361,3 +361,25 @@ test_manifest.csv reproduces Table 5.3 exactly.
 * Baseline QWKs 0.840 / 0.920 now stated as measured in this thesis on Kaggle EyePACS; the
   original papers do not report DR QWK. CABNet 0.830 marked as indicative.
 * TOPORET year in tab:sota set to 2026 (matches the bibliography).
+
+=== Restructuring: Chapter 5 rebuilt from DOTS_FINAL_CLEAN + DGTS (author decision) ===
+* The previous Chapter 5 (RETFound + 7-D TDA + GAT + entropy abstention, 10,000-image test,
+  7 criteria, 6 subsets) is removed: the author's own DOTS paper states that RETFound runs
+  are "future work ... once training runs are complete".
+* New Ch.5: shared protocol (APTOS + KaggleDR-F1 = 5,859 images, 5-fold, seed 42), DGTS
+  (Machine Vision and Applications, under review) and DOTS (DOTS_FINAL_CLEAN). H3 is now:
+  H3a = DOTS meets QWK>=0.80, Sev-NR<=2%, PDR-NR<=2%, no 0<->4 internally and on Messidor-2;
+  H3b = none of the 4 reduced ablation variants meets Sev-NR on Messidor-2.
+* Ch.6 re-based on ENASE six-stage framework + published T4 timings; unverifiable items
+  (47 unit tests, 31.4 ms A100, abstention, GAT attention) removed.
+* Intro, abstract, resume, Ch.1, Ch.2, Ch.3, Ch.4, conclusion, appendix, figures, bib and
+  publications (now twelve: J4 = DGTS) updated. tools/verify_h3a.py and h3a_values removed.
+* RISKS FOR THE AUTHOR:
+  - KaggleDR-F1 = exactly 60% of APTOS per grade -> possible duplicates; stated in thesis.
+  - DOTS venue appears as MBEC (old thesis), SN Computer Science (SNCS-D-26-05765) and CMPB
+    (DGTS declaration). Thesis now says "journal article, under review" without venue.
+  - SNCS version labels Messidor rows "Graph Transformer"/"TDA"; FINAL labels the same
+    numbers "GraphSAGE"/"TTA". Thesis follows FINAL.
+  - DOTS papers call Messidor-2 "Belgian"; it is French (thesis says France).
+  - DOTS and DGTS both report T = 1.42 and calibrated ECE 0.031.
+  - DGTS says Sev-NR 2.1% is "below 2%" on EyePACS; thesis states it is slightly above.

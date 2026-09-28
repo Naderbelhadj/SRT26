@@ -23,74 +23,78 @@ Supervisor: Prof.\ Lassaad Latrach -- Co-supervisor: Prof.\ Ridha Ghayoula -- Co
 \sect{Summary}
 Diabetic retinopathy (DR) is a leading cause of preventable blindness. This thesis addresses
 three limitations of automated DR grading: no relational context between patients, no use
-of the topology of the retinal vessel network, and no safety mechanism allowing the system
-to abstain on ambiguous images. It proposes TOPORET, an inductive population graph whose
-edges combine visual and topological (persistent-homology) similarity, and then DOTS, which
-adds the RETFound foundation model, CORAL ordinal regression and entropy-based abstention.
-Pre-specified tests support the contribution of the graph (H1: $t_4=3.82$, $p=0.019$) and
-the association of topological features with severity (H2: $F=84.3$, $p<0.001$). On
-$10{,}000$ held-out images, DOTS reaches QWK $=0.951$, a severe-DR non-referral rate of
-$1.9\%$ (95\% CI $1.2$--$2.8\%$) and $93.8\%$ coverage; none of the six reduced systems
-reaches the $2\%$ target. ``Disease progression'' is addressed as cross-sectional ordinal
-grading. The evidence is retrospective: it is not a clinical validation, and prospective
-multi-site studies are the next step. Supported by eleven publications.
+of the topology of the retinal vessel network, and no safety-oriented grading (grade order
+and missed referrals of severe cases are rarely modelled or measured). It proposes TOPORET,
+an inductive population graph whose edges combine visual and topological (persistent-homology)
+similarity; pre-specified tests support the contribution of the graph (H1: $t_4=3.82$,
+$p=0.019$) and the association of topological features with severity (H2: $F=84.3$,
+$p<0.001$). Two systems are then trained on a fused corpus of $5{,}859$ images. DGTS, a
+population graph regularised by persistent homology, reaches QWK $=0.941$ in
+cross-validation and $0.925$ without retraining on $35{,}126$ EyePACS images. DOTS, an
+ordinal pipeline (EfficientNet-B3, feature refinement encoder, CORAL, test-time
+augmentation), reaches QWK $=0.931$ and a severe non-referral rate of $1.4\%$ on the
+independent Messidor-2 dataset, where none of its reduced variants meets the $2\%$ threshold.
+The evidence is retrospective and the safety criteria are met at the point estimate only;
+it is not a clinical validation. Supported by twelve publications.
 
 \sect{Résumé}
 \begin{otherlanguage}{french}
 La rétinopathie diabétique (RD) est une cause majeure de cécité évitable. Cette thèse
 traite trois limites du classement automatique de la RD : l'absence de contexte
 relationnel entre patients, l'absence d'exploitation de la topologie du réseau vasculaire
-rétinien, et l'absence d'un mécanisme de sécurité permettant de s'abstenir sur les images
-ambiguës. Elle propose TOPORET, un graphe de population inductif dont les arêtes combinent
-similarité visuelle et topologique (homologie persistante), puis DOTS, qui ajoute le modèle
-de fondation RETFound, la régression ordinale CORAL et l'abstention par entropie. Des tests
-fixés à l'avance soutiennent l'apport du graphe (H1 : $t_4=3{,}82$, $p=0{,}019$) et
-l'association des descripteurs topologiques avec la sévérité (H2 : $F=84{,}3$,
-$p<0{,}001$). Sur $10\,000$ images de test, DOTS atteint un QWK de $0{,}951$, un taux de
-non-référence des cas sévères de $1{,}9\,\%$ (IC à 95\,\% : $1{,}2$--$2{,}8\,\%$) et une
-couverture de $93{,}8\,\%$ ; aucun des six systèmes réduits n'atteint la cible de $2\,\%$.
-La « progression de la maladie » est abordée par le grade ordinal, de façon transversale.
-Les résultats sont rétrospectifs : ils ne constituent pas une validation clinique, et des
-études prospectives multicentriques en sont la prochaine étape. Onze publications
-soutiennent ce travail.
+rétinien, et l'absence d'un classement orienté sécurité (l'ordre des grades et la
+non-référence des cas sévères sont rarement modélisés ou mesurés). Elle propose TOPORET, un
+graphe de population inductif dont les arêtes combinent similarité visuelle et topologique
+(homologie persistante) ; des tests fixés à l'avance soutiennent l'apport du graphe (H1 :
+$t_4=3{,}82$, $p=0{,}019$) et l'association des descripteurs topologiques avec la sévérité
+(H2 : $F=84{,}3$, $p<0{,}001$). Deux systèmes sont ensuite entraînés sur un corpus fusionné
+de $5\,859$ images. DGTS, un graphe de population régularisé par l'homologie persistante,
+atteint un QWK de $0{,}941$ en validation croisée et de $0{,}925$ sans réentraînement sur
+$35\,126$ images EyePACS. DOTS, une chaîne ordinale (EfficientNet-B3, encodeur de
+raffinement, CORAL, augmentation au test), atteint un QWK de $0{,}931$ et un taux de
+non-référence des cas sévères de $1{,}4\,\%$ sur la base indépendante Messidor-2, où aucune
+de ses variantes réduites n'atteint le seuil de $2\,\%$. Les résultats sont rétrospectifs et
+les critères de sécurité ne sont atteints qu'en estimation ponctuelle ; ils ne constituent
+pas une validation clinique. Douze publications soutiennent ce travail.
 \end{otherlanguage}
 
 \sect{\foreignlanguage{arabic}{ملخص}}
 \begin{otherlanguage}{arabic}
 يُعدّ اعتلال الشبكية السكري من أهم أسباب العمى الذي يمكن تفاديه. تعالج هذه الأطروحة ثلاث
 نقائص في أنظمة التصنيف الآلي لاعتلال الشبكية السكري: غياب السياق العلائقي بين المرضى، وعدم
-استغلال طوبولوجيا الشبكة الوعائية للشبكية، وغياب آلية أمان تسمح للنظام بالامتناع عن القرار في
-الصور الغامضة. تقترح الأطروحة نظام
+استغلال طوبولوجيا الشبكة الوعائية للشبكية، وغياب تصنيف موجَّه نحو السلامة يراعي ترتيب الدرجات
+ويقيس الحالات الشديدة غير المُحالة. تقترح الأطروحة نظام
 \en{TOPORET}،
-وهو مخطط سكاني استقرائي تجمع روابطه بين التشابه البصري والتشابه الطوبولوجي (التماثل المستمر)، ثم
-نظام
-\en{DOTS}
-الذي يضيف النموذج الأساسي
-\en{RETFound}
-والانحدار الترتيبي
-\en{CORAL}
-والامتناع القائم على الإنتروبيا. تدعم اختبارات محددة مسبقاً مساهمة المخطط
+وهو مخطط سكاني استقرائي تجمع روابطه بين التشابه البصري والتشابه الطوبولوجي (التماثل المستمر)،
+وتدعم اختبارات محددة مسبقاً مساهمة المخطط
 (الفرضية \en{H1}: \en{$t_4=3.82$}، \en{$p=0.019$})
 وارتباط السمات الطوبولوجية بشدة المرض
 (الفرضية \en{H2}: \en{$F=84.3$}، \en{$p<0.001$}).
-على
-\en{10,000}
-صورة اختبار، يحقق
-\en{DOTS}
+ثم يُدرَّب نظامان على مجموعة مدمجة من
+\en{5,859}
+صورة: يحقق نظام
+\en{DGTS}
 معامل
-\en{QWK = 0.951}
+\en{QWK = 0.925}
+دون إعادة تدريب على
+\en{35,126}
+صورة من
+\en{EyePACS}،
+ويحقق نظام
+\en{DOTS}
+الترتيبي معامل
+\en{QWK = 0.931}
 ونسبة عدم إحالة للحالات الشديدة قدرها
-\en{1.9\%} (مجال الثقة \en{95\%}: من \en{1.2\%} إلى \en{2.8\%})
-مع تغطية قدرها
-\en{93.8\%}،
-ولا يبلغ أيّ من الأنظمة المختزلة الستة الهدف المحدد
+\en{1.4\%}
+على قاعدة
+\en{Messidor-2}
+المستقلة، في حين لا تبلغ أيٌّ من نسخه المختزلة العتبة
 (\en{2\%}).
-يُتناول «تطور المرض» من خلال التصنيف الترتيبي لدرجة الشدة بصورة مقطعية. النتائج استعادية ولا
-تمثل تحققاً سريرياً، والخطوة التالية هي دراسات استباقية متعددة المراكز. يستند هذا العمل إلى
-إحدى عشرة منشورة علمية.
+النتائج استعادية ولا تمثل تحققاً سريرياً، والخطوة التالية هي نموذج موحد ودراسات استباقية متعددة
+المراكز. يستند هذا العمل إلى اثنتي عشرة منشورة علمية.
 \end{otherlanguage}
 
 \vfill
 {\footnotesize\color{gray}\centering Keywords / Mots-clés: diabetic retinopathy; graph neural networks; persistent homology;
-ordinal regression; selective prediction; safety-oriented evaluation.\par}
+ordinal regression; external validation; safety-oriented evaluation.\par}
 \end{document}

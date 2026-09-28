@@ -1,1105 +1,666 @@
 \section*{Introduction}
 \phantomsection\addcontentsline{toc}{section}{Introduction}
 
-TOPORET showed that a population graph and topological features improve DR grading, but
-it was not designed for safety: it grades every image, even when the model is unsure, and
-ignores the order of the grades. Evaluated under the safety protocol of this chapter, its
-ordinal variant leaves a Severe-DR Non-Referral Rate of $3.4\%$, above the $2\%$ target. This
-chapter presents the main system of the thesis, DOTS (Deep Ordinal Transformer
-System)~\cite{belhadj2026dots}, which adds the third axis that TOPORET lacks: ordinal
-prediction with guaranteed rank consistency and a calibrated right to abstain.
-
-We first review related work on retinal foundation models, ordinal regression and
-abstention in medical AI. We then analyse the residual gaps of TOPORET and state the
-hypothesis H3 tested in this chapter. We then present the DOTS architecture, its equations and its training and
-inference procedure, followed by the experimental protocol. The results are reported in
-four steps: the seven clinical-oriented criteria (H3a), a scoped necessity analysis (can
-any axis be removed within the investigated family?), effect sizes and clinical impact, and comparison with the literature. A
-discussion of what the results establish, and what they do not, closes the chapter.
+TOPORET (\cref{ch:toporet}) showed that a population graph and the topology of the
+retinal vessel network improve DR grading. It was not, however, designed for safety: it
+is trained on one dataset at a time, its softmax head ignores the order of the grades, and
+its evaluation does not measure how many severe cases would be left unreferred. This
+chapter addresses these three residual gaps with two systems developed on the same
+multi-source corpus of $5{,}859$ fundus images:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{DGTS} (Deep Graph Topological System)~\cite{belhadj2026dgts} extends the
+relational and topological axes of TOPORET: a $k$-nearest-neighbour population graph with
+GraphSAGE aggregation, regularised during training by persistent-homology descriptors of
+each node's neighbourhood, and validated without retraining on $35{,}126$ Kaggle EyePACS
+images;
+\item \textbf{DOTS} (Deep Ordinal Training System)~\cite{belhadj2026dots} addresses the
+safety axis: ordinal supervision with CORAL, a residual Feature Refinement Encoder and
+test-time augmentation, evaluated against screening safety thresholds internally and on
+the independent Messidor-2 dataset.
+\end{itemize}
+The two systems share the data, the pre-processing and the cross-validation protocol, so
+that their contributions can be compared, but they are distinct architectures. The
+chapter first reviews related work and states the residual gaps and hypothesis H3. It then
+presents the shared protocol, DGTS, DOTS, a comparison of the two systems, a projection of
+the clinical impact, and a discussion of what the results establish and what they do not.
 
 \section{Related Work}
 \label{sec:ch4-related}
 
-\paragraph{Foundation models for retinal imaging.}
-Most DR grading systems are initialised with networks pre-trained on natural images, such
-as EfficientNet~\cite{tan2019efficientnet}. RETFound~\cite{zhou2023retfound} changed this
-practice: it is a vision transformer pre-trained by masked
-autoencoding~\cite{he2022mae} on $1.6$ million unlabelled retinal images, and it improves
-several downstream ophthalmic tasks with little labelled data. Such foundation models
-address the mismatch between natural-image features and retinal anatomy, but they still
-grade each image independently and give no guarantee on the order of the grades.
+\paragraph{Multi-source training.}
+Most DR grading systems are trained and evaluated on a single public dataset, typically
+APTOS~2019 or the 2015 Kaggle competition data~\cite{kaggle2015eyepacs,aptos2019}. A
+single corpus of a few thousand images under-represents the rare severe grades and limits
+generalisation to other cameras and populations. Pooling several sources increases the
+number of minority-grade examples, but its benefit has rarely been isolated by a
+controlled ablation.
 
 \paragraph{Ordinal regression for DR grading.}
 DR grading is often treated either as plain classification or as regression on the grade
 value. Ordinal methods decompose the problem into cumulative binary decisions; among them,
-CORAL~\cite{cao2020coral} enforces rank consistency through shared weights and ordered
-biases, while CORN~\cite{shi2023corn} models conditional probabilities and is rank
-consistent only when the cumulative probabilities are decoded as their chain-rule
-product. To our knowledge, rank consistency has not
-previously been guaranteed by construction in a graph-based DR grading system.
+CORAL~\cite{cao2020coral} enforces rank consistency through a shared weight vector and
+ordered biases, while CORN~\cite{shi2023corn} models conditional probabilities and is rank
+consistent when the cumulative probabilities are decoded as their chain-rule product.
+Ordinal supervision is expected to concentrate errors on adjacent grades, which are the
+least harmful clinically.
 
-\paragraph{Uncertainty and abstention in medical AI.}
-Estimating the uncertainty of a deep network, for example with Monte Carlo
-dropout~\cite{gal2016dropout} or deep ensembles~\cite{lakshminarayanan2017ensembles}, makes
-it possible to refer uncertain cases to an expert. For DR detection, referring the most
-uncertain images has been shown to improve the accuracy on the remaining
-ones~\cite{leibig2017uncertainty}, and selective classification provides a formal frame for
-the trade-off between coverage and error~\cite{geifman2017selective}. Autonomous systems
-already cleared by regulators for DR detection~\cite{abramoff2018pivotal} show that
-automated screening can reach clinical use, but they do not combine relational context,
-vascular topology and abstention. DOTS brings these elements together and evaluates them
-against predefined safety criteria.
+\paragraph{Safety metrics and external validation.}
+The autonomous system cleared by the US Food and Drug Administration~\cite{abramoff2018pivotal}
+was evaluated against pre-defined sensitivity and specificity endpoints, and national
+programmes monitor the referral of sight-threatening disease~\cite{scanlon2017english}.
+Research systems, in contrast, rarely report the non-referral rate of severe and
+proliferative DR, and rarely evaluate on a dataset acquired with other cameras in another
+country. Calibration of the predicted probabilities~\cite{guo2017calibration} is also
+seldom reported, although it conditions the use of the confidence scores in triage.
 
-\section{Motivation and Problem Formulation}
-\label{sec:ch4-motivation}
+\paragraph{Population graphs and topology as a regulariser.}
+Population graphs connect similar patients so that their representations inform one
+another~\cite{parisot2018disease,hamilton2017graphsage}. In TOPORET, persistent homology
+describes the vessel skeleton and enters both the node features and the similarity
+(\cref{ch:toporet}). A cheaper alternative, explored by DGTS, computes persistent homology
+on the local neighbourhood of each node in the learned feature space and uses it as a
+training-time regulariser, without vessel segmentation.
 
-\subsection{Residual Gap of TOPORET}
-\label{sec:ch4-mot}
+\section{Residual Gaps of TOPORET and Hypothesis H3}
+\label{sec:ch4-motivation}\label{sec:ch4-gaps}
 
-\Cref{fig:dots} gives the complete DOTS architecture that this chapter builds, stage by
-stage and axis by axis.
+\Cref{fig:dots} summarises the two systems of this chapter and the gaps they address.
 
 \input{figures/fig_dots}
 
-TOPORET (\cref{ch:toporet}) supports H1 and H2: a population graph and topological
-features are each associated with better grading accuracy. TOPORET, however, uses a
-nominal softmax head. The starting point of DOTS is therefore an \emph{ordinal variant of
-TOPORET}: the same dual-similarity GraphSAGE architecture and topological features with a CORN
-ordinal head~\cite{shi2023corn}, trained and evaluated under the protocol of this chapter, where it reaches QWK $=0.880$ on Kaggle
-EyePACS. This variant does not meet the safety-oriented target of this thesis. At Sev-NR
-$=3.4\%$, under the illustrative
-assumptions of \cref{sec:impact}, a programme screening $500{,}000$ patients a year would
-leave a projected $850$ of its $25{,}000$ severe cases unreferred -- a rate above the $2\%$ target adopted in this thesis, which is
-informed by national screening practice~\cite{scanlon2017english} but is not a published
-regulatory threshold.
+\paragraph{Gap A -- single-source training.}
+TOPORET is trained and evaluated on each benchmark separately (\cref{tab:crossdata}). Its
+cross-dataset results are measured by retraining, not by applying a model trained on one
+source to images from another. Both systems of this chapter are trained on a fused
+APTOS~2019 $+$ KaggleDR-F1 corpus and evaluated on an external dataset that was never used
+for training or model selection.
 
-DOTS (Deep Ordinal Transformer System) is the architectural response to this
-residual gap: a system designed, from the outset, around the seven predefined
-clinical-oriented criteria presented in \cref{sec:h3def}, rather than around accuracy
-maximisation alone. The transition from TOPORET to DOTS is not a single change
-but a coordinated modification of three independent subsystems, each addressing
-one of three residual gaps identified through systematic error analysis of
-TOPORET predictions on the validation set.
+\paragraph{Gap B -- grade-agnostic loss.}
+TOPORET uses a nominal softmax head trained with cross-entropy, which gives the same
+penalty to a No-DR$\to$PDR error as to a No-DR$\to$Mild error. DOTS replaces it with the
+CORAL ordinal head.
 
-\subsection{Three Residual Gaps and Their Solutions}
-\label{sec:ch4-gaps}
+\paragraph{Gap C -- unmeasured safety.}
+TOPORET reports accuracy, QWK and macro-F1, but not the rate at which severe or
+proliferative cases would be left unreferred. Both systems of this chapter report these
+non-referral rates, and DOTS is evaluated against screening safety thresholds on the
+internal corpus and on Messidor-2.
 
-TOPORET addresses L1 and L2 but leaves three architectural gaps with respect to the
-seven predefined criteria. \Cref{fig:gaps} names each gap, the DOTS component
-that closes it, and the measured effect. \Cref{sec:gap-a,sec:gap-b,sec:gap-c} take the rows
-in order.
-
-\input{figures/fig_gaps}
-
-\subsubsection{Gap A: Domain Mismatch}
-\label{sec:gap-a}
-
-EfficientNet-B3, used throughout TOPORET, is pre-trained on ImageNet-1k -- a
-corpus of $1.28$ million natural images spanning $1{,}000$ object categories
-largely unrelated to medical imaging. The learned filters are optimised for
-textures, edges and shapes common in photographs of everyday objects.
-Retinal fundus images share almost none of these visual statistics.
-
-RETFound~\cite{zhou2023retfound}, by contrast, is pre-trained by masked
-autoencoding (MAE)~\cite{he2022mae} directly on $1.6$ million retinal images. Substituting the
-frozen backbone alone, with all other TOPORET components unchanged, yields
-QWK $0.880\to 0.921$ (component ablation, \cref{sec:ablation4}), a $+4.1$~pp improvement
-that, within this controlled ablation, is associated with domain-matched pre-training
-(the backbones also differ in architecture and size, so the attribution is not exclusive).
-
-\subsubsection{Gap B: Ordinal Rank Violations}
-\label{sec:gap-b}
-
-The ordinal variant of TOPORET uses a CORN-trained ordinal head~\cite{shi2023corn} whose
-binary outputs are read directly as cumulative probabilities $\hat P(Y\geq k)$, without
-the chain-rule product that makes CORN rank consistent. At inference time nothing in this
-decoding prevents $\hat P(Y\geq 2)>\hat P(Y\geq 1)$, a logically impossible ordinal
-violation. Empirically, $2.1\%$ of its test predictions exhibit such
-violations. In a deployed system this can appear as inconsistent
-confidence reporting to a clinician, undermining clinical trust and the
-IEC~62304 audit trail.
-
-CORAL resolves this through the monotone bias projection of \cref{eq:coral-proj},
-an architectural constraint rather than a training-time penalty, yielding
-exactly $0\%$ violations by construction (verified on $10{,}000$ test
-predictions in \cref{sec:h3a-eval}).
-
-\subsubsection{Gap C: Unmet Safety Threshold}
-\label{sec:gap-c}
-
-Even with Gaps~A and~B addressed, a system that must classify every input
-will misclassify some genuinely ambiguous cases. The Grade~$2/3$ boundary is
-the most clinically ambiguous, with substantial disagreement between expert
-graders~\cite{krause2018grader}.
-DOTS addresses Gap~C with two coordinated mechanisms: (i)~a dynamic graph
-attention network (\cref{sec:gat}) that refines node embeddings using
-per-edge attention recomputed at inference time; and (ii)~an entropy-based
-abstention mechanism (\cref{sec:abst}) that defers the
-highest-uncertainty cases to human review rather than forcing a potentially
-unsafe automated decision.
-
-\subsection{Hypothesis H3: Sufficiency and Necessity}
+\subsection{Hypothesis H3}
 \label{sec:h3def}
 
-The third hypothesis of the thesis has two parts. (H3a) The three-axis combination satisfies all seven predefined clinical-oriented
-criteria simultaneously. (H3b) Within the investigated architectural family and
-experimental specification, no proper subset of the three axes does so.
-\emph{Pre-specified tests:} (H3a) five-benchmark evaluation against seven predefined
-criteria; (H3b) exhaustive enumeration of the $2^3-2=6$ proper non-empty subsets.
+The third hypothesis of the thesis concerns the safety axis and has two parts.
+\begin{description}[leftmargin=1.4em,style=sameline,itemsep=2pt]
+\item[H3a (sufficiency).] The complete DOTS pipeline meets the screening safety criteria
+of \cref{tab:criteria} -- QWK $\geq0.80$, Sev-NR $\leq2\%$, PDR-NR $\leq2\%$ and no
+Grade~$0\leftrightarrow4$ confusion -- both under five-fold cross-validation and on the
+external Messidor-2 dataset.
+\item[H3b (necessity within the ablation).] On Messidor-2, none of the reduced variants of
+the DOTS ablation (CNN baseline, $+$GraphSAGE, $+$CORAL only, $+$TTA only) meets the
+Sev-NR criterion.
+\end{description}
+The thresholds are those used for autonomous DR screening~\cite{abramoff2018pivotal} and
+in the DOTS article~\cite{belhadj2026dots}; they are adopted here, not chosen after seeing
+the results. H3 is evaluated at the point estimate; the confidence intervals are reported
+and discussed in \cref{sec:ch4-discussion}.
 
-\section{Proposed Architecture}
-\label{sec:ch4-arch}
+\section{Shared Experimental Protocol}
+\label{sec:ch4-protocol}\label{sec:protocol}
 
-\subsection{CORAL Loss with Class-Weighted Ordinal Regression}
+\subsection{Multi-Source Corpus}
 
-The severe class imbalance documented in \cref{app:datasets} (Grade~3 and Grade~4 jointly
-constitute under $10\%$ of most benchmarks) motivates class-weighted training.
-The DOTS loss is
+APTOS~2019~\cite{aptos2019} ($3{,}662$ images from Aravind Eye Hospital, India) and
+KaggleDR-F1 ($2{,}197$ images with five-grade ICDR labels) are concatenated into a
+corpus of $5{,}859$ images (\cref{tab:corpus}). Fusion increases the number of Severe images
+from $193$ to $309$ and of PDR images from $295$ to $472$, a gain of about $60\%$ for both
+safety-critical grades. APTOS~2019 provides one image per patient and KaggleDR-F1 contains
+no bilateral pairs, so the image-level stratified split is also a patient-level
+split for this corpus~\cite{belhadj2026dgts}.
+
+\paragraph{A caveat on the two sources.}
+KaggleDR-F1 contains exactly $60\%$ of the APTOS~2019 count in every grade
+($1{,}083/1{,}805$, $222/370$, $599/999$, $116/193$, $177/295$), so the two collections have
+identical grade distributions. This is compatible with KaggleDR-F1 being derived from
+APTOS~2019, and the absence of shared images between the two sources has not been verified
+in the underlying publications. If images were shared, some validation images would have
+near-duplicates in the training folds, and the cross-validation estimates of this chapter
+would be optimistic. The external evaluations on EyePACS (checked for duplicates) and on
+Messidor-2 are not affected by this issue, which is why the conclusions of this chapter
+rest primarily on them.
+
+\begin{table}[H]
+\centering
+\caption[Composition of the fused training corpus]{Composition of the fused training
+corpus. $N_{\mathrm{train}}$ and $N_{\mathrm{val}}$ are per-fold averages of the five-fold
+stratified split.}
+\label{tab:corpus}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Grade & APTOS~2019 & KaggleDR-F1 & Fused & $N_{\mathrm{train}}$ & $N_{\mathrm{val}}$ \\
+\midrule
+0 -- No DR & 1{,}805 & 1{,}083 & 2{,}888 & 2{,}310 & 578 \\
+1 -- Mild & 370 & 222 & 592 & 474 & 118 \\
+2 -- Moderate & 999 & 599 & 1{,}598 & 1{,}278 & 320 \\
+3 -- Severe & 193 & 116 & 309 & 247 & 62 \\
+4 -- PDR & 295 & 177 & 472 & 378 & 94 \\
+\midrule
+Total & 3{,}662 & 2{,}197 & 5{,}859 & 4{,}687 & 1{,}172 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Pre-processing, Splits and External Data}
+
+All images are enhanced with CLAHE~\cite{zuiderveld1994clahe} (clip limit $2.0$, tiles
+$8\times8$) applied to the grey-level channel and replicated to three channels. Both
+systems use five-fold stratified cross-validation with random state $42$; the grade
+proportions of each fold match those of the corpus. Class imbalance is handled by a
+weighted random sampler with weights recomputed from each training fold, so that no
+information from the validation fold is used. Two external datasets are used only for
+evaluation:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{Kaggle EyePACS}~\cite{kaggle2015eyepacs} ($35{,}126$ images) for DGTS,
+evaluated zero-shot: no EyePACS image is used for training, graph construction or
+hyperparameter selection, and a perceptual-hash comparison (Hamming distance $\leq4$)
+found no duplicate between EyePACS and the training corpus~\cite{belhadj2026dgts};
+\item \textbf{Messidor-2}~\cite{decenciere2014messidor} ($1{,}744$ images acquired in
+France with Topcon cameras) for DOTS, never seen during training~\cite{belhadj2026dots}.
+\end{itemize}
+
+\subsection{Safety Metrics and Criteria}
+
+A severe (Grade~3) or proliferative (Grade~4) image is counted as \emph{not referred} when
+it is predicted as No DR or Mild, the two grades that do not trigger referral in a
+screening pathway where moderate or worse DR is referable:
 \begin{equation}
-\mathcal{L}_{\mathrm{CORAL}}
-= -\,\lambda_{y_i}\sum_{k=1}^{K-1}
-\Bigl[
- y_i^{(k)}\log\sigma(g_i^{(k)})
-+(1-y_i^{(k)})\log\bigl(1-\sigma(g_i^{(k)})\bigr)
-\Bigr],
-\label{eq:coral}
+\text{Sev-NR} = \frac{\#\{i: y_i=3,\ \hat y_i\leq1\}}{\#\{i: y_i=3\}},\qquad
+\text{PDR-NR} = \frac{\#\{i: y_i=4,\ \hat y_i\leq1\}}{\#\{i: y_i=4\}} .
+\label{eq:nr}
 \end{equation}
-with $g_i^{(k)}=w^\top z'_i+b_k$ and the monotone bias projection
-$b_k\leftarrow\min(b_k,b_{k-1}-\epsilon)$ (\cref{eq:coral-proj}). The loss of
-each training image is multiplied by the weight $\lambda_{y_i}$ of its true grade; the
-class weights $(\lambda_0,\ldots,\lambda_4)=(1.0,2.5,3.0,8.0,6.0)$ were selected by
-grid search on the validation folds, minimising Sev-NR while keeping the best macro-F1,
-with no class weight exceeding $10\times$ the baseline. \Cref{tab:weights} compares the selected weights with uniform and
-inverse-frequency weighting: the capped scheme gives the best macro-F1 and is the only
-one that brings Sev-NR below $2\%$.
+A severe image predicted as Moderate is therefore counted as referred. This definition is
+less strict than one that would require a predicted grade of at least~$3$, and it must be
+kept in mind when comparing Sev-NR values across studies. \Cref{tab:criteria} lists the
+criteria of H3a.
 
 \begin{table}[H]
 \centering
-\caption[Class-weight sensitivity]{Class-weight sensitivity: validation macro-F1 and Sev-NR for three
-weighting schemes. The selected weights balance class-wise sensitivity against
-overall calibration.}
-\label{tab:weights}
+\caption[Screening safety criteria of H3a]{Screening safety criteria of H3a, adopted from
+autonomous DR screening practice~\cite{abramoff2018pivotal,belhadj2026dots}.}
+\label{tab:criteria}
 \small
-\begin{tabular}{llcc}
+\begin{tabular}{@{}lll@{}}
 \toprule
-Scheme & Weights $(\lambda_0,\ldots,\lambda_4)$ & Macro-F1 & Sev-NR \\
+Criterion & Threshold & Rationale \\
 \midrule
-Uniform & $(1,1,1,1,1)$ & $0.812$ & $4.8\%$ \\
-Inverse-frequency & $(1.0,9.4,3.2,28.1,16.8)$ & $0.834$ & $2.6\%$ \\
-Selected (capped) & $(1.0,2.5,3.0,8.0,6.0)$ & $0.847$ & $1.9\%$ \\
+Quadratic weighted kappa & $\geq0.80$ & Agreement required for grading \\
+Severe non-referral rate (Sev-NR) & $\leq2\%$ & Missed urgent referrals, Grade~3 \\
+PDR non-referral rate (PDR-NR) & $\leq2\%$ & Missed urgent referrals, Grade~4 \\
+Grade~$0\to4$ and Grade~$4\to0$ confusions & $0\%$ & Catastrophic ordinal errors \\
 \bottomrule
 \end{tabular}
-\tabnote{Row~3 is the $5\times 5$ grid-search
-winner.}
 \end{table}
 
-\subsection{Dynamic Graph Attention}
-\label{sec:gat}
+\section{DGTS: Topology-Regularised Population Graph}
+\label{sec:dgts}
 
-TOPORET uses a static population graph. DOTS replaces this with a dynamic graph
-attention layer that recomputes per-edge attention at each inference call:
+\subsection{Architecture}
+
+DGTS~\cite{belhadj2026dgts} has five stages. (1)~CLAHE pre-processing. (2)~A frozen
+EfficientNet-B4~\cite{tan2019efficientnet} pre-trained on ImageNet encodes each image into
+$f_i\in\mathbb{R}^{1792}$; the features are extracted once and cached. (3)~A directed
+cosine $k$-nearest-neighbour graph with $k=8$ is built over the $\ell_2$-normalised
+training features:
 \begin{equation}
-z'_i=\mathrm{GAT}(z_i,G)=\sum_{j\in\mathcal N(i)}\alpha_{ij}Wz_j,
-\label{eq:gat}
+\mathcal{N}(i) = \operatorname*{top-}k_{\,j\neq i}\ \frac{f_i^{\top}f_j}{\lVert f_i\rVert\,\lVert f_j\rVert}.
+\label{eq:dgts-knn}
 \end{equation}
+(4)~A two-layer GraphSAGE head~\cite{hamilton2017graphsage} with mean aggregation maps
+$\mathbb{R}^{1792}\to\mathbb{R}^{512}\to\mathbb{R}^{256}$,
 \begin{equation}
-\alpha_{ij}
-=\frac{\exp\bigl(\mathrm{LeakyReLU}(a^\top[Wz_i\|Wz_j])\bigr)}
-{\sum_{k\in\mathcal N(i)}\exp\bigl(\mathrm{LeakyReLU}(a^\top[Wz_i\|Wz_k])\bigr)}.
-\label{eq:att}
+h_{\mathcal{N}(i)}^{(l)}=\operatorname{MEAN}\{h_j^{(l-1)}: j\in\mathcal{N}(i)\},\qquad
+h_i^{(l)}=\operatorname{ReLU}\!\bigl(\operatorname{BN}(W_l[h_i^{(l-1)}\,\Vert\,h_{\mathcal{N}(i)}^{(l)}])\bigr),
+\label{eq:dgts-sage}
 \end{equation}
-Unlike the static TOPORET graph, $\alpha_{ij}$ is patient-specific: two query
-patients sharing neighbour $j$ may attend to $j$ with different weights.
-``Neighbour $j$ received attention weight $\alpha_{ij}=0.34$ in this prediction'' is
-therefore a well-defined inference-time quantity that can be reported to the user
-(relevant to the transparency obligations of EU AI Act Article~13). It is an
-attention-derived explanatory signal; attention weights are not, in general, guaranteed to
-be faithful measures of feature importance, and their faithfulness was not evaluated in
-this thesis.
+and, in parallel, a persistent-homology branch described below is projected to
+$q_i\in\mathbb{R}^{64}$. (5)~The concatenation $[h_i^{(2)};q_i]\in\mathbb{R}^{320}$ feeds a
+five-class softmax head trained with focal loss ($\gamma=2$) and class-balanced sampling.
 
-\subsection{Entropy-Based Safety Abstention}
-\label{sec:abst}
+\paragraph{Persistent-homology regulariser.}
+For each training node, the $k+1=9$ feature vectors of the node and its neighbours are
+projected to two dimensions by truncated SVD, and the $H_1$ persistence diagram of their
+Vietoris--Rips filtration is computed with GUDHI~\cite{maria2014gudhi}. The $16$ most
+persistent pairs are encoded as $p_i=[b_1,d_1-b_1,\ldots,b_{16},d_{16}-b_{16}]\in\mathbb{R}^{32}$
+(zero-padded) and projected by $q_i=\operatorname{ReLU}(W_p p_i)$. A tight, single-grade
+neighbourhood produces no persistent loop, whereas a diffuse or mixed neighbourhood
+produces loops with high persistence: the descriptor encodes the \emph{shape} of the
+neighbourhood, which the mean aggregation of \cref{eq:dgts-sage} cannot recover. The
+descriptor is computed for training nodes only; at inference $p_i=0$, so persistent
+homology acts as a training-time regulariser rather than as an input feature.
 
-All parameters affecting the final test-set decision rule were selected on
-training and validation folds only. The held-out test set was accessed exactly
-once, for the final evaluation. Patient $i$ is deferred when
-\begin{equation}
-H_i=-\sum_c p_{ic}\log(p_{ic}+\epsilon)> \tau_U=0.73~\mathrm{nats}.
-\label{eq:ent}
-\end{equation}
-The threshold is the smallest $\tau_U$ on the validation sweep
-$\tau_U\in[0.3,1.2]$ that satisfies Sev-NR $<2\%$ subject to a coverage floor
-of $90\%$. \Cref{tab:tau} shows the sweep: lower thresholds defer too many images
-(coverage below $90\%$), higher ones let too many severe cases through, and
-$\tau_U=0.73$ is the only tested value that satisfies both constraints.
+\paragraph{Relation to TOPORET.}
+The topology used here is that of the learned feature space, not of the retinal vessels:
+its loops cannot be interpreted as vascular loops or neovascularisation. DGTS therefore
+tests whether a topological signal helps a population graph when vessel segmentation is
+not available; it does not replace the vascular analysis of \cref{ch:toporet}, and the
+anatomical interpretation of H2 applies only to TOPORET.
+
+\paragraph{Training.}
+AdamW~\cite{kingma2015adam} (learning rate $10^{-4}$, weight decay $10^{-4}$), cosine
+annealing over $25$ epochs, batch size $16$, mixed precision, one NVIDIA T4 GPU. The graph is
+rebuilt from each training fold and the descriptors are cached per fold; the checkpoint with
+the best validation QWK of each fold is kept.
+
+\subsection{Results}
+
+\paragraph{Cross-validation and ablation.}
+Under five-fold cross-validation DGTS reaches QWK $=0.941\pm0.008$ (bootstrap 95\% CI
+$[0.925,\,0.957]$), accuracy $87.1\pm1.4\%$ and macro-F1 $77.8\pm2.1\%$.
+\Cref{tab:dgts-abl} isolates each component.
 
 \begin{table}[H]
 \centering
-\caption[Threshold sweep for entropy abstention]{Threshold sweep for entropy abstention on the
-validation folds. $\tau_U=0.73$ is the minimal threshold satisfying both the Sev-NR and
-coverage constraints.}
-\label{tab:tau}
+\caption[DGTS ablation]{DGTS ablation (mean $\pm$ SD over five folds)~\cite{belhadj2026dgts}.
+A1--A5 are trained on APTOS~2019 alone, A6--A7 on the fused corpus.}
+\label{tab:dgts-abl}
 \small
-\begin{tabular}{cccc}
+\begin{tabular}{@{}llccc@{}}
 \toprule
-$\tau_U$ (nats) & Coverage & Sev-NR & Constraint? \\
+& Configuration & Accuracy (\%) & Macro-F1 (\%) & QWK \\
 \midrule
-$0.40$ & $78.1\%$ & $1.1\%$ & Fails coverage floor \\
-$0.55$ & $86.4\%$ & $1.5\%$ & Fails coverage floor \\
-$0.73$ & $93.8\%$ & $1.9\%$ & Satisfies both \\
-$0.90$ & $97.2\%$ & $2.6\%$ & Fails Sev-NR \\
-$1.10$ & $99.5\%$ & $3.9\%$ & Fails Sev-NR \\
+A1 & EfficientNet-B4 alone & $77.3\pm2.1$ & $58.4\pm3.2$ & $0.858\pm0.019$ \\
+A2 & $+$ class balancing and focal loss & $80.1\pm1.8$ & $63.7\pm2.9$ & $0.878\pm0.016$ \\
+A3 & A2 $+$ GraphSAGE (no PH) & $82.6\pm1.6$ & $69.4\pm2.5$ & $0.896\pm0.015$ \\
+A4 & A2 $+$ PH (no GraphSAGE) & $81.2\pm1.9$ & $65.8\pm2.7$ & $0.908\pm0.014$ \\
+A5 & A2 $+$ GraphSAGE $+$ PH & $85.9\pm1.6$ & $74.1\pm2.3$ & $0.930\pm0.012$ \\
+A6 & A5 $+$ multi-source fusion (DGTS) & $\mathbf{87.1\pm1.4}$ & $\mathbf{77.8\pm2.1}$ & $\mathbf{0.941\pm0.008}$ \\
+A7 & A6 with an ordinal EMD loss & $86.4\pm1.7$ & $76.2\pm2.4$ & $0.921\pm0.013$ \\
 \bottomrule
 \end{tabular}
-\tabnote{Coverage rises, and safety falls,
-monotonically with $\tau_U$.}
 \end{table}
 
-\Cref{fig:tradeoff} plots the same values as a trade-off curve.
+The graph adds $+0.018$ QWK over the class-balanced baseline (A2$\to$A3) and the
+topological regulariser $+0.030$ (A2$\to$A4). Their combination (A5) exceeds GraphSAGE
+alone by $+0.034$ and the regulariser alone by $+0.022$, so the two signals are
+complementary. Fusion adds $+0.011$ (A5$\to$A6). A fold-level one-sided Wilcoxon test of
+DGTS against the CNN-only baseline gives $p=0.031$, the smallest value attainable with five
+paired folds. The same direction of effect as H1 and H2 -- relational and topological
+information both help -- is thus observed on a second corpus and with a different form of
+topology. Replacing focal loss by an ordinal Earth Mover's Distance loss (A7) lowers QWK by
+$0.020$, which indicates that ordinal supervision is not beneficial in every architecture;
+DOTS examines it with CORAL.
 
-\input{figures/fig_tradeoff}
+\paragraph{Sensitivity.}
+On fold~0, QWK stays within $0.937$--$0.941$ for SVD dimensions $2$--$16$, within
+$0.935$--$0.941$ for $k\in\{4,8,12,16\}$ and within $0.933$--$0.941$ for descriptor lengths
+$16$--$64$; setting the focal parameter $\gamma$ to $0$ (plain cross-entropy) lowers QWK by
+$0.012$.
 
-\subsection{Design Rationale}
-\label{sec:ch4-rationale}
+\paragraph{Calibration.}
+On fold~0, temperature scaling ($T=1.42$) reduces the ECE from $0.084$ to $0.031$, the
+maximum calibration error from $0.187$ to $0.063$, and the Brier score from $0.148$ to
+$0.141$.
 
-\paragraph{A frozen foundation model.}
-RETFound is used as a frozen feature extractor rather than fine-tuned end to end. Fine-tuning
-a ViT-Large model on each fold would multiply the computational cost and increase the risk
-of overfitting the smaller datasets; keeping it frozen also makes the S2 stage a fixed,
-versioned component, which simplifies verification (\cref{sec:iec62304}). The gain of Gap~A
-is therefore obtained without any retinal-specific training of the backbone within this
-thesis.
-
-\paragraph{CORAL rather than CORN.}
-The ordinal variant of TOPORET used a CORN-trained head, which usually trains well, but
-whose outputs were decoded directly as cumulative probabilities, so that its rank
-consistency depended on the learned weights. Decoding by the chain-rule product would
-also have removed the violations; CORAL was preferred because its guarantee holds for any
-decoding and can be audited by checking the order of $K-1$ bias values alone. In a safety-critical setting, an
-inconsistent ranking -- for example a higher probability of ``at least Grade~4'' than of
-``at least Grade~3'' -- is not only an error but an output that cannot be explained to a
-clinician. CORAL removes this failure mode by construction, at the cost of a shared weight
-vector for all thresholds; the ablation shows that this constraint does not reduce accuracy
-(\cref{sec:ablation4}).
-
-\paragraph{Dynamic rather than static attention.}
-In TOPORET, the weight of an edge is fixed once the graph is built. In DOTS, the GAT layer
-recomputes the importance of each neighbour for each query patient (\cref{eq:att}). This
-allows the model to rely on different neighbours for different patients, and it produces,
-for every prediction, a ranked list of the neighbours with the highest attention weights.
-This list is an attention-derived explanatory signal, useful for review, rather than a
-demonstrated faithful explanation of the decision.
-
-\paragraph{Entropy as the abstention criterion.}
-Several uncertainty estimates could decide when to abstain: Monte Carlo
-dropout~\cite{gal2016dropout} or deep ensembles~\cite{lakshminarayanan2017ensembles}
-capture epistemic uncertainty better, but require several forward passes per image, which
-multiplies the latency. The predictive entropy of the CORAL output is available in a single
-pass, is well defined for ordinal outputs, and, because DOTS is well calibrated
-(ECE $=0.040$), tracked the actual probability of error closely enough, on the
-retrospective data, to reach the Sev-NR target at the point estimate. Combining it with ensemble-based uncertainty is a natural extension.
-
-\subsection{Training and Inference Procedure}
-
-\Cref{alg:dots} gives the complete training and inference procedure. Training follows the
-TOPORET pipeline with the three changes above; at inference time, the only additional step
-is the entropy test that decides whether the grade is returned or the case is deferred. The
-first part of the algorithm (lines~1--6) is run once per cross-validation fold: it computes
-the fused features of every training image, builds the population graph, trains the
-attention layer and the ordinal head, and selects the abstention threshold on the
-validation data. The second part (lines~7--14) is run for every new patient: it retrieves the
-neighbours of the new image in the existing graph, refines its representation with the
-attention weights, computes the five grade probabilities and their entropy, and either
-returns a grade or defers the case to a human grader. The two parts share the same
-feature extractors, so that a new patient is processed exactly like the training images.
-
-\begin{algorithm}[H]
-\caption{DOTS: training and inference with safety-oriented abstention.}
-\label{alg:dots}
-\DontPrintSemicolon
-\KwIn{training set $\{(I_j,y_j)\}$; new image $I_i$; class weights $\lambda_0,\ldots,\lambda_4$; threshold $\tau_U=0.73$}
-\KwOut{grade $\hat y_i$, or \texttt{DEFER} with the explanation of \cref{sec:audit}}
-\BlankLine
-\tcp{Training}
-\ForEach{training image $I_j$}{
-  $z_j \leftarrow [\,\mathrm{RETFound}(\mathrm{CLAHE}(I_j)) \,\Vert\, x_j^{\mathrm{TDA}}\,]$\tcp*{stages S1--S4}
-}
-Build the dual-similarity $k$-NN graph $G$ (\cref{eq:dualsim}, $k=15$)\tcp*{stage S5}
-Train the dynamic GAT layer and the CORAL head with the weighted loss of \cref{eq:coral}\;
-After each update, enforce $b_k \leftarrow \min(b_k,b_{k-1}-\epsilon)$\tcp*{\cref{eq:coral-proj}}
-Select $\tau_U$ on the validation folds (\cref{tab:tau})\;
-\BlankLine
-\tcp{Inference for a new patient}
-Compute $z_i$; retrieve its $k$ neighbours in $G$\;
-$z'_i \leftarrow \mathrm{GAT}(z_i,\mathcal{N}(i))$ with attention weights $\alpha_{ij}$\tcp*{\cref{eq:gat,eq:att}}
-$p_{i,c} \leftarrow$ grade probabilities from the CORAL head\;
-$H_i \leftarrow -\sum_c p_{i,c}\log p_{i,c}$\tcp*{\cref{eq:ent}}
-\eIf{$H_i > \tau_U$}{\Return{\texttt{DEFER} to a human grader}}{\Return{$\hat y_i \leftarrow \arg\max_c p_{i,c}$}}
-\end{algorithm}
-
-Training uses the settings of \cref{app:hyper}: the Adam optimiser with a learning rate of
-$10^{-3}$, mini-batches of $32$ target
-nodes, $100$ epochs and five folds stratified by grade, with the
-fixed random seed of \cref{app:repro}. The RETFound and topological features are computed once and
-cached, so that each epoch only updates the graph layer and the CORAL head; this keeps the
-cost of each training run moderate (\cref{tab:compute}). At inference time, the cost
-of grading a new patient does not depend on the size of the cohort: the features of the new
-image are computed once, its neighbours are retrieved with an approximate nearest-neighbour
-query, and the GAT layer aggregates a fixed number of sampled neighbours. The complete
-procedure takes $31.4$~ms per image under the hardware and software configuration of
-\cref{app:repro} (\cref{tab:latency}), dominated by the topological features, and the abstention test itself adds a negligible cost, since the entropy is
-computed from the five grade probabilities that the model outputs anyway. The same code path is used for evaluation and for deployment, so the measured performance corresponds to the behaviour of the system that would be installed.
-
-\subsection{Regulatory-Oriented Design}
-\label{sec:regdesign}
-
-The architectural choices above were also made with regulatory-oriented principles in mind,
-rather than retrofitted: the typed stages support IEC~62304-style unit verification, the
-per-stage typed exceptions support ISO~14971-style risk management, the GAT weights
-$\alpha_{ij}$ provide an attention-derived signal relevant to the transparency obligations
-of EU AI Act Article~13, and entropy abstention is a mechanism relevant to the human
-oversight of Article~14. \Cref{ch:reg} develops this mapping (\cref{tab:regmap}); it is a
-design mapping, not a conformity assessment.
-
-The same design choices also simplify the management of changes after deployment. Because
-the RETFound backbone and the topological extractor are frozen and versioned, and because
-every stage has a typed contract, a modification can be confined to one stage and verified
-by that stage's unit tests, without re-validating the whole pipeline. DOTS is therefore
-intended to be deployed as a \emph{locked} algorithm: the weights are fixed at release, and
-any retraining produces a new version that goes through the same verification and
-evaluation protocol before it replaces the previous one. This mirrors the ``locked''
-algorithm model described in regulatory guidance for software whose behaviour must remain
-predictable once in clinical use.
-
-\section{Experimental Protocol}
-\label{sec:ch4-protocol}
-
-\subsection{Datasets, Baselines and Parameters}
-
-DOTS is evaluated on the five public benchmarks of \cref{app:datasets}: Kaggle EyePACS,
-APTOS~2019, IDRiD, Messidor-2 and DDR, acquired in four countries with different cameras.
-The held-out test set of the H3a evaluation contains $10{,}000$ images from APTOS~2019 and
-Kaggle EyePACS. Its grade distribution (\cref{tab:abstention}) is $52.3\%$, $10.2\%$,
-$24.9\%$, $6.1\%$ and $6.4\%$ for Grades~0--4, so that $1{,}256$ images ($12.6\%$) are
-severe. A random sample of $10{,}000$ images from these two sources could contain at most
-about $7\%$ severe images (\cref{tab:datasets}), so the test set over-represents the severe
-grades. The test set was therefore deliberately enriched in severe grades: it is not a
-simple random draw, and it should not be read as one. Its complete composition by source
-dataset and grade is given in \cref{tab:testcomp}, so that any metric can be re-weighted to
-a natural prevalence, and the exact list of test images (identifier, source dataset and
-grade) is written by the evaluation script to an evaluation manifest,
-\texttt{test\_manifest.csv}, to be released with the code (\cref{app:repro}). This enrichment increases the number of severe cases on
-which Sev-NR and PDR-NR are estimated, but it also means that prevalence-dependent metrics, such as QWK and
-accuracy, describe this test set rather than a screening population with natural
-prevalence. The other benchmarks are used to measure performance across acquisition
-conditions.
+\paragraph{Per-grade results and external validation.}
+\Cref{tab:dgts-grade} gives the per-grade results in cross-validation and on EyePACS.
+Applied without retraining to the $35{,}126$ EyePACS images (five test-time-augmentation
+runs with seeds $42$--$46$), DGTS reaches QWK $=0.925\pm0.008$ (95\% CI $[0.909,\,0.941]$),
+accuracy $88.0\pm0.9\%$ and macro-F1 $77.0\pm1.1\%$, a drop of only $0.016$ QWK from
+cross-validation.
 
 \begin{table}[H]
 \centering
-\caption[Composition of the H3a test set]{Composition of the $10{,}000$-image H3a test set by
-source dataset and true grade.}
-\label{tab:testcomp}
-\small
-\begin{tabular}{@{}lrrrrrr@{}}
-\toprule
-Source & Grade 0 & Grade 1 & Grade 2 & Grade 3 & Grade 4 & Total \\
-\midrule
-APTOS 2019 & \tcAa & \tcAb & \tcAc & \tcAd & \tcAe & \tcAn \\
-Kaggle EyePACS & \tcEa & \tcEb & \tcEc & \tcEd & \tcEe & \tcEn \\
-\midrule
-Total & 5{,}234 & 1{,}021 & 2{,}489 & 612 & 644 & 10{,}000 \\
-\bottomrule
-\end{tabular}
-\tabnote{The exact image list is recorded in the evaluation manifest
-\texttt{test\_manifest.csv}.}
-\end{table}
-
-Four reference systems are compared with DOTS: EfficientNet-B3~\cite{tan2019efficientnet},
-the most common convolutional baseline; RETFound~\cite{zhou2023retfound}, a leading
-retinal foundation model; the ordinal variant of TOPORET (\cref{ch:toporet}), which addresses L1 and L2 only; and
-the six reduced systems of the necessity analysis (\cref{sec:h3b}), which remove one or two
-of the three axes. All systems share the same data splits, pre-processing and number of
-training epochs.
-
-The DOTS graph uses a dual similarity with $\alpha=0.65$ and a $k$-nearest-neighbour
-construction ($k=15$, FAISS~\cite{johnson2021faiss}), with $L=2$ layers, at most $S=25$
-sampled neighbours per node and layer, and hidden dimension $256$. $S$ is only an upper
-bound: after symmetrisation of the $k$-NN graph most nodes have fewer than $25$
-neighbours, and all of them are then used. Unlike the threshold graph of TOPORET, which
-requires all pairwise Wasserstein distances (\cref{sec:ch3-design}), the $k$-NN
-construction keeps the cost of adding a patient independent of the cohort size. The parameters specific to DOTS are
-the class weights of the CORAL loss, $\lambda=(1.0,2.5,3.0,8.0,6.0)$ for Grades~0--4
-(\cref{tab:weights}), a label smoothing of $\epsilon=0.05$ (\cref{tab:hyper}), and the
-abstention threshold $\tau_U=0.73$~nats (\cref{tab:tau}). All were selected on the
-validation folds only.
-
-\paragraph{Referral rule.}
-The complete safety mechanism of DOTS is
-\begin{equation}
-\text{refer image } i \iff \hat P(Y_i\geq 3) > t \quad\text{or}\quad H_i>\tau_U ,
-\qquad \tau_U=0.73~\text{nats},
-\label{eq:referral}
-\end{equation}
-where the second condition is the entropy abstention of \cref{eq:ent} (the deferred image
-is referred to a human grader). Both thresholds were selected on the validation folds and
-frozen before the test evaluation; the value of the referral threshold $t$ is part of the
-released configuration files (\cref{app:repro}). Sev-NR counts a severe image (Grade~3 or~4) as
-\emph{not referred} when neither condition holds. Because referral uses the cumulative probability
-rather than the most probable grade, the Sev-NR of a system is not the same quantity as
-the fraction of severe images whose \emph{predicted grade} is below~3 in a confusion
-matrix. The complete list of hyperparameters is
-given in \cref{app:hyper}.
-
-\paragraph{Unit of analysis.}
-All sample sizes in this chapter are numbers of retinal images. The five benchmarks
-contain $108{,}301$ images in total (\cref{tab:datasets}), but these are not necessarily
-$108{,}301$ independent patients: some benchmarks contain several images of the same
-patient (for example both eyes in Kaggle EyePACS). The TOPORET results of \cref{ch:toporet} use
-patient-aware splits~\cite{belhadj2025plos}; the folds of the DOTS protocol are stratified
-by grade (\cref{app:repro}), and their grouping by patient is not documented here. The
-results of this chapter are therefore image-level estimates, and
-generalisation to new patients and populations is interpreted cautiously. The absence of
-complete patient-level longitudinal and demographic metadata also limits population-level
-clinical inference.
-
-\subsection{Evaluation Protocol and Contamination Controls}
-\label{sec:protocol}
-
-The strength of the DOTS results invites scrutiny of the evaluation protocol.
-\Cref{tab:protocol} lists each potential source of test-set contamination and the control
-used to block it.
-
-\begin{table}[H]
-\centering
-\caption[Evaluation-protocol controls]{Evaluation-protocol controls. Each potential confound is listed with
-the control used to block it.}
-\label{tab:protocol}
-\footnotesize
-\begin{tabular}{P{4.4cm}P{8.4cm}}
-\toprule
-Potential confound & Control implemented \\
-\midrule
-Graph construction leakage & Population graph built from training-fold embeddings only; test nodes are inductive. \\
-Threshold $\tau_U$ optimisation & Grid search on the validation fold only; test set accessed once. \\
-Class weights $\lambda_0,\ldots,\lambda_4$ selection & Validation-fold Sev-NR minimisation; frozen before test. \\
-$\alpha=0.65$ (dual metric) & Validation-fold QWK; frozen before test. \\
-$k=15$ (neighbours) & Validation-fold QWK maximisation. \\
-Multi-seed stability & Three seeds; standard deviation between $0.003$ and $0.005$ QWK across benchmarks (\cref{tab:seeds}). \\
-Benchmark selection & Five datasets selected a priori; none excluded after seeing results. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Graph-based models need particular care here. Because each prediction uses the
-neighbours of a patient, a test image that was present in the graph during training, or a
-threshold tuned on the test set, would leak information into the evaluation and inflate
-every metric. The controls below were designed so that the test images influence neither
-the graph used for training nor any selected parameter; each row of the table names one
-such risk and the rule that blocks it.
-
-All hyperparameters affecting the final decision rule were selected on training and
-validation data, and the five test sets were accessed exactly once, after all design
-decisions were finalised. In particular, no held-out test set was used to choose the
-backbone (EfficientNet-B3 or RETFound), the dual-similarity weight $\alpha$, the number of
-neighbours $k$, the class weights $\lambda_0,\ldots,\lambda_4$, the abstention threshold
-$\tau_U$, the final architecture or any other hyperparameter; the order in which these
-choices were frozen is recorded in \cref{app:repro}. The seven evaluation criteria and their thresholds were fixed at
-the same time, before any test result was seen: QWK $>0.90$, AUC $>0.97$, ECE $<0.05$,
-Sev-NR $<2\%$, PDR-NR $<1.5\%$, coverage $>90\%$ and $0\%$ rank violations. Each criterion
-is reported with a 95\% confidence interval, but the pre-specified decision rule uses the
-point estimate (\cref{app:stats}). For the three proportions (Sev-NR, PDR-NR, coverage) the
-interval is the exact Clopper--Pearson interval computed over the images concerned, so that
-its width reflects the real number of events: Sev-NR is estimated on the $1{,}256$ severe
-test images ($24$ not referred), PDR-NR on the $644$ PDR images. For QWK, AUC and ECE, which
-are not simple proportions, the interval comes from a bootstrap of the $10{,}000$ test images
-($B=10{,}000$ resamples, stratified by true grade).
-
-\section{Results}
-\label{sec:ch4-results}
-
-\subsection{Sufficiency: The Seven Criteria (H3a)}
-\label{sec:h3a-eval}
-
-DOTS is evaluated against seven pre-specified criteria on the combined
-APTOS $+$ Kaggle EyePACS test set ($N=10{,}000$); \cref{tab:h3a} lists each criterion,
-its threshold and the result. DOTS achieves a Sev-NR of $1.9\%$, which is below the
-predefined $2\%$ evaluation target at the point estimate. However, the corresponding 95\%
-confidence interval $[1.2\%,\,2.8\%]$ extends above the target. The present retrospective
-evaluation therefore demonstrates performance toward the predefined target, but does not
-establish statistical compliance with the $2\%$ criterion. Accordingly, H3a is considered
-achieved at the point-estimate level, with moderate evidential strength
-(\cref{tab:claims}), rather than as definitive statistical confirmation of the safety
-criterion.
-The CORAL violation rate is identically zero across $10{,}000$ test
-predictions, confirming the algebraic guarantee of \cref{eq:coral-proj}. For comparison, on the validation folds used to select $\tau_U$
-(\cref{tab:tau}), the coverage was \valCov{} and the Sev-NR \valSevNR{}: the test values
-coincide with the validation values at the reported precision. Both thresholds ($\tau_U$
-and $t$) were frozen before the single access to the test set, and a re-run of the
-evaluation from the saved predictions reproduces all seven test values of \cref{tab:h3a}.
-
-\begin{table}[H]
-\centering
-\caption[H3a: seven pre-specified clinical-oriented criteria]{H3a: seven pre-specified clinical-oriented criteria
-($N=10{,}000$ held-out predictions). ``Pass (PE)'' $=$ the point estimate meets the
-threshold; it does not imply that the whole confidence interval does.}
-\label{tab:h3a}
-\small
-\begin{tabular}{clclc}
-\toprule
-\# & Criterion & Threshold & DOTS [95\% CI] & Status \\
-\midrule
-1 & Quadratic Weighted Kappa & $>0.90$ & $0.951$ $[0.941,\,0.957]$ & Pass (PE) \\
-2 & AUC (macro one-vs-rest) & $>0.97$ & $0.988$ $[0.982,\,0.994]$ & Pass (PE) \\
-3 & Expected Calibration Error & $<0.05$ & $0.040$ $[0.034,\,0.046]$ & Pass (PE) \\
-4 & Severe-DR Non-Referral Rate & $<2.0\%$ & $1.9\%$ $[1.2\%,\,2.8\%]$ & Pass (PE)$^{\dagger}$ \\
-5 & PDR Non-Referral Rate & $<1.5\%$ & $0.8\%$ $[0.3\%,\,1.8\%]$ & Pass (PE)$^{\dagger}$ \\
-6 & Coverage (after abstention) & $>90\%$ & $93.8\%$ $[93.3\%,\,94.3\%]$ & Pass (PE) \\
-7 & CORAL rank violations & $=0\%$ & $0.0\%$ $[0.0\%,\,0.0\%]$ & Pass (PE) \\
-\bottomrule
-\end{tabular}
-\tabnote{Intervals: exact Clopper--Pearson for the three proportions (Sev-NR over the
-$1{,}256$ severe images, PDR-NR over the $644$ PDR images, coverage over the $10{,}000$
-images); grade-stratified bootstrap for QWK, AUC and ECE.
-$^{\dagger}$The 95\% CI upper bound ($2.8\%$ for Sev-NR, $1.8\%$ for PDR-NR) lies above
-the target: the point estimate meets the target, but statistical compliance with these two
-safety criteria is not established.}
-\end{table}
-
-The seven criteria are not arbitrary: QWK and AUC are the standard ordinal and
-discriminative metrics of the DR literature; ECE operationalises calibration
-for triage; the Sev-NR and PDR-NR targets are informed by national screening
-practice~\cite{scanlon2017english} and fixed as evaluation targets for this thesis; coverage stops abstention from trivially buying safety; rank
-violations are the architectural guarantee of CORAL.
-
-\subsection{Cross-Benchmark Performance}
-\label{sec:bench}
-
-\Cref{tab:bench} reports the QWK of DOTS and of three reference systems on the five
-public benchmarks~\cite{kaggle2015eyepacs,aptos2019,porwal2018idrid,
-decenciere2014messidor,li2019ddr}. DOTS has the highest QWK on four of them; on IDRiD,
-the smallest dataset ($N=516$ images), RETFound remains higher ($0.901$ against $0.878$).
-The lower performance observed on IDRiD may be associated with its substantially smaller
-sample size and consequently smaller population graph. This provides a plausible
-methodological explanation for the observed gap, but the present experiments do not
-establish a causal relationship between graph size and cross-dataset performance. IDRiD is
-also the only benchmark on which the multi-seed Sev-NR of DOTS ($2.1\pm0.3\%$,
-\cref{tab:seeds}) lies above the $2\%$ target.
-
-\begin{table}[H]
-\centering
-\caption[Quadratic weighted kappa on each of the five public benchmarks]{Quadratic weighted kappa on each of the five public benchmarks.}
-\label{tab:bench}
-\small
-\begin{tabular}{lccccc}
-\toprule
-System & EyePACS & APTOS & IDRiD & Messidor-2 & DDR \\
-\midrule
-EfficientNet-B3 & $0.840$ & $0.851$ & $0.832$ & $0.847$ & $0.838$ \\
-RETFound & $0.920$ & $0.928$ & $0.901$ & $0.915$ & $0.912$ \\
-TOPORET (ordinal variant) & $0.880$ & $0.887$ & $0.878$ & $0.900$ & $0.871$ \\
-DOTS & $\mathbf{0.951}$ & $\mathbf{0.953}$ & $0.878$ & $\mathbf{0.948}$ & $\mathbf{0.951}$ \\
-\bottomrule
-\end{tabular}
-\tabnote{All systems are trained and evaluated under the protocol of this chapter. The
-published TOPORET results of \cref{tab:crossdata} use the protocol of \cref{ch:toporet}
-(nominal head, patient-aware $70/10/20$ splits) and are not directly comparable; for
-example, APTOS~2019 gives QWK $0.86$ there.}
-\end{table}
-
-\Cref{fig:bench} shows the same results graphically. The ranking of the systems is the same on all benchmarks except IDRiD, which is consistent with gains that are not specific to one camera or population, although five retrospective benchmarks without demographic metadata cannot establish this in general.
-
-\input{figures/fig_bench}
-
-\subsection{Component Ablation Study}
-\label{sec:ablation4}
-
-To isolate the contribution of each architectural change between TOPORET and
-DOTS, a sequential ablation introduces Gaps~A, B and~C one at a time (\cref{tab:ablate}). Each
-addition improves both QWK and Sev-NR, and no single addition brings Sev-NR below the $2\%$ target on
-its own: the target is reached, at the point estimate, only when the last component is added.
-
-\begin{table}[H]
-\centering
-\caption[Sequential ablation from TOPORET to DOTS]{Sequential ablation from TOPORET to DOTS on Kaggle EyePACS
-($N=88{,}702$, 5-fold mean).}
-\label{tab:ablate}
-\small
-\begin{tabular}{lccc}
-\toprule
-Configuration & QWK & Sev-NR & Violations \\
-\midrule
-TOPORET, ordinal variant (baseline) & $0.880$ & $3.4\%$ & $2.1\%$ \\
-$+$ RETFound backbone (Gap A) & $0.921$ & $3.1\%$ & $1.9\%$ \\
-$+$ CORAL ordinal head (Gap B) & $0.934$ & $2.6\%$ & $0.0\%$ \\
-$+$ Dynamic GAT (partial Gap C) & $0.943$ & $2.2\%$ & $0.0\%$ \\
-$+$ Entropy abstention (full Gap C) $=$ DOTS & $0.951$ & $1.9\%$ & $0.0\%$ \\
-\bottomrule
-\end{tabular}
-\tabnote{Each row adds one Gap resolution. No single addition brings Sev-NR below
-the $2\%$ target on its own.}
-\end{table}
-
-\subsection{Failure-Mode Analysis}
-\label{sec:fail}
-
-\subsubsection{Confusion Matrix}
-
-\Cref{tab:confusion} gives the DOTS confusion matrix on the $9{,}380$ test images that were
-not deferred (coverage $93.8\%$ of the $10{,}000$ held-out predictions). The columns give
-the most probable grade; as explained in \cref{sec:ch4-protocol}, referral is decided by the
-cumulative probability $\hat P(Y\geq 3)$, so the off-diagonal cells of the Grade~3 and
-Grade~4 rows are not, by themselves, non-referrals.
-
-\begin{table}[!htb]
-\centering
-\caption[DOTS confusion matrix on accepted predictions]{DOTS confusion matrix on accepted predictions ($N=9{,}380$). Rows: true grade;
-columns: predicted grade; each row sums to $100\%$.}
-\label{tab:confusion}
-\footnotesize
-\begin{tabular}{@{}lccccc@{}}
-\toprule
-True $\backslash$ Predicted & Grade 0 & Grade 1 & Grade 2 & Grade 3 & Grade 4 \\
-\midrule
-Grade 0 & \textbf{97.3\%} & 2.5\% & 0.2\% & 0.0\% & 0.0\% \\
-Grade 1 & 4.1\% & \textbf{84.2\%} & 11.4\% & 0.3\% & 0.0\% \\
-Grade 2 & 0.3\% & 8.7\% & \textbf{82.9\%} & 7.9\% & 0.2\% \\
-Grade 3 & 0.0\% & 0.2\% & 11.3\% & \textbf{78.4\%} & 10.1\% \\
-Grade 4 & 0.0\% & 0.0\% & 0.6\% & 8.2\% & \textbf{91.2\%} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The dominant
-error is adjacent-grade confusion (Grade~$k\leftrightarrow k\pm1$), consistent with the
-known difficulty of the ICDR scale at grade boundaries, where agreement among expert graders is
-imperfect~\cite{krause2018grader}. There are no clinically dangerous multi-grade jumps: no Grade~0 image is
-classified as Grade~3 or~4, and no Grade~4 image as Grade~0 or~1. This is consistent with,
-although not implied by, the rank-consistency guarantee of CORAL.
-
-\subsubsection{Abstention by True Grade}
-
-\Cref{tab:abstention} decomposes the $6.2\%$ abstention rate by true grade. Deferral
-concentrates on genuinely ambiguous cases: $73\%$ of abstained images lie at a grade
-boundary, where expert agreement is lowest. Grade~0 has the lowest rate overall ($2.1\%$), and among the diseased grades Grade~4 has
-the lowest ($3.1\%$), as expected for a grade with no upper boundary and visually
-distinctive neovascularisation.
-The high rate at Grade~1 ($14.2\%$) reflects the clinical reality that the Mild/Moderate
-boundary is among the most contested in practice.
-
-\begin{table}[H]
-\centering
-\caption[Abstention rate by true grade]{Abstention rate by true grade. Deferral concentrates on ambiguous grade
-boundaries.}
-\label{tab:abstention}
-\small
-\begin{tabular}{@{}lrcl@{}}
-\toprule
-True grade & $N$ (test) & Abstention rate & Share of deferred cases at a boundary \\
-\midrule
-Grade 0 & 5{,}234 & 2.1\% & 62\% (G0/G1) \\
-Grade 1 & 1{,}021 & 14.2\% & 81\% (G1/G2) \\
-Grade 2 & 2{,}489 & 11.6\% & 74\% (G2/G3) \\
-Grade 3 & 612 & 9.4\% & 88\% (G3/G4) \\
-Grade 4 & 644 & 3.1\% & 41\% (no upper boundary) \\
-\midrule
-Overall & 10{,}000 & 6.2\% & 73\% \\
-\bottomrule
-\end{tabular}
-\tabnote{A deferred case is counted ``at a boundary'' when its two highest predicted grade
-probabilities are adjacent grades and sum to more than $0.85$.}
-\end{table}
-
-\subsubsection{Per-Grade Calibration}
-
-\Cref{tab:ece} decomposes the overall ECE of $0.040$ by true grade. Calibration is worst
-at Grade~3 and Grade~1, which lie on the contested Grade~2/3 and Mild/Moderate boundaries,
-and best at Grade~0 (the majority class) and Grade~4 (visually distinctive). The grades
-with high abstention rates are broadly those with high calibration error: entropy
-abstention and ECE are two views of the same phenomenon, boundary ambiguity.
-
-\begin{table}[H]
-\centering
-\caption[Expected Calibration Error by true grade]{Expected Calibration Error and mean confidence of correct predictions, by true
-grade.}
-\label{tab:ece}
+\caption[DGTS per-grade results in cross-validation and on EyePACS]{DGTS per-grade F1
+(precision / recall) in five-fold cross-validation and zero-shot on EyePACS
+($N=35{,}126$)~\cite{belhadj2026dgts}.}
+\label{tab:dgts-grade}
 \small
 \begin{tabular}{@{}lcc@{}}
 \toprule
-Grade & Grade-conditional ECE & Mean confidence (correct predictions) \\
+Grade & Cross-validation & EyePACS (zero-shot) \\
 \midrule
-Grade 0 & 0.021 & 0.96 \\
-Grade 1 & 0.058 & 0.81 \\
-Grade 2 & 0.052 & 0.84 \\
-Grade 3 & 0.061 & 0.79 \\
-Grade 4 & 0.034 & 0.91 \\
+0 -- No DR & $0.980$ ($0.975$ / $0.985$) & $0.976$ ($0.971$ / $0.982$) \\
+1 -- Mild & $0.680$ ($0.689$ / $0.672$) & $0.662$ ($0.671$ / $0.654$) \\
+2 -- Moderate & $0.830$ ($0.821$ / $0.839$) & $0.822$ ($0.814$ / $0.831$) \\
+3 -- Severe & $0.688$ ($0.631$ / $0.758$) & $0.668$ ($0.617$ / $0.729$) \\
+4 -- PDR & $0.741$ ($0.861$ / $0.651$) & $0.724$ ($0.847$ / $0.631$) \\
 \midrule
-Overall (micro-averaged) & \textbf{0.040} & -- \\
+Macro-F1 & $0.778$ & $0.770$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Necessity Analysis (H3b)}
+On the fold-0 confusion matrix ($N=1{,}172$) no No-DR image is predicted as Severe or PDR,
+no Severe image is predicted as No DR or Mild ($0/62$), and one PDR image is predicted as
+Mild (PDR-NR $=1/94=1.1\%$, exact 95\% CI $[0.03\%,\,5.8\%]$). On EyePACS, Sev-NR is about
+$2.1\%$ and PDR-NR about $1.8\%$. The Sev-NR on EyePACS is therefore slightly above the $2\%$
+threshold of \cref{tab:criteria}: DGTS generalises well in QWK, but it does not meet the
+safety criterion of this thesis on external data. This is consistent with its design,
+which targets representation quality rather than safety.
+
+\paragraph{Throughput.}
+End-to-end inference takes $18.3$~ms per image on a T4 GPU, against $14.1$~ms for
+EfficientNet-B4 alone; the persistence diagram of the retrieved neighbourhood, computed for
+display at inference, dominates the overhead and parallelises almost linearly over CPU
+workers.
+
+\section{DOTS: Ordinal Safety-Oriented Grading}
+\label{sec:dots}
+
+\subsection{Architecture}
+\label{sec:ch4-arch}
+
+DOTS~\cite{belhadj2026dots} has five stages. (1)~CLAHE pre-processing. (2)~An
+EfficientNet-B3~\cite{tan2019efficientnet} backbone with ImageNet weights, fine-tuned end to
+end on $320\times320$ images, produces $f_i\in\mathbb{R}^{1536}$. (3)~A linear projection
+with GELU and dropout gives $z_i\in\mathbb{R}^{256}$. (4)~The Feature Refinement Encoder
+(FRE) refines it:
+\begin{equation}
+h_i=\operatorname{LN}\bigl(z_i+\operatorname{FFN}(\operatorname{LN}(z_i+\operatorname{MHA}(z_i)))\bigr),
+\label{eq:fre}
+\end{equation}
+where the feed-forward network maps $256\to512\to256$ with GELU and dropout~$0.2$.
+(5)~A CORAL head maps $h_i$ to $K-1=4$ rank logits $\hat r_{ik}$, and the grade is
+$\hat y_i=\sum_{k}\mathbb{1}[\sigma(\hat r_{ik})>0.5]$. At inference, predictions are
+averaged over five test-time augmentations (identity, horizontal and vertical flips,
+rotations by $90^{\circ}$ and $180^{\circ}$).
+
+\paragraph{What the FRE is, and is not.}
+The FRE follows the code of a post-norm transformer encoder block~\cite{vaswani2017attention},
+but it operates on a sequence of length one. The attention weights are then identically
+$1$, and the multi-head attention contributes no interaction between tokens: the FRE is
+functionally a two-layer residual MLP with layer normalisation. Its benefit over a plain
+linear projection, measured in the ablation below, comes from the non-linear bottleneck and
+the normalised residual path, not from attention. The name of the system is therefore
+expanded as \emph{Deep Ordinal Training System}, and no claim of attention-based benefit is
+made.
+
+\paragraph{CORAL loss.}
+With $y_{ik}=\mathbb{1}[y_i\geq k]$, DOTS minimises
+\begin{equation}
+\mathcal{L}_{\mathrm{CORAL}}=-\frac{1}{N(K-1)}\sum_{i=1}^{N}\sum_{k=1}^{K-1}
+\Bigl[y_{ik}\log\sigma(\hat r_{ik})+(1-y_{ik})\log\bigl(1-\sigma(\hat r_{ik})\bigr)\Bigr].
+\label{eq:coral}
+\end{equation}
+The four binary tasks share all parameters except their biases, which structurally
+encourages rank-consistent predictions (\cref{sec:coral}).
+
+\paragraph{Training.}
+AdamW (learning rate $2\times10^{-4}$, weight decay $10^{-4}$), cosine annealing,
+$12$ epochs per fold ($10$ in the controlled ablation), batch size $16$, mixed precision,
+weighted random sampler recomputed per fold, one NVIDIA T4 GPU (about $45$~min per fold).
+Inference with five augmentations takes about $75$~ms per image.
+
+\subsection{Component Ablation}
+
+\Cref{tab:ablate} adds the components one at a time under an identical ten-epoch budget.
+
+\begin{table}[H]
+\centering
+\caption[Progressive DOTS ablation]{Progressive DOTS ablation (five-fold cross-validation,
+$5{,}859$ images, ten-epoch budget)~\cite{belhadj2026dots}. $\Delta$QWK is the gain over the
+preceding row.}
+\label{tab:ablate}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Configuration & Accuracy (\%) & QWK & $\Delta$QWK \\
+\midrule
+EfficientNet-B3 (baseline) & $84.6$ & $0.903$ & -- \\
+$+$ TTA $\times5$ & $85.7$ & $0.918$ & $+0.015$ \\
+$+$ GraphSAGE (intermediate step) & $86.6$ & $0.928$ & $+0.010$ \\
+FRE replacing GraphSAGE & $87.8$ & $0.937$ & $+0.009$ \\
+$+$ CORAL head (DOTS) & $\mathbf{89.1}$ & $\mathbf{0.943}$ & $+0.006$ \\
+\midrule
+Total gain & $+4.5$~pp & & $+0.040$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For each configuration, a one-sample $t$-test over the five folds ($df=4$) shows that the
+mean QWK exceeds the baseline value $0.903$ ($p<0.01$ for every row). The population graph
+helps here too ($+0.010$), which is consistent with H1, but the FRE outperforms it
+($+0.009$ more) at a lower inference cost, and it replaces the graph in the final
+pipeline. CORAL adds the smallest QWK gain but the largest accuracy gain per QWK point
+($+1.3$~pp), consistent with sharper decision boundaries between grades.
+
+\subsection{Cross-Validation and Per-Grade Results}
+
+With the full twelve-epoch training, DOTS reaches QWK $=0.9527\pm0.0063$ (95\% CI
+$[0.9440,\,0.9613]$), accuracy $89.8\pm0.6\%$ and macro-F1 $81.8\pm0.9\%$
+(\cref{tab:dots-cv}). The lowest fold ($0.9452$) is above the best single-source ordinal
+result reported on APTOS~2019 in the DOTS article ($0.921$).
+
+\begin{table}[H]
+\centering
+\caption[DOTS five-fold cross-validation]{DOTS five-fold cross-validation (twelve
+epochs)~\cite{belhadj2026dots}.}
+\label{tab:dots-cv}
+\small
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+Fold & $N_{\mathrm{val}}$ & Accuracy (\%) & Macro-F1 (\%) & QWK \\
+\midrule
+0 & 1{,}172 & 90.6 & 82.9 & 0.9554 \\
+1 & 1{,}172 & 88.9 & 80.8 & 0.9469 \\
+2 & 1{,}172 & 89.8 & 81.7 & 0.9531 \\
+3 & 1{,}171 & 89.5 & 81.0 & 0.9452 \\
+4 & 1{,}172 & 90.2 & 82.6 & 0.9626 \\
+\midrule
+Mean $\pm$ SD & & $89.8\pm0.6$ & $81.8\pm0.9$ & $0.9527\pm0.0063$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\Cref{tab:dots-grade} gives the per-grade results over the $5{,}859$ out-of-fold
+predictions. Of the $597$ errors, $495$ ($82.9\%$) are between adjacent grades, $93$
+($15.6\%$) span two grades, $9$ ($1.5\%$) span three and none spans four: no No-DR image is
+predicted as PDR and no PDR image as No DR. The dominant confusion is Mild$\to$Moderate
+($162$ of $592$ Mild images), an over-referral rather than an under-referral.
+
+\begin{table}[H]
+\centering
+\caption[DOTS per-grade results]{DOTS per-grade results over the $5{,}859$ out-of-fold
+predictions~\cite{belhadj2026dots}.}
+\label{tab:dots-grade}
+\small
+\begin{tabular}{@{}lcccr@{}}
+\toprule
+Grade & Precision & Recall & F1 & $N$ \\
+\midrule
+0 -- No DR & 0.986 & 0.985 & 0.986 & 2{,}888 \\
+1 -- Mild & 0.778 & 0.671 & 0.721 & 592 \\
+2 -- Moderate & 0.843 & 0.889 & 0.865 & 1{,}598 \\
+3 -- Severe & 0.631 & 0.770 & 0.694 & 309 \\
+4 -- PDR & 0.896 & 0.767 & 0.826 & 472 \\
+\midrule
+Macro & 0.827 & 0.816 & 0.818 & 5{,}859 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Calibration and Significance}
+
+For the referral decision (Grade~$\geq2$ referable), the ECE is $0.041\pm0.006$, the Brier
+score $0.072\pm0.004$ and the AUC $0.971$ $[0.963,\,0.979]$. For the five grades, the ECE
+is $0.067\pm0.009$, reflecting over-confident CORAL sigmoids near the grade boundaries;
+temperature scaling with $T=1.42$, fitted on each validation fold, reduces it to
+$0.031\pm0.003$ without changing QWK. A McNemar test on paired predictions of DOTS and the
+CNN baseline gives $p=0.013$.
+
+\subsection{Sufficiency: Safety Criteria (H3a)}
+\label{sec:h3a-eval}
+
+\Cref{tab:h3a} confronts DOTS with the criteria of \cref{tab:criteria}. Internally, $3$ of
+the $309$ Severe images and $6$ of the $472$ PDR images are predicted as No DR or Mild.
+
+\begin{table}[H]
+\centering
+\caption[H3a: DOTS against the screening safety criteria]{H3a: DOTS against the screening
+safety criteria, internally (five-fold out-of-fold predictions) and on Messidor-2. Exact
+Clopper--Pearson 95\% intervals are given where the counts are known.}
+\label{tab:h3a}
+\small
+\begin{tabular}{@{}P{3.0cm}lP{4.6cm}P{3.4cm}@{}}
+\toprule
+Criterion & Threshold & Internal ($N=5{,}859$) & Messidor-2 ($N=1{,}744$) \\
+\midrule
+QWK & $\geq0.80$ & $0.9527$ $[0.944,\,0.961]$ & $0.931$ $[0.919,\,0.942]$ \\
+Sev-NR & $\leq2\%$ & $0.97\%$ ($3/309$) $[0.2\%,\,2.8\%]$ & $1.4\%$ \\
+PDR-NR & $\leq2\%$ & $1.27\%$ ($6/472$) $[0.5\%,\,2.7\%]$ & $1.9\%$ \\
+Grade $0\leftrightarrow4$ confusions & $0\%$ & $0\%$ & $0\%$ \\
+\midrule
+Verdict & & met at the point estimate & met at the point estimate \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+H3a is supported at the point estimate: every criterion is met both internally and on
+Messidor-2. The evidence is nevertheless limited by the small number of severe cases. With
+$309$ Severe images, the exact 95\% interval of the internal Sev-NR, $[0.2\%,\,2.8\%]$,
+extends above $2\%$, and the same holds for PDR-NR; the number of Severe and PDR images in
+Messidor-2 is not reported in the DOTS article, so no interval can be computed for the
+external rates. H3a is therefore met at the point estimate, not established with
+statistical confidence.
+
+\subsection{Necessity within the Ablation (H3b)}
 \label{sec:h3b}
 
-DOTS combines three ingredients, summarised in \cref{tab:axes5}: the relational
-graph~(R), the vascular topology~(S), and the ordinal-safety axis~(O: RETFound, CORAL and
-the right to abstain).
+\Cref{tab:h3b} evaluates the variants of the ablation on Messidor-2.
 
 \begin{table}[H]
 \centering
-\caption[The three axes of DOTS tested by H3b]{The three axes of DOTS tested by H3b.}
-\label{tab:axes5}
-\small
-\begin{tabular}{@{}c l P{8.6cm}@{}}
-\toprule
-Axis & Plain name & What it does \\
-\midrule
-R & Relational graph & similar patients share information (dual-similarity graph, dynamic GAT) \\
-S & Vascular topology & $H_0/H_1$ persistence of the vessel skeleton (7-D vector) \\
-O & Ordinal $+$ safety & RETFound, CORAL ranking and entropy abstention \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Hypothesis H3b asks one concrete question:
-
-\begin{quote}
-\emph{If any of these ingredients is removed, can the remaining system still keep Sev-NR
-below $2\%$ under the same test protocol?}
-\end{quote}
-
-There are six ways to drop something: the three single axes $\{R\}$, $\{S\}$, $\{O\}$ and
-the three pairs $\{R,S\}$, $\{R,O\}$, $\{S,O\}$. The full triple $\{R,S,O\}$ is DOTS
-itself. All six reduced systems were trained with every other setting held as in DOTS
-and scored on the same seven criteria as \cref{tab:h3a}.
-\Cref{fig:h3b} summarises the outcome: none of the six reduced systems meets the safety
-rule. The figure also shows that the reduced systems fail by very different margins, which the next subsections examine one by one.
-
-\input{figures/fig_h3b}
-
-\subsection{Implementation of Each Reduced System}
-
-\Cref{tab:subimpl} specifies what was trained for each reduced system. Every component
-that is not listed is removed; everything else (data, folds, optimiser, seeds and number
-of epochs) is identical to DOTS.
-
-\begin{table}[H]
-\centering
-\caption[Implementation of each reduced system]{Implementation of each reduced system. Only the listed components are kept.}
-\label{tab:subimpl}
-\small
-\begin{tabular}{@{}cl P{10.2cm}@{}}
-\toprule
-\# & System & Implementation \\
-\midrule
-1 & $\{R\}$ & EfficientNet-B3 $+$ visual GraphSAGE. No TDA, no CORAL, no abstention. \\
-2 & $\{S\}$ & EfficientNet-B3 $+$ TDA concatenated. No graph, no CORAL, no abstention. \\
-3 & $\{O\}$ & EfficientNet-B3 $+$ CORAL. No graph, no TDA, no abstention. \\
-4 & $\{R,S\}$ & Ordinal variant of TOPORET: dual-similarity graph $+$ TDA $+$ CORN (not CORAL). No abstention. \\
-5 & $\{R,O\}$ & RETFound $+$ visual GraphSAGE $+$ CORAL $+$ abstention. No TDA. \\
-6 & $\{S,O\}$ & RETFound $+$ TDA $+$ CORAL $+$ abstention. No graph. \\
-7 & $\{R,S,O\}$ & DOTS (all three axes). \\
-\bottomrule
-\end{tabular}
-\tabnote{Systems 3, 5 and 6 contain the ordinal axis. System 3 keeps only its CORAL head
-on the ImageNet backbone; systems 5 and 6 keep the complete axis.}
-\end{table}
-
-\subsection{Results of the Exhaustive Enumeration}
-
-\Cref{tab:h3b} reports the Sev-NR of each reduced system on the $10{,}000$-image test
-set used for H3a. Because this test set and protocol differ from those of \cref{tab:ablation3}
-(\cref{ch:toporet}) and \cref{tab:ablate}, systems with similar descriptions can show
-different values in these tables (for example $\{S\}$: QWK $0.849$ here, $0.86$ for
-configuration~(B) in \cref{tab:ablation3}).
-
-\begin{table}[H]
-\centering
-\caption[H3b: Sev-NR of every reduced system versus DOTS]{Sev-NR of every reduced system versus DOTS. Fail: Sev-NR $\geq 2\%$.}
+\caption[H3b: external validation of the ablation variants on Messidor-2]{H3b: external
+validation of the ablation variants on Messidor-2 ($1{,}744$ images, never used for
+training)~\cite{belhadj2026dots}. Threshold: $\leq2\%$ for both non-referral rates.}
 \label{tab:h3b}
 \small
-\begin{tabular}{@{}cllc@{}}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-\# & System & Sev-NR & Verdict \\
+Variant & QWK & AUC & Sev-NR & PDR-NR \\
 \midrule
-1 & $\{R\}$ & 4.1\% & Fail \\
-2 & $\{S\}$ & 4.0\% & Fail \\
-3 & $\{O\}$ & 3.6\% & Fail \\
-4 & $\{R,S\}$ (TOPORET, ord.\ var.) & 3.4\% & Fail \\
-5 & $\{R,O\}$ & 2.2\% & Fail (closest) \\
-6 & $\{S,O\}$ & 2.4\% & Fail \\
+EfficientNet-B3 (baseline) & 0.891 & 0.938 & 5.8\% & 8.6\% \\
+CNN $+$ GraphSAGE & 0.907 & 0.947 & 4.1\% & 6.2\% \\
+CNN $+$ CORAL only & 0.913 & 0.951 & 3.7\% & 5.1\% \\
+CNN $+$ TTA only & 0.918 & 0.955 & 2.9\% & 4.0\% \\
+DOTS (complete) & \textbf{0.931} & \textbf{0.963} & \textbf{1.4\%} & \textbf{1.9\%} \\
 \midrule
-7 & $\{R,S,O\}$ (DOTS) & \textbf{1.9\%} & Pass (point estimate) \\
+Distributed DOTS (two-site simulation) & 0.928 & 0.961 & 1.2\% & 1.7\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{H3b supported within the investigated family.}
-All six proper subsets fail Sev-NR $<2\%$ (\cref{tab:h3b}). The closest failure is
-$\{R,O\}$ at $2.2\%$: graph and ordinal safety, but no topology. It lies $0.2$~pp above
-the target and $0.3$~pp above DOTS, and the paired bootstrap 95\% interval of the
-difference with DOTS (same test images for both systems) is
-$[-0.54,\,-0.08]$~pp, which excludes zero. Within this family and specification, removing topology alone is
-therefore enough to miss the safety target, even when the other two axes are kept.
+\input{figures/fig_progressive}
 
-Within the investigated DOTS architectural family and experimental specification, the
-complete relational--structural--ordinal configuration is thus the only evaluated
-configuration whose Sev-NR point estimate falls below the predefined $2\%$ target while
-satisfying the complete set of predefined criteria. This result supports the practical
-necessity of jointly considering the three axes within the investigated architecture
-family. It does not establish that every conceivable architecture lacking one of these
-components would fail the same criterion.
+H3b is supported within the ablation: none of the reduced variants brings Sev-NR below
+$2\%$ on Messidor-2, and the non-referral rates decrease as components are added
+(\cref{fig:progressive}). The ordinal head alone does not suffice ($3.7\%$), and neither
+does test-time augmentation alone ($2.9\%$). The claim is limited to the variants of this
+ablation under one specification; it does not show that every system lacking one of these
+components would fail. The Messidor-2 QWK ($0.931$) is $0.022$ below the internal value, a
+moderate drop for a change of country and camera. The distributed variant, a single-machine
+simulation of two-site federated averaging, loses $0.003$ QWK; its slightly lower
+non-referral rates are within the sampling variability and are not interpreted as an
+advantage.
 
-\subsection{Full Seven-Criterion Breakdown by Subset}
+\section{Comparison of the Two Systems}
+\label{sec:systems}
 
-Sev-NR is the binding constraint for every failing subset, but the six other criteria
-were also evaluated, to show which criteria each subset fails and by how much
-(\cref{tab:sevencrit}).
+\Cref{tab:systems} compares DGTS and DOTS. They share the corpus and the protocol but
+differ in backbone, loss and external dataset, so their numbers are not directly
+comparable; they are complementary rather than competing.
 
 \begin{table}[H]
 \centering
-\caption[Full seven-criterion results for the six proper subsets and DOTS]{Full seven-criterion results for the six proper subsets and DOTS
-(\cmark{} pass, \xmark{} fail).}
-\label{tab:sevencrit}
-\footnotesize
-\setlength{\tabcolsep}{2.4pt}
-\begin{tabular}{@{}lccccccc@{}}
-\toprule
-Subset & \makecell{QWK\\$>0.90$} & \makecell{AUC\\$>0.97$} & \makecell{ECE\\$<0.05$} & \makecell{Sev-NR\\$<2\%$} & \makecell{PDR-NR\\$<1.5\%$} & \makecell{Cov.\\$>90\%$} & \makecell{Viol.\\$=0\%$} \\
-\midrule
-$\{R\}$ & 0.852 \xmark & 0.961 \xmark & 0.071 \xmark & 4.1\% \xmark & 2.1\% \xmark & 100\% \cmark & 3.8\% \xmark \\
-$\{S\}$ & 0.849 \xmark & 0.958 \xmark & 0.068 \xmark & 4.0\% \xmark & 2.0\% \xmark & 100\% \cmark & 4.2\% \xmark \\
-$\{O\}$ & 0.864 \xmark & 0.967 \xmark & 0.052 \xmark & 3.6\% \xmark & 1.7\% \xmark & 100\% \cmark & 0.0\% \cmark \\
-$\{R,S\}$ & 0.880 \xmark & 0.972 \cmark & 0.058 \xmark & 3.4\% \xmark & 1.6\% \xmark & 100\% \cmark & 2.1\% \xmark \\
-$\{R,O\}$ & 0.921 \cmark & 0.979 \cmark & 0.046 \cmark & 2.2\% \xmark & 1.1\% \cmark & 95.1\% \cmark & 0.0\% \cmark \\
-$\{S,O\}$ & 0.918 \cmark & 0.977 \cmark & 0.048 \cmark & 2.4\% \xmark & 1.2\% \cmark & 94.6\% \cmark & 0.0\% \cmark \\
-\midrule
-DOTS & 0.951 \cmark & 0.988 \cmark & 0.040 \cmark & 1.9\% \cmark & 0.8\% \cmark & 93.8\% \cmark & 0.0\% \cmark \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The breakdown reveals a structural pattern. Subsets without the ordinal axis ($\{R\}$,
-$\{S\}$, $\{R,S\}$) fail on calibration and rank consistency as well as on Sev-NR. The
-two subsets that contain the complete ordinal-safety axis but lack one of the other two
-($\{R,O\}$, $\{S,O\}$) satisfy six of the seven criteria and fail only on Sev-NR. This is
-consistent with the role of each axis: the ordinal-safety axis targets calibration and
-rank consistency, while the relational and structural axes improve discrimination at the
-Grade~2/3 boundary, the main driver of residual Sev-NR.
-
-\paragraph{Sensitivity analysis of the borderline case $\{R,O\}$.}
-The most critical comparison is between $\{R,O\}$ (Sev-NR $=2.2\%$) and DOTS
-($1.9\%$), a difference of only $0.3$~pp. Four analyses address whether this margin
-supports the necessity of the structural axis.
-\begin{enumerate}
-\item \textbf{Bootstrap CI:} $\Delta(\mathrm{DOTS}-\{R,O\})=-0.31$~pp, 95\% CI
-$[-0.54,\,-0.08]$~pp. The interval excludes zero.
-\item \textbf{Threshold sensitivity:} if the target were relaxed to $2.5\%$ (a
-plausible alternative for some programmes), $\{R,O\}$ would pass. The necessity claim is
-therefore contingent on the $2\%$ target, which is a policy choice, not a
-mathematical law.
-\item \textbf{Largest benchmark:} on Kaggle EyePACS alone ($N=88{,}702$, 5-fold out-of-fold predictions), $\{R,O\}$
-reaches Sev-NR $=2.18\%$, again above the target.
-\item \textbf{Scope:} H3b is established constructively within the evaluated
-architectural family and specification. It does not claim that no conceivable two-axis
-system could satisfy the criterion (\cref{sec:scope}).
-\end{enumerate}
-
-\subsection{Scope of the Necessity Claim}
-\label{sec:scope}
-
-H3b is an exhaustive check of six engineered systems, not a statistical test over a
-sample of architectures. It is constructive and exhaustive within the specification used:
-the same five benchmarks, the same seven criteria, the same architecture family (CNN or
-ViT backbone $+$ optional graph $+$ optional TDA $+$ optional CORAL $+$ optional
-abstention). It does not prove that no conceivable architecture lacking one of the axes
-could meet the criteria; that would require a proof over the space of all architectures,
-which is neither attempted nor claimed. The result reads: among the implementations of each proper subset trained in this family
-under the same protocol, none satisfies all seven criteria, while the full combination
-does so at the point estimate. This is the usual scope of a constructive
-necessity argument in applied machine learning, with the advantage here of exhaustive
-rather than partial enumeration of the six subsets; it also inherits the uncertainty of
-each Sev-NR estimate, since the DOTS interval itself extends above $2\%$.
-
-\section{Effect Sizes and Clinical Impact}
-\label{sec:ch4-impact}
-
-\subsection{Effect Sizes}
-\label{sec:effects}
-
-\Cref{tab:effects} lists the effect size of each primary comparison. All reported
-standardised effects exceed the conventional ``large'' threshold (Cohen's $d>0.8$,
-\cite{cohen1988}); for H2, the publication reports the $F$ statistic only.
-The comparison with EfficientNet-B3 reaches $d=8.2$, which Cohen's framework would call
-extreme. Such a value between two trained systems reflects the cumulative effect of five
-architectural changes (\cref{sec:progress}) on retrospective data; it is a property of
-this specific comparison, not a general claim about achievable effect sizes, and it
-should not be extrapolated to prospective settings before the Phase~2 reader study. Effect sizes are nevertheless useful for planning that study, since they indicate the size of the differences that it will need to detect. A smaller prospective sample would suffice for the largest effects, but the Sev-NR criterion, which concerns rare severe cases, will drive the required sample size.
-
-\begin{table}[H]
-\centering
-\caption[Effect sizes for the primary comparisons]{Effect sizes for the primary comparisons.}
-\label{tab:effects}
+\caption[DGTS and DOTS compared]{DGTS and DOTS compared on the same fused corpus.}
+\label{tab:systems}
 \small
-\begin{tabular}{@{}llcl@{}}
+\begin{tabular}{@{}P{4.2cm}P{4.8cm}P{4.8cm}@{}}
 \toprule
-Comparison & Metric & Effect size & Interpretation \\
+& DGTS~\cite{belhadj2026dgts} & DOTS~\cite{belhadj2026dots} \\
 \midrule
-DOTS vs.\ EffNet-B3 & QWK $+11.1$~pp ($0.840\to0.951$) & $d=8.2$ & Extreme \\
-DOTS vs.\ RETFound & QWK $+3.1$~pp ($0.920\to0.951$) & $d=1.4$ & Very large \\
-Population graph (H1) & QWK $+0.04$ & $d_z=1.71$ & Very large \\
-Vascular topology (H2) & ANOVA, $F=84.3$, $p<0.001$ & not reported & -- \\
-Necessity (H3b) & Constructive enumeration & $6/6$ subsets fail & -- \\
+Axes addressed & Relational (graph) and topological (regulariser) & Ordinal safety \\
+Backbone & EfficientNet-B4, frozen & EfficientNet-B3, fine-tuned \\
+Head and loss & GraphSAGE $+$ PH branch; focal loss & FRE $+$ CORAL; ordinal loss \\
+QWK, five-fold CV & $0.941\pm0.008$ & $0.9527\pm0.0063$ \\
+External validation & EyePACS, $35{,}126$ images, QWK $0.925$ & Messidor-2, $1{,}744$ images, QWK $0.931$ \\
+External Sev-NR / PDR-NR & $\approx2.1\%$ / $\approx1.8\%$ & $1.4\%$ / $1.9\%$ \\
+Calibrated ECE & $0.031$ (fold 0) & $0.031\pm0.003$ (five-class) \\
+Inference (T4 GPU) & $18.3$~ms & $\approx75$~ms (TTA $\times5$) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Clinical Impact Projection}
+DGTS supports, on a second corpus and with a different form of topology, the value of the
+relational and topological axes; it generalises well in QWK but misses the Sev-NR
+threshold on EyePACS. DOTS meets the safety criteria but does not use the population graph
+or topology in its final form. Combining the two -- a population graph with a topological
+regulariser and an ordinal safety head in one model -- has not been evaluated in this thesis
+and is the most direct continuation of this work (see the General Conclusion).
+
+\section{Clinical Impact Projection}
 \label{sec:impact}
 
-A projection makes the practical stakes concrete. Sev-NR is the proportion of severe
-cases (Grades~3--4) that are \emph{not} referred, so the number of missed cases is
+A projection makes the practical stakes concrete. The number of severe cases left
+unreferred in a year is
 \begin{equation}
-\text{projected non-referred severe cases per year} \;=\; N\times\pi_{\mathrm{sev}}\times\text{Sev-NR},
+\text{projected non-referred severe cases} \;=\; N\times\pi_{\mathrm{sev}}\times\text{Sev-NR},
 \label{eq:impact}
 \end{equation}
 where $N$ is the number of patients screened per year and $\pi_{\mathrm{sev}}$ the
-proportion of them with severe disease. For illustration, \cref{tab:impact} applies \cref{eq:impact} to a
-national programme with $N=500{,}000$ and an assumed $\pi_{\mathrm{sev}}=5\%$
-($25{,}000$ severe cases), including proliferative disease in $1\%$ of the screened
-population ($5{,}000$ cases). These prevalences are assumptions, not measurements; the
-relative reduction does not depend on them.
+proportion with severe disease. \Cref{tab:impact} applies \cref{eq:impact} to an
+illustrative programme with $N=500{,}000$, assuming $5\%$ severe cases ($25{,}000$) and $1\%$
+proliferative cases ($5{,}000$), with the external Messidor-2 rates of \cref{tab:h3b}. These
+prevalences are assumptions, not measurements, and the rates are transferred from a
+retrospective dataset.
 
 \begin{table}[H]
 \centering
-\caption[Clinical impact projection for 500,000 screened patients per year]{Clinical impact projection for a programme screening $500{,}000$ patients per
-year (assumed prevalence: $5\%$ severe, including $1\%$ proliferative).}
+\caption[Clinical impact projection]{Projected non-referred cases per year for $500{,}000$
+screened patients (assumed prevalence: $5\%$ severe, $1\%$ proliferative), using the
+Messidor-2 non-referral rates.}
 \label{tab:impact}
 \small
 \begin{tabular}{@{}lccc@{}}
 \toprule
 Quantity & EfficientNet-B3 & DOTS & Difference \\
 \midrule
-Sev-NR & 4.3\% & 1.9\% & $-2.4$~pp \\
-PDR-NR & 2.0\% & 0.8\% & $-1.2$~pp \\
-Projected non-referred severe (G3--4) per year & 1{,}075 & 475 & $-600$ ($-56\%$) \\
-\quad of which proliferative (Grade 4) & 100 & 40 & $-60$ ($-60\%$) \\
-Images deferred to a human grader per year & 0 & 31{,}000 & -- \\
+Sev-NR & 5.8\% & 1.4\% & $-4.4$~pp \\
+Non-referred severe cases & $1{,}450$ & $350$ & $-1{,}100$ \\
+PDR-NR & 8.6\% & 1.9\% & $-6.7$~pp \\
+Non-referred proliferative cases & $430$ & $95$ & $-335$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Under these assumptions, the projected number of potentially non-referred severe cases is
-about $600$ lower with DOTS than with EfficientNet-B3, a relative reduction of $56\%$ that
-does not depend on the assumed prevalence. This is a projection from retrospective point
-estimates, not an observed number of cases avoided. The cost is that $6.2\%$ of images (about $31{,}000$ per year) are deferred
-to human graders; these are the cases with the highest predictive entropy, which concentrate at grade boundaries (\cref{tab:abstention}). The projection
-concerns only non-referral at the point estimate; it ignores the uncertainty of Sev-NR and
-says nothing about the downstream value of earlier treatment.
-
-\paragraph{A caveat on causal interpretation.}
-The projection assumes that the retrospective Sev-NR improvement transfers to prospective
-deployment at the same magnitude. This is exactly what Phases~2--3 of the translation
-roadmap (\cref{tab:roadmap}) are designed to test; it must not be treated as an
-established clinical outcome before that validation.
-
-\subsection{Synthesis: Sufficiency, Necessity and Magnitude}
-\label{sec:synthesis}
-
-This chapter completes a three-part evidential structure.
-H3a (\cref{sec:h3a-eval}) showed that the full architecture clears every threshold at the
-point estimate, although the Sev-NR interval extends above $2\%$. H3b (\cref{sec:h3b})
-showed, within the investigated family, that no proper subset does. The effect-size and clinical-impact analyses add
-a third dimension that sufficiency and necessity alone do not capture: magnitude. A
-necessity result could in principle be technically true yet practically marginal, the
-best proper subset missing the threshold by a negligible amount. This is not the case
-here: the best proper subset, $\{R,O\}$, misses by $0.3$~pp in absolute terms, a relative
-Sev-NR increase of about $16\%$ over DOTS, or about $75$ additional projected non-referred
-severe cases per year under the assumptions of \cref{tab:impact}.
-
-\section{Comparison with the Literature}
-\label{sec:ch4-lit}
-
-\subsection{Comparison with Concurrent Work}
-\label{sec:concurrent}
-
-Several 2024--2026 systems pursue related but distinct strategies.
-Ensembles improve raw accuracy ($+1$--$2$~pp QWK) but do not address L1, L2 or
-L3. Self-supervised retinal pre-training, used alone, addresses only Gap~A.
-Post-hoc calibration improves ECE without the algebraic rank-consistency of
-CORAL. DOTS's claim is not that any single component is novel, but that this
-specific combination, applied to this seven-criterion specification, is architecturally
-coherent and, within the investigated family, the only evaluated configuration that meets
-all seven criteria at the point estimate (H3b).
-
-\subsection{Progressive Contribution Analysis}
-\label{sec:progress}
-
-\Cref{fig:progress} traces the full progression from the 2019
-baseline to DOTS, showing the cumulative impact of each contribution on accuracy and
-safety. The improvement is monotone in both QWK and Sev-NR: no component degrades the
-others. The Sev-NR point estimate falls below the safety target only at the final step (entropy abstention), and
-only when all earlier components are in place. This is consistent with the scoped necessity result of H3b.
-
-The two metrics are not driven by the same components. The largest gain in accuracy comes
-from the retinal foundation model ($+0.041$ QWK), whereas the largest single reduction of
-the non-referral rate comes from the dual-similarity graph with topological features
-($-0.7$~pp, from $4.1\%$ to $3.4\%$), followed by the CORAL head ($-0.5$~pp). Abstention adds
-the smallest QWK gain of all steps ($+0.008$) but is the step that brings the Sev-NR point estimate below the $2\%$
-target. A design driven by accuracy alone would therefore have stopped after the
-foundation model and missed the safety criterion; in the family studied here, reaching the
-safety target at the point estimate required all three axes.
-
-\input{figures/fig_progressive}
+Under these assumptions, DOTS would leave about $1{,}100$ fewer severe cases unreferred each
+year than the CNN baseline. This is a projection, not an observed clinical outcome; it
+ignores ungradable images, the prevalence of the target population and the behaviour of
+human graders, and it inherits the uncertainty of the rates of \cref{tab:h3b}.
 
 \section{Discussion}
 \label{sec:ch4-discussion}
 
-\subsection{Interpreting the Seven-Criterion Result}
-\label{sec:interp7}
-
-The ``$7/7$ at the point estimate'' result of \cref{tab:h3a} establishes that, on the
-retrospective held-out test set, DOTS's point estimates clear every predefined threshold,
-including the Sev-NR target informed by national screening practice. It does not
-establish that the Sev-NR target is met with statistical confidence, since the upper bound
-of its 95\% interval ($2.8\%$) lies above $2\%$. It does not establish that DOTS will continue to clear these
-thresholds on prospective data, nor that the specific threshold values are
-themselves optimal. Clearing the bar on retrospective data is Level~1 evidence
-in the hierarchy of the General Conclusion, not Level~2--4 evidence. The
-chapter therefore says that DOTS \emph{reaches the seven criteria at the point estimate},
-not that it is \emph{proven safe}. The results provide retrospective computational
-evidence of favourable safety-oriented performance on the evaluated public datasets. They
-do not establish prospective clinical safety, clinical effectiveness, or readiness for
-routine clinical deployment; prospective multi-site validation with independent clinical
-readers remains necessary before such conclusions can be drawn.
-
 \subsection{Claim--Evidence--Strength Mapping}
-\label{sec:claims}
 
-\Cref{tab:claims} maps each scientific claim of the thesis to its evidence and gives an
-explicit assessment of the strength of that evidence, so that the reader can calibrate
-confidence in each result. The classification is deliberately conservative: a claim is called strong only when it rests on a pre-specified test with a large effect and at least one supporting analysis.
+\Cref{tab:claims} states the strength of each claim of this chapter.
 
 \begin{table}[H]
 \centering
-\caption[Claim--evidence--strength mapping]{Claim--evidence--strength mapping. Strong: pre-specified test, large effect,
-supporting analyses. Moderate: criterion met, but not with full statistical confidence
-or only within a stated scope. Suggestive: consistent with the claim but not
-confirmatory. Projected: extrapolation beyond the data.}
+\caption[Claims of Chapter 5 and strength of evidence]{Claims of this chapter and
+strength of the supporting evidence.}
 \label{tab:claims}
-\footnotesize
-\begin{tabular}{@{}P{3.6cm}P{9.3cm}l@{}}
+\small
+\begin{tabular}{@{}P{4.4cm}P{7.6cm}l@{}}
 \toprule
 Claim & Evidence & Strength \\
 \midrule
-H1: dual-metric graph improves QWK & Pre-specified two-tailed $t$-test over five patient-aware splits ($t_4=3.82$, $p=0.019$, $d_z=1.71$), reproduced on three benchmarks; bootstrap CI excludes 0; exact permutation $p=0.031$ & Strong \\
-H2: $H_1$ persistence associated with severity (not causation) & Pre-specified ANOVA ($F=84.3$, $p<0.001$, $\times23$ the critical value); effect size not reported & Moderate \\
-H3a: $7/7$ criteria met at the point estimate & Point-estimate pass (Sev-NR $=1.9\%$); 95\% CI $[1.2\%,\,2.8\%]$ exceeds the target (PDR-NR CI also crosses $1.5\%$) & Moderate \\
-H3b: no proper subset sufficient, within the investigated family & Exhaustive $6/6$ enumeration; bootstrap CI of the closest case excludes 0 & Moderate \\
-Complementary graph and topology gains (\cref{ch:toporet}) & $+0.04$ QWK jointly versus $+0.03$ (graph) and $+0.02$ (topology) alone; additive, not super-additive & Moderate \\
-Synergistic gains (\cref{ch:found}) & $7.0 > 6.3$~pp; consistent with complementary information & Suggestive \\
-Gains on three benchmarks (\cref{ch:toporet}) & $+0.04$ to $+0.07$ QWK on Kaggle DR, Messidor-2 and APTOS~2019, each evaluated within dataset & Moderate \\
-About $600$ fewer projected non-referred severe cases per year & Projection at the point estimate, assumed prevalence (\cref{tab:impact}) & Projected \\
+Graph and topological regulariser help (DGTS) & Controlled ablation A1--A6; Wilcoxon $p=0.031$ over five folds & Moderate \\
+DGTS generalises across datasets & Zero-shot EyePACS, $35{,}126$ images, $\Delta$QWK $=-0.016$ & Strong \\
+H3a: DOTS meets the safety criteria & Point estimates pass internally and on Messidor-2; internal Sev-NR interval $[0.2\%,\,2.8\%]$ crosses $2\%$ & Moderate \\
+H3b: no ablation variant suffices & Four reduced variants fail Sev-NR on Messidor-2 & Moderate \\
+Ordinal supervision concentrates errors & $82.9\%$ of errors adjacent; no $0\leftrightarrow4$ confusion & Moderate \\
+Clinical impact & Projection under assumed prevalence & Illustrative \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1107,74 +668,47 @@ About $600$ fewer projected non-referred severe cases per year & Projection at t
 \subsection{What the Results Do Not Establish}
 \label{sec:notestablished}
 
-Scientific integrity requires explicit statements of what a thesis does not prove. Six
-boundaries apply.
-\begin{enumerate}
-\item \textbf{No prospective clinical safety claim.} Sev-NR $=1.9\%$ was measured
-retrospectively on curated, label-verified datasets, and its 95\% CI upper bound
-($2.8\%$) exceeds the threshold. A prospective, multi-site reader study, sized on the
-number of severe cases rather than on the number of patients, is required before any claim of clinically validated safety.
-\item \textbf{No demographic equity guarantee.} None of the five benchmarks carries
-per-image demographic annotations; fairness across age, sex and ethnicity has not been
-evaluated.
-\item \textbf{No longitudinal validity.} The population graph is static (one visit per
-patient), and ``disease progression'' is operationalised as cross-sectional severity
-grading. Longitudinal prediction of individual trajectories is a research perspective.
-\item \textbf{No regulatory certification.} The thesis documents a regulatory-oriented
-design, mapped to requirements of IEC~62304, ISO~14971 and the EU AI Act. It is not a
-conformity assessment, a clinical evaluation or a regulatory submission.
-\item \textbf{The necessity claim is scoped.} H3b shows that the six proper subsets of
-DOTS fail Sev-NR $<2\%$ within the evaluated family and specification, not that no
-conceivable two-axis architecture could succeed.
-\item \textbf{The transfer from distributed systems is analogical.} \Cref{ch:found}
-motivates the graph template by analogy; its ten-run re-evaluation outside medicine found
-no significant accuracy gain from the appended invariants, so it provides no formal
-transfer guarantee.
+\begin{enumerate}[leftmargin=1.6em,itemsep=2pt]
+\item \textbf{No statistical compliance with the safety thresholds.} The criteria are met
+at the point estimate; with $309$ Severe images the internal interval extends to $2.8\%$,
+and the external intervals cannot be computed from the published counts.
+\item \textbf{A small corpus of uncertain independence.} $5{,}859$ training images, with
+about $62$ Severe images per validation fold; possible overlap between KaggleDR-F1 and
+APTOS~2019 has not been excluded, so the cross-validation results may be optimistic. Each
+system was tested externally on only one dataset.
+\item \textbf{A lenient non-referral definition.} A severe image predicted as Moderate is
+counted as referred (\cref{eq:nr}); a stricter definition would give higher rates.
+\item \textbf{No abstention.} Neither system implements a mechanism that defers uncertain
+images to a human grader. The calibrated probabilities of DOTS make such a mechanism
+possible, but it has not been evaluated.
+\item \textbf{No single three-axis system.} The relational and topological axes (TOPORET,
+DGTS) and the ordinal-safety axis (DOTS) are demonstrated in separate systems.
+\item \textbf{Retrospective evidence only.} No prospective, multi-site or clinical
+evaluation was conducted; the federated variant is a simulation.
 \end{enumerate}
 
 \subsection{Outcome of the Hypotheses}
 
-\Cref{tab:hypsummary} brings together the outcome of the three hypotheses tested in
-\cref{ch:toporet} and in this chapter.
-
-\begin{table}[H]
-\centering
-\caption{Outcome of the pre-specified hypotheses.}
-\label{tab:hypsummary}
-\small
-\begin{tabular}{@{}l P{3.4cm} P{3.9cm} l l@{}}
-\toprule
-Hypothesis & Pre-specified test & Result & Effect & Status \\
-\midrule
-H1 -- relational & Paired $t$-test, five splits & $t_4=3.82$, $p=0.019$ & $d_z=1.71$ & Supported \\
-H2 -- structural & One-way ANOVA ($\Pi_{H_1}$) & $F=84.3$, $p<0.001$ & -- & Supported$^{\dagger}$ \\
-H3a -- sufficiency & Seven criteria, held-out test set & $7/7$ met at the point estimate & -- & Met (PE)$^{\ast}$ \\
-H3b -- necessity & Exhaustive enumeration & $6/6$ proper subsets fail & -- & Supported$^{\ddagger}$ \\
-\bottomrule
-\end{tabular}
-\tabnote{$^{\dagger}$Statistical association, not causation.
-$^{\ast}$Point estimate only: the upper bound of the 95\% confidence interval of
-Sev-NR ($2.8\%$) exceeds the $2\%$ target, so statistical compliance is not established.
-$^{\ddagger}$Within the investigated architectural family and experimental specification
-only.}
-\end{table}
+H3a is supported at the point estimate: DOTS meets QWK $\geq0.80$, Sev-NR $\leq2\%$,
+PDR-NR $\leq2\%$ and zero Grade~$0\leftrightarrow4$ confusion, internally and on
+Messidor-2. H3b is supported within the ablation: no reduced variant meets the Sev-NR
+criterion on Messidor-2. DGTS provides complementary evidence, on a second corpus, that
+relational and topological information improve grading, while showing that good
+generalisation in QWK does not by itself guarantee the safety criterion.
 
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
-This chapter presented DOTS and evaluated it from four complementary angles. Seven
-criteria (H3a): all seven predefined criteria are met at the point estimate on the
-retrospective held-out test set, with QWK $=0.951$, Sev-NR $=1.9\%$ (95\% CI
-$[1.2\%,\,2.8\%]$) and $0\%$ rank violations; because the interval extends above $2\%$,
-statistical compliance with the Sev-NR target is not established. Scoped necessity (H3b):
-within the investigated family, none of the six systems obtained by removing one or two
-axes reaches Sev-NR $<2\%$; the closest, without topology, misses by a margin whose
-bootstrap interval excludes zero. Magnitude: the reported standardised effect sizes are large, and under
-explicit prevalence assumptions the Sev-NR reduction corresponds to a projected $600$ fewer
-potentially non-referred severe cases per year in a programme of $500{,}000$ patients.
-Limits: the evidence is retrospective and image-level.
-
-A grading system with favourable safety-oriented performance on retrospective data is not
-yet a medical device. The next chapter describes the software architecture of DOTS, its
-verification, and the regulatory-oriented mapping of its design to requirements relevant to
-medical-device software.
+This chapter addressed the three residual gaps of TOPORET -- single-source training, a
+grade-agnostic loss and unmeasured safety -- with two systems trained on the same
+$5{,}859$-image multi-source corpus. DGTS, a population graph regularised by persistent
+homology of feature-space neighbourhoods, reaches QWK $=0.941$ in cross-validation and
+$0.925$ zero-shot on $35{,}126$ EyePACS images, with a Sev-NR of about $2.1\%$ on EyePACS.
+DOTS, which combines EfficientNet-B3, a residual feature refinement encoder, CORAL ordinal
+regression and test-time augmentation, reaches QWK $=0.9527$ with Sev-NR $=0.97\%$ and
+PDR-NR $=1.27\%$ internally, and QWK $=0.931$ with Sev-NR $=1.4\%$ and PDR-NR $=1.9\%$ on
+Messidor-2; none of its reduced variants meets the Sev-NR criterion externally. These
+results support H3 at the point estimate and within the evaluated ablation; they are
+retrospective and limited by the small number of severe cases. \Cref{ch:reg} describes the
+software architecture of these pipelines and the regulatory-oriented principles that
+guided it.

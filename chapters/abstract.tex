@@ -5,42 +5,45 @@
 
 \paragraph{Background.}
 Diabetic retinopathy (DR) affects about 103 million adults and is a leading cause of
-preventable blindness. None of the representative systems reviewed here addresses, in one evaluated framework,
-three requirements: L1 (relational context between patients), L2 (global vascular
-topology), and L3 (a safety mechanism: every image is graded, and the Severe-DR
-Non-Referral Rate, Sev-NR, stays above the $2\%$ target adopted here). ``Disease
-progression'' is operationalised as cross-sectional prediction of ordinal ICDR severity
-from a single fundus image, not as longitudinal prediction.
+preventable blindness. None of the representative systems reviewed here addresses three
+requirements: L1 (relational context between patients), L2 (global vascular topology),
+and L3 (safety-oriented grading: grade order and missed referrals of severe cases are
+rarely modelled or measured). ``Disease progression'' is operationalised as
+cross-sectional prediction of ordinal ICDR severity from a single fundus image, not as
+longitudinal prediction.
 
 \paragraph{Methods.}
-Eleven publications support this thesis. Three hypotheses are pre-specified, each with
-its test and rejection threshold: H1, an inductive population graph adds
-information beyond that captured by a per-image classifier; H2, $H_0/H_1$ persistent homology
-of the retinal vasculature is associated with severity; H3, the combination of the three
-axes reaches seven predefined computational criteria (H3a) and, within the investigated
-architectural family, no proper subset of the axes does (H3b). A graph template first evaluated on
-distributed systems is carried over, by analogy, to hybrid models, the TOPORET population
-graph and the DOTS system.
+Twelve publications support this thesis. Three hypotheses structure it: H1, an inductive
+population graph adds information beyond that captured by a per-image classifier; H2,
+$H_0/H_1$ persistent homology of the retinal vasculature is associated with severity; H3,
+an ordinal pipeline meets screening safety criteria (QWK $\geq0.80$, severe and
+proliferative non-referral rates $\leq2\%$, no Grade~$0\leftrightarrow4$ confusion)
+internally and on external data (H3a), while none of its reduced variants does (H3b). A
+graph template first evaluated on distributed systems is carried over to hybrid models, to
+the TOPORET population graph, and to two systems trained on a fused corpus of $5{,}859$
+images: DGTS (population graph regularised by persistent homology) and DOTS (EfficientNet-B3,
+feature refinement encoder, CORAL ordinal head, test-time augmentation).
 
 \paragraph{Results.}
 H1 is supported ($t_4=3.82$, two-tailed $p=0.019$ over five patient-aware splits;
 $+0.04$ quadratic weighted kappa, QWK). H2 is supported as a statistical association
-($F=84.3$, $p<0.001$). On public benchmarks ($108{,}301$ images,
-not necessarily independent patients; $10{,}000$ held-out test images), DOTS reaches QWK $=0.951$, AUC $=0.988$, ECE $=0.040$,
-Sev-NR $=1.9\%$, coverage $93.8\%$ and $0\%$ ordinal rank violations. The Sev-NR 95\%
-confidence interval, $[1.2\%,\,2.8\%]$, extends above the $2\%$ target: H3a is met at the
-point estimate only, not with statistical confidence. Within the investigated family, all
-six proper subsets of the axes miss Sev-NR $<2\%$ (H3b).
+($F=84.3$, $p<0.001$). DGTS reaches QWK $=0.941$ in five-fold cross-validation and $0.925$
+without retraining on $35{,}126$ EyePACS images. DOTS reaches QWK $=0.953$ with severe
+non-referral (Sev-NR) $0.97\%$ internally, and QWK $=0.931$ with Sev-NR $1.4\%$ on the
+independent Messidor-2 dataset, where none of four reduced variants reaches Sev-NR
+$\leq2\%$ (H3a and H3b supported at the point estimate). With $309$ severe images, the
+internal Sev-NR interval ($[0.2\%,\,2.8\%]$) still extends above $2\%$.
 
 \paragraph{Conclusions.}
-DOTS is not claimed to be clinically validated or regulatory-ready; the thesis shows that, within the investigated architectural family, relational, structural/topological and
-ordinal-safety mechanisms can be integrated into a single system that achieves favourable
-safety-oriented performance on retrospective public benchmarks. This is Level~1
-(computational, retrospective) evidence, not prospective clinical safety; a planned
-pathway towards prospective validation and regulatory assessment is outlined.
+The systems are not claimed to be clinically validated or regulatory-ready, and the three
+axes are demonstrated in complementary systems rather than in one model. The thesis shows,
+on retrospective public data, that relational, topological and ordinal-safety mechanisms
+each bring a measurable, externally validated benefit. This is Level~1 (computational,
+retrospective) evidence; a pathway towards a unified model and prospective validation is
+outlined.
 
 \vspace{0.6em}
 \noindent\textbf{Keywords:} diabetic retinopathy; graph neural networks; GraphSAGE;
-persistent homology; ordinal regression; CORAL; selective prediction; safety-oriented evaluation;
-RETFound; medical device software.
+persistent homology; ordinal regression; CORAL; external validation; safety-oriented evaluation;
+medical device software.
 \par\endgroup
