@@ -326,8 +326,9 @@ from~\cite{mezghich2026lnaitopo}.}
 \end{figure}
 
 \paragraph{Topological descriptors of the vessel skeleton.}
-The later systems of this thesis describe the vascular network with a fixed vector of
-persistence statistics. For each fundus image, the vessel skeleton is extracted with CLAHE
+The later systems of this thesis describe the vascular network with a small fixed vector
+of persistence statistics: a six-dimensional vector in TOPORET (\cref{eq:tda-toporet})
+and the seven-dimensional vector below in DOTS. For each fundus image, the vessel skeleton is extracted with CLAHE
 pre-processing~\cite{zuiderveld1994clahe} followed by Zhang--Suen
 thinning~\cite{zhang1984thinning}. The branch points of the skeleton form a point cloud
 $P_i=\{p_1,\ldots,p_n\}\subset\mathbb{R}^2$. The Vietoris--Rips filtration is computed
@@ -511,7 +512,8 @@ EfficientNet-B3 by $+0.042$ QWK; persistent homology ranks third of seven famili
 \item \textbf{Compact hand-crafted pipeline}~\cite{belhadj2026icpram}: on Messidor-2,
 removing the vesselness or fractal families lowers the QWK ($-0.057$ and $-0.024$,
 \cref{tab:lgbm-abl}); this study contains no topological feature.
-\item \textbf{Formal ANOVA} (\cref{sec:h2}): $F(4,4995)=1308.9$, $\eta^2=0.51$.
+\item \textbf{Formal ANOVA} (\cref{sec:h2}): total $H_1$ persistence differs across grades,
+$F=84.3$, $p<0.001$.
 \end{enumerate}
 Only items~1, 2 and~4 concern topology specifically; item~3 concerns vascular structure
 more broadly.

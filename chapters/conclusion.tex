@@ -33,12 +33,13 @@ ISO~14971 standards and the EU AI Act.
 
 The experiments provide three principal findings. First, the pre-specified analysis
 supports the contribution of the population graph to grading performance (H1:
-$t_4=3.82$, $p=0.009$, $+4.0$~pp QWK). Because the inferential unit is the cross-validation
-fold, this test has four degrees of freedom; the bootstrap and exact permutation analyses
-are complementary robustness checks on the same folds, not independent replications.
+$t_4=3.82$, $p=0.019$ two-tailed, $+0.04$ QWK, reproduced on three benchmarks). Because
+the inferential unit is the data split, this test has four degrees of freedom; the
+bootstrap and exact permutation analyses are complementary robustness checks on the same
+splits, not independent replications.
 Second, persistent-homology descriptors extracted from retinal vascular structures show a
-strong statistical association with ICDR severity (H2: $F(4,4995)=1308.9$,
-$\eta^2=0.51$); this is an association, not evidence of a causal or biological mechanism.
+statistically significant association with ICDR severity (H2: $F=84.3$, $p<0.001$); this is
+an association, not evidence of a causal or biological mechanism.
 Third, DOTS achieves a Sev-NR point estimate of $1.9\%$, below the predefined $2\%$
 evaluation target, together with QWK $=0.951$, AUC $=0.988$, ECE $=0.040$, $93.8\%$
 coverage and $0\%$ ordinal rank violations on the evaluated retrospective benchmarks
@@ -59,11 +60,12 @@ would fail.
 
 The three research questions of the thesis can therefore be answered as follows. Does
 the relational context between patients carry information beyond that of a per-image
-classifier? In our experiments, yes, provided that the topology of the vessels
-enters the graph, through both its similarity and its node features; a visual similarity
-alone did not give a significant gain. Is the global topology of the vascular network related to the severity
-of the disease? It is strongly associated with it, with the largest effects for the
-loop-related features that plausibly reflect neovascularisation. Can a single architecture
+classifier? In our experiments, yes: a graph built from visual similarity alone already improves the
+QWK, and the largest gain is obtained when the topology of the vessels enters both the
+similarity and the node features. Is the global topology of the vascular network related
+to the severity of the disease? It is significantly associated with it: total $H_1$
+persistence, which reflects vascular loops and plausibly neovascularisation, increases
+monotonically with severity. Can a single architecture
 meet all the predefined criteria of accuracy, calibration and safety, and does any reduced
 version do so? The full architecture meets them at the point estimate, and none of the
 reduced versions evaluated does, although the confidence interval of the safety criterion
@@ -96,8 +98,8 @@ the medical experiments easier to design and to interpret, although the transfer
 an analogy; it also showed, through a negative result, that appending interpretable
 descriptors does not by itself guarantee an accuracy gain, which is why the value of
 topology on retinal data was tested separately. Third, fixing hypotheses, tests and thresholds before running the experiments
-turned some results that could have been discarded, such as the non-significant
-visual-only graph, into informative findings. Fourth, taking regulatory-oriented principles
+made the negative result of the invariant study and the modest, additive gains of the
+topological features informative findings rather than results to be explained away. Fourth, taking regulatory-oriented principles
 into account from the start cost little and avoided late changes to the architecture.
 Finally, the most useful component for safety was not the most accurate one:
 entropy-based abstention adds less than one point of QWK, but it is the step that brings

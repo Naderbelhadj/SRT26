@@ -5,7 +5,7 @@
   progaxis/.style={
     width=0.92\textwidth, height=6.8cm,
     xmin=0.4, xmax=7.6, xtick={1,...,7},
-    xticklabels={{Baseline\\B3 (2019)},{$+$ visual\\graph},{$+$ dual graph\\$+$ TDA},{$+$ RET-\\Found},{$+$ CORAL},{$+$ dynamic\\GAT},{$+$ entropy\\abstention}},
+    xticklabels={{Baseline\\B3 (2019)},{$+$ visual\\graph},{$+$ dual graph\\$+$ TDA$^{\ast}$},{$+$ RET-\\Found},{$+$ CORAL},{$+$ dynamic\\GAT},{$+$ entropy\\abstention}},
     xticklabel style={align=center, font=\scriptsize},
     tick label style={font=\footnotesize}, label style={font=\small},
     axis x line*=bottom,
@@ -18,7 +18,7 @@
     nodes near coords={\pgfmathprintnumber[fixed,fixed zerofill,precision=3]{\pgfplotspointmeta}}, nodes near coords style={font=\scriptsize, color=axisR!80!black},
     point meta=y]
   \addplot[ybar, bar width=17pt, fill=axisRf, draw=axisR]
-    coordinates {(1,0.840) (2,0.850) (3,0.880) (4,0.921) (5,0.934) (6,0.943) (7,0.951)};
+    coordinates {(1,0.840) (2,0.852) (3,0.880) (4,0.921) (5,0.934) (6,0.943) (7,0.951)};
   \draw[axisR, dashed] (axis cs:0.4,0.90) -- (axis cs:7.6,0.90)
     node[pos=0.02, anchor=south west, font=\scriptsize, fill=white, inner sep=1pt, text=axisR] {QWK $>0.90$ criterion};
 \end{axis}
@@ -38,6 +38,8 @@
 line: Sev-NR (right axis). Every addition improves both metrics, and the Sev-NR point
 estimate falls below the $2\%$ target only at the last step (entropy abstention; 95\% CI
 $[1.4\%,\,2.4\%]$). The values are printed on
-the bars and the line; the last four steps correspond to the ablation of \cref{tab:ablate}.}
+the bars and the line. Steps~2 and~3 are the reduced systems $\{R\}$ and $\{R,S\}$ of
+\cref{tab:sevencrit} ($^{\ast}$ordinal variant of TOPORET); the last four steps
+correspond to the ablation of \cref{tab:ablate}.}
 \label{fig:progress}
 \end{figure}

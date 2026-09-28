@@ -10,19 +10,20 @@
 ]
 \node[box, fill=black!6, draw=black!55] (s1) {\textbf{S1}\\CLAHE $+$\\skeleton};
 \node[box, fill=black!6, draw=black!55, right=2.2mm of s1] (s2) {\textbf{S2}\\EffNet-B3\\(frozen)};
-\node[box, fill=axisSf, draw=axisS, right=2.2mm of s2] (s3) {\textbf{S3}\\Rips\\TDA 7-D};
-\node[box, fill=fusionf, draw=fusion, right=2.2mm of s3] (s4) {\textbf{S4}\\Fusion\\1543-D};
-\node[box, fill=axisRf, draw=axisR, right=2.2mm of s4] (s5) {\textbf{S5}\\Dual-sim.\\graph};
-\node[box, fill=axisRf, draw=axisR, right=2.2mm of s5] (s6) {\textbf{S6}\\{\scriptsize GraphSAGE}\\$+$ CORN};
+\node[box, fill=axisSf, draw=axisS, right=2.2mm of s2] (s3) {\textbf{S3}\\Rips\\TDA 6-D};
+\node[box, fill=fusionf, draw=fusion, right=2.2mm of s3] (s4) {\textbf{S4}\\Fusion\\1542-D};
+\node[box, fill=axisRf, draw=axisR, right=2.2mm of s4] (s5) {\textbf{S5}\\Dual-sim.\\graph ($\tau$)};
+\node[box, fill=axisRf, draw=axisR, right=2.2mm of s5] (s6) {\textbf{S6}\\{\scriptsize GraphSAGE}\\$+$ softmax};
 \foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5,s5/s6} \draw[arr] (\a) -- (\b);
 \node[left=2.5mm of s1, font=\footnotesize, align=center] (in) {Fundus\\image $I_i$};
 \node[right=2.5mm of s6, font=\footnotesize, align=center] (out) {Grade\\$\hat y_i$};
 \draw[arr] (in) -- (s1); \draw[arr] (s6) -- (out);
 \node[below=6mm of s3.south east, anchor=north, font=\footnotesize, align=center] {%
-  Kaggle EyePACS ($N=88{,}702$): QWK $=0.880$, Sev-NR $=3.4\%$\\H1: $t_4=3.82$ \quad H2: $F(4,4995)=1308.9$};
+  Kaggle DR: QWK $=0.88$, accuracy $95.5\%$ (five patient-aware splits)\\H1: $t_4=3.82$ \quad H2: $F=84.3$, $p<0.001$};
 \end{tikzpicture}}
 \caption[TOPORET six-stage pipeline]{TOPORET six-stage pipeline. Blue stages form the relational axis (L1), the green
-stage the structural axis (L2). There is no ordinal-safety axis: every image is graded,
-which leaves Sev-NR at $3.4\%$. Stage contracts are given in \cref{tab:stages}.}
+stage the structural axis (L2). There is no ordinal-safety axis: every image is graded
+and the order of the grades is not modelled. Stage contracts are given in
+\cref{tab:stages}; results from~\cite{belhadj2025plos}.}
 \label{fig:toporet}
 \end{figure}

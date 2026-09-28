@@ -240,9 +240,8 @@ d_B(D_f, D_g) \;\leq\; \lVert f-g\rVert_\infty ,
 \label{eq:stability}
 \end{equation}
 where $d_B$ is the bottleneck distance. TOPORET compares diagrams with the closely related
-Wasserstein distance $W_2$ (\cref{eq:dualsim}). This robustness is a plausible, but not
-demonstrated, explanation of the $+2.0$~pp out-of-distribution gain of TOPORET on Messidor-2
-(\cref{sec:crossdata}).
+Wasserstein distance $W_2$ (\cref{eq:dualsim}). This robustness makes the topological term of the
+similarity less sensitive to small segmentation errors than a pixel-level comparison.
 
 Persistence is what makes the method robust. A single threshold $\varepsilon$ would give
 counts of components and loops that depend strongly on its value and on small errors of
@@ -306,7 +305,8 @@ b_k \leftarrow \min(b_k,\, b_{k-1} - \epsilon), \qquad k=2,\ldots,K-1 .
 This guarantees $\hat P(Y\geq 1)\geq \hat P(Y\geq 2)\geq\cdots$ for every possible input
 and every weight configuration. It is an algebraic identity, not a statistical tendency:
 it yields $0\%$ rank violations at inference time. The loss-based alternative
-CORN~\cite{shi2023corn}, used by TOPORET, offers no such guarantee.
+CORN~\cite{shi2023corn}, used by the ordinal variant of TOPORET that serves as the
+starting point of DOTS (\cref{ch:dots}), offers no such guarantee.
 
 \Cref{fig:coral} summarises the resulting architecture. The single shared weight vector
 is what makes the guarantee possible: all binary questions use the same score $s_i$, and
@@ -452,7 +452,7 @@ EfficientNet-B3, RETFound & Visual features of the fundus image & -- & 3--5 \\
 GraphSAGE & Inductive population graph; constant-time grading of a new patient & L1 & 3--5 \\
 Graph attention (GAT) & Patient-specific neighbour weights; attention-derived explanatory signal & L1 & 5 \\
 Persistent homology & Topological descriptors of the vessel skeleton & L2 & 3--5 \\
-CORN & Ordinal head of TOPORET & L3 & 4 \\
+CORN & Ordinal head of the TOPORET variant used as DOTS starting point & L3 & 5 \\
 CORAL & Rank-consistent ordinal head of DOTS & L3 & 5 \\
 Entropy-based abstention & Deferral of ambiguous cases to a human grader & L3 & 5 \\
 QWK, AUC, ECE, Sev-NR & Accuracy, calibration and safety evaluation & -- & 3--5 \\

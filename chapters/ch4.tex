@@ -2,8 +2,9 @@
 \phantomsection\addcontentsline{toc}{section}{Introduction}
 
 TOPORET showed that a population graph and topological features improve DR grading, but
-it does not reach the safety-oriented target of this thesis: its Severe-DR Non-Referral
-Rate of $3.4\%$ is above the $2\%$ target, because every image is graded, even when the model is unsure. This
+it was not designed for safety: it grades every image, even when the model is unsure, and
+ignores the order of the grades. Evaluated under the safety protocol of this chapter, its
+ordinal variant leaves a Severe-DR Non-Referral Rate of $3.4\%$, above the $2\%$ target. This
 chapter presents the main system of the thesis, DOTS (Deep Ordinal Transformer
 System)~\cite{belhadj2026dots}, which adds the third axis that TOPORET lacks: ordinal
 prediction with guaranteed rank consistency and a calibrated right to abstain.
@@ -60,8 +61,12 @@ stage and axis by axis.
 \input{figures/fig_dots}
 
 TOPORET (\cref{ch:toporet}) supports H1 and H2: a population graph and topological
-features are each associated with better ordinal grading accuracy. Yet TOPORET does not
-meet the safety-oriented target of this thesis. At Sev-NR $=3.4\%$, under the illustrative
+features are each associated with better grading accuracy. TOPORET, however, uses a
+nominal softmax head. The starting point of DOTS is therefore an \emph{ordinal variant of
+TOPORET}: the same dual-similarity GraphSAGE architecture and topological features with a CORN
+ordinal head~\cite{shi2023corn}, trained and evaluated under the protocol of this chapter, where it reaches QWK $=0.880$ on Kaggle
+EyePACS. This variant does not meet the safety-oriented target of this thesis. At Sev-NR
+$=3.4\%$, under the illustrative
 assumptions of \cref{sec:impact}, a programme screening $500{,}000$ patients a year would
 leave a projected $850$ of its $25{,}000$ severe cases unreferred -- a rate above the $2\%$ target adopted in this thesis, which is
 informed by national screening practice~\cite{scanlon2017english} but is not a published
@@ -104,10 +109,10 @@ that, within this controlled ablation, is associated with domain-matched pre-tra
 \subsubsection{Gap B: Ordinal Rank Violations}
 \label{sec:gap-b}
 
-TOPORET uses a CORN ordinal head~\cite{shi2023corn}. At inference time nothing in the
-architecture prevents $\hat P(Y\geq 2)>\hat P(Y\geq 1)$, a logically impossible
-ordinal violation. Empirically, $2.1\%$ of TOPORET test predictions exhibit
-such violations. In a deployed system this can appear as inconsistent
+The ordinal variant of TOPORET uses a CORN ordinal head~\cite{shi2023corn}. At inference
+time nothing in the architecture prevents $\hat P(Y\geq 2)>\hat P(Y\geq 1)$, a logically
+impossible ordinal violation. Empirically, $2.1\%$ of its test predictions exhibit such
+violations. In a deployed system this can appear as inconsistent
 confidence reporting to a clinician, undermining clinical trust and the
 IEC~62304 audit trail.
 
@@ -263,7 +268,7 @@ is therefore obtained without any retinal-specific training of the backbone with
 thesis.
 
 \paragraph{CORAL rather than CORN.}
-TOPORET used CORN, which models conditional probabilities and usually trains well, but
+The ordinal variant of TOPORET used CORN, which models conditional probabilities and usually trains well, but
 whose rank consistency depends on the learned weights. In a safety-critical setting, an
 inconsistent ranking -- for example a higher probability of ``at least Grade~4'' than of
 ``at least Grade~3'' -- is not only an error but an output that cannot be explained to a
@@ -380,13 +385,16 @@ conditions.
 
 Four reference systems are compared with DOTS: EfficientNet-B3~\cite{tan2019efficientnet},
 the most common convolutional baseline; RETFound~\cite{zhou2023retfound}, a leading
-retinal foundation model; TOPORET (\cref{ch:toporet}), which addresses L1 and L2 only; and
+retinal foundation model; the ordinal variant of TOPORET (\cref{ch:toporet}), which addresses L1 and L2 only; and
 the six reduced systems of the necessity analysis (\cref{sec:h3b}), which remove one or two
 of the three axes. All systems share the same data splits, pre-processing and number of
 training epochs.
 
-The graph parameters are inherited from TOPORET ($\alpha=0.65$, $k=15$, $L=2$ layers,
-$S=25$ sampled neighbours, hidden dimension $256$). The parameters specific to DOTS are
+The DOTS graph uses a dual similarity with $\alpha=0.65$ and a $k$-nearest-neighbour
+construction ($k=15$, FAISS~\cite{johnson2021faiss}), with $L=2$ layers, $S=25$ sampled
+neighbours and hidden dimension $256$. Unlike the threshold graph of TOPORET, which
+requires all pairwise Wasserstein distances (\cref{sec:ch3-design}), the $k$-NN
+construction keeps the cost of adding a patient independent of the cohort size. The parameters specific to DOTS are
 the class weights of the CORAL loss, $\lambda=(1.0,2.5,3.0,8.0,6.0)$ for Grades~0--4
 (\cref{tab:weights}), a label smoothing of $\epsilon=0.05$ (\cref{tab:hyper}), and the
 abstention threshold $\tau_U=0.73$~nats (\cref{tab:tau}). All were selected on the
@@ -406,8 +414,10 @@ given in \cref{app:hyper}.
 All sample sizes in this chapter are numbers of retinal images. The five benchmarks
 contain $108{,}301$ images in total (\cref{tab:datasets}), but these are not necessarily
 $108{,}301$ independent patients: some benchmarks contain several images of the same
-patient (for example both eyes in Kaggle EyePACS). Cross-validation folds are stratified by
-grade (\cref{app:repro}); the results are therefore image-level estimates, and
+patient (for example both eyes in Kaggle EyePACS). The TOPORET results of \cref{ch:toporet} use
+patient-aware splits~\cite{belhadj2025plos}; the folds of the DOTS protocol are stratified
+by grade (\cref{app:repro}), and their grouping by patient is not documented here. The
+results of this chapter are therefore image-level estimates, and
 generalisation to new patients and populations is interpreted cautiously. The absence of
 complete patient-level longitudinal and demographic metadata also limits population-level
 clinical inference.
@@ -535,10 +545,14 @@ System & EyePACS & APTOS & IDRiD & Messidor-2 & DDR \\
 \midrule
 EfficientNet-B3 & $0.840$ & $0.851$ & $0.832$ & $0.847$ & $0.838$ \\
 RETFound & $0.920$ & $0.928$ & $0.901$ & $0.915$ & $0.912$ \\
-TOPORET & $0.880$ & $0.887$ & $0.878$ & $0.900$ & $0.871$ \\
+TOPORET (ordinal variant) & $0.880$ & $0.887$ & $0.878$ & $0.900$ & $0.871$ \\
 DOTS & $\mathbf{0.951}$ & $\mathbf{0.953}$ & $0.878$ & $\mathbf{0.948}$ & $\mathbf{0.951}$ \\
 \bottomrule
 \end{tabular}
+\tabnote{All systems are trained and evaluated under the protocol of this chapter. The
+published TOPORET results of \cref{tab:crossdata} use the protocol of \cref{ch:toporet}
+(nominal head, patient-aware $70/10/20$ splits) and are not directly comparable; for
+example, APTOS~2019 gives QWK $0.86$ there.}
 \end{table}
 
 \Cref{fig:bench} shows the same results graphically. The ranking of the systems is the same on all benchmarks except IDRiD, which is consistent with gains that are not specific to one camera or population, although five retrospective benchmarks without demographic metadata cannot establish this in general.
@@ -563,7 +577,7 @@ its own: the target is reached, at the point estimate, only when the last compon
 \toprule
 Configuration & QWK & Sev-NR & Violations \\
 \midrule
-TOPORET (baseline) & $0.880$ & $3.4\%$ & $2.1\%$ \\
+TOPORET, ordinal variant (baseline) & $0.880$ & $3.4\%$ & $2.1\%$ \\
 $+$ RETFound backbone (Gap A) & $0.921$ & $3.1\%$ & $1.9\%$ \\
 $+$ CORAL ordinal head (Gap B) & $0.934$ & $2.6\%$ & $0.0\%$ \\
 $+$ Dynamic GAT (partial Gap C) & $0.943$ & $2.2\%$ & $0.0\%$ \\
@@ -730,7 +744,7 @@ of epochs) is identical to DOTS.
 1 & $\{R\}$ & EfficientNet-B3 $+$ visual GraphSAGE. No TDA, no CORAL, no abstention. \\
 2 & $\{S\}$ & EfficientNet-B3 $+$ TDA concatenated. No graph, no CORAL, no abstention. \\
 3 & $\{O\}$ & EfficientNet-B3 $+$ CORAL. No graph, no TDA, no abstention. \\
-4 & $\{R,S\}$ & TOPORET: dual-similarity graph $+$ TDA $+$ CORN (not CORAL). No abstention. \\
+4 & $\{R,S\}$ & Ordinal variant of TOPORET: dual-similarity graph $+$ TDA $+$ CORN (not CORAL). No abstention. \\
 5 & $\{R,O\}$ & RETFound $+$ visual GraphSAGE $+$ CORAL $+$ abstention. No TDA. \\
 6 & $\{S,O\}$ & RETFound $+$ TDA $+$ CORAL $+$ abstention. No graph. \\
 7 & $\{R,S,O\}$ & DOTS (all three axes). \\
@@ -743,10 +757,10 @@ on the ImageNet backbone; systems 5 and 6 keep the complete axis.}
 \subsection{Results of the Exhaustive Enumeration}
 
 \Cref{tab:h3b} reports the Sev-NR of each reduced system on the $10{,}000$-image test
-set used for H3a. Because this test set differs from the five-fold Kaggle EyePACS protocol
-of \cref{tab:ablation3,tab:ablate}, systems with the same description can show slightly
-different values in these tables (for example $\{S\}$: QWK $0.849$ here, $0.856$ for
-``TDA features only'' in \cref{tab:ablation3}).
+set used for H3a. Because this test set and protocol differ from those of \cref{tab:ablation3}
+(\cref{ch:toporet}) and \cref{tab:ablate}, systems with similar descriptions can show
+different values in these tables (for example $\{S\}$: QWK $0.849$ here, $0.86$ for
+configuration~(B) in \cref{tab:ablation3}).
 
 \begin{table}[H]
 \centering
@@ -861,8 +875,9 @@ each Sev-NR estimate, since the DOTS interval itself extends above $2\%$.
 \subsection{Effect Sizes}
 \label{sec:effects}
 
-\Cref{tab:effects} lists the effect size of each primary comparison. All exceed the
-conventional ``large'' thresholds (Cohen's $d>0.8$; $\eta^2>0.14$~\cite{cohen1988}).
+\Cref{tab:effects} lists the effect size of each primary comparison. All reported
+standardised effects exceed the conventional ``large'' threshold (Cohen's $d>0.8$,
+\cite{cohen1988}); for H2, the publication reports the $F$ statistic only.
 The comparison with EfficientNet-B3 reaches $d=8.2$, which Cohen's framework would call
 extreme. Such a value between two trained systems reflects the cumulative effect of five
 architectural changes (\cref{sec:progress}) on retrospective data; it is a property of
@@ -880,8 +895,8 @@ Comparison & Metric & Effect size & Interpretation \\
 \midrule
 DOTS vs.\ EffNet-B3 & QWK $+11.1$~pp ($0.840\to0.951$) & $d=8.2$ & Extreme \\
 DOTS vs.\ RETFound & QWK $+3.1$~pp ($0.920\to0.951$) & $d=1.4$ & Very large \\
-Population graph (H1) & QWK $+4.0$~pp & $d_z=1.71$ & Very large \\
-Vascular topology (H2) & ANOVA & $\eta^2=0.51$ & Large \\
+Population graph (H1) & QWK $+0.04$ & $d_z=1.71$ & Very large \\
+Vascular topology (H2) & ANOVA, $F=84.3$, $p<0.001$ & not reported & -- \\
 Necessity (H3b) & Constructive enumeration & $6/6$ subsets fail & -- \\
 \bottomrule
 \end{tabular}
@@ -1025,13 +1040,13 @@ confirmatory. Projected: extrapolation beyond the data.}
 \toprule
 Claim & Evidence & Strength \\
 \midrule
-H1: dual-metric graph improves QWK & Pre-specified $t$-test over five folds ($t_4=3.82$, $p=0.009$, $d_z=1.71$); bootstrap CI excludes 0; exact permutation $p=0.031$ (complementary checks on the same folds) & Strong \\
-H2: $H_0/H_1$ association with severity (not causation) & Pre-specified ANOVA ($F=1308.9$, $\eta^2=0.51$, Bonferroni) & Strong \\
+H1: dual-metric graph improves QWK & Pre-specified two-tailed $t$-test over five patient-aware splits ($t_4=3.82$, $p=0.019$, $d_z=1.71$), reproduced on three benchmarks; bootstrap CI excludes 0; exact permutation $p=0.031$ & Strong \\
+H2: $H_1$ persistence associated with severity (not causation) & Pre-specified ANOVA ($F=84.3$, $p<0.001$, $\times23$ the critical value); effect size not reported & Moderate \\
 H3a: $7/7$ criteria met at the point estimate & Point-estimate pass (Sev-NR $=1.9\%$); 95\% CI $[1.4\%,\,2.4\%]$ exceeds the target & Moderate \\
 H3b: no proper subset sufficient, within the investigated family & Exhaustive $6/6$ enumeration; bootstrap CI of the closest case excludes 0 & Moderate \\
-Super-additive interaction (\cref{ch:toporet}) & $+0.040 > +0.026$; consistent with an interaction model & Suggestive \\
+Complementary graph and topology gains (\cref{ch:toporet}) & $+0.04$ QWK jointly versus $+0.03$ (graph) and $+0.02$ (topology) alone; additive, not super-additive & Moderate \\
 Synergistic gains (\cref{ch:found}) & $7.0 > 6.3$~pp; consistent with complementary information & Suggestive \\
-Cross-dataset generalisation & OOD $\Delta$QWK $\geq$ in-distribution $\Delta$QWK; consistent with stability & Suggestive \\
+Gains on three benchmarks (\cref{ch:toporet}) & $+0.04$ to $+0.07$ QWK on Kaggle DR, Messidor-2 and APTOS~2019, each evaluated within dataset & Moderate \\
 About $600$ fewer projected non-referred severe cases per year & Projection at the point estimate, assumed prevalence (\cref{tab:impact}) & Projected \\
 \bottomrule
 \end{tabular}
@@ -1079,8 +1094,8 @@ transfer guarantee.
 \toprule
 Hypothesis & Pre-specified test & Result & Effect & Status \\
 \midrule
-H1 -- relational & Paired $t$-test, five folds & $t_4=3.82$, $p=0.009$ & $d_z=1.71$ & Supported \\
-H2 -- structural & One-way ANOVA, Bonferroni & $F(4,4995)=1308.9$, $p<0.001$ & $\eta^2=0.51$ & Supported$^{\dagger}$ \\
+H1 -- relational & Paired $t$-test, five splits & $t_4=3.82$, $p=0.019$ & $d_z=1.71$ & Supported \\
+H2 -- structural & One-way ANOVA ($\Pi_{H_1}$) & $F=84.3$, $p<0.001$ & -- & Supported$^{\dagger}$ \\
 H3a -- sufficiency & Seven criteria, held-out test set & $7/7$ met at the point estimate & -- & Met (PE)$^{\ast}$ \\
 H3b -- necessity & Exhaustive enumeration & $6/6$ proper subsets fail & -- & Supported$^{\ddagger}$ \\
 \bottomrule
@@ -1102,7 +1117,7 @@ $[1.4\%,\,2.4\%]$) and $0\%$ rank violations; because the interval extends above
 statistical compliance with the Sev-NR target is not established. Scoped necessity (H3b):
 within the investigated family, none of the six systems obtained by removing one or two
 axes reaches Sev-NR $<2\%$; the closest, without topology, misses by a margin whose
-bootstrap interval excludes zero. Magnitude: the primary effect sizes are large, and under
+bootstrap interval excludes zero. Magnitude: the reported standardised effect sizes are large, and under
 explicit prevalence assumptions the Sev-NR reduction corresponds to a projected $600$ fewer
 potentially non-referred severe cases per year in a programme of $500{,}000$ patients.
 Limits: the evidence is retrospective and image-level.

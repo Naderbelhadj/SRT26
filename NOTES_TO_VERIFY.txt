@@ -233,3 +233,30 @@ STILL REQUIRES YOUR DATA (cannot be written without inventing numbers)
 - Sev-NR CI [1.4%, 2.4%]: with 1,256 severe images and a grade-stratified bootstrap,
   the expected half-width is about +/-0.75 pp; please re-run the bootstrap script.
 - P5 (PLOS ONE) to align Chapter 4 (TDA features, graph construction, ANOVA F).
+
+Alignment with P5 (PLOS ONE manuscript PONE-D-26-12851) -- fifth pass
+=====================================================================
+Chapter 4 (TOPORET) rewritten from P5: 6-D topological vector (Pi, entropy, long-lived
+count for H0 and H1), fused vector 1542-D, threshold graph (alpha = 0.6, tau = 0.65,
+exact pairwise W2, average degree 12.3), GraphSAGE (S = 10) with a class-weighted softmax
+head, five patient-aware 70/10/20 splits, CNN baseline = EfficientNet-B3 + random forest,
+results on Kaggle DR / Messidor-2 / APTOS 2019, ablation (A)-(D), H1 two-tailed t-tests
+(3.82 / 4.1 / 3.5), H2 ANOVA F = 84.3, graph statistics, runtime.
+Consequences propagated: H2 reported as F = 84.3, p < 0.001 everywhere (no eta^2); the
+"non-significant visual-only graph" and "super-additive interaction" claims removed (P5
+shows the visual graph is significant and the gains are additive); OOD claims removed
+(P5 evaluates each dataset within itself); H1 p-values now two-tailed (0.019). In
+Chapter 5, the TOPORET used as DOTS starting point is named the "ordinal variant of
+TOPORET" (CORN head, DOTS protocol), which is how the Chapter 5 numbers (QWK 0.880,
+Sev-NR 3.4%, 2.1% violations) are reconciled with P5 (softmax head, no Sev-NR).
+
+To confirm / provide
+- Sample size (or df2) of the H2 ANOVA in P5, to report eta^2 (effect size).
+- That the Chapter 5 numbers of "TOPORET" indeed come from an ordinal (CORN) variant
+  trained under the DOTS protocol, as J1 presumably describes.
+Problems inside P5 a reviewer may notice:
+- Text says the full model's gain (+1.5 pp) "exceeds the sum" (+0.6 + 1.0 = 1.6): it
+  does not. The thesis says "roughly additive".
+- Tukey: "significant ... except No DR vs Mild (p = 0.04)" -- 0.04 < 0.05, so the
+  exception is contradictory. The thesis reports "weakest pair (p = 0.04)".
+- 20% of 88,702 is 17,740, but the test split is reported as 16,576 images.

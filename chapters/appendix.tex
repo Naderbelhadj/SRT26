@@ -19,10 +19,10 @@
 3 & Hybrid CNN--GNN $+$ geometric and topological invariants & P3, B2~\cite{belhadj2026hybrid,mezghich2026lnaitopo} & $95.1\%$ binary accuracy ($+7.0$~pp) & 3{,}662 \\
 4 & LightGBM-HC (hand-crafted, Messidor-2) & P4~\cite{belhadj2026icpram} & QWK $=0.858$, $1.6$~ms CPU classifier & 1{,}748 \\
 5 & SAMF-GB & J2~\cite{belhadj2026samfgb} & QWK $=0.882$, $2.1$~ms CPU & 88{,}702 \\
-6 & TOPORET in distribution & P5~\cite{belhadj2025plos} & QWK $=0.880$ & 88{,}702 \\
-7 & TOPORET cross-dataset & P7~\cite{belhadj2026miua} & QWK $=0.900$ ($+2.0$~pp) & 1{,}748 \\
-8 & H1 graph-contribution test & P5~\cite{belhadj2025plos} & $t_4=3.82$, $p=0.009$, $d_z=1.71$ & 88{,}702 \\
-9 & H2 topological ANOVA & P5~\cite{belhadj2025plos} & $F=1308.9$, $\eta^2=0.51$, $p<0.001$ & 5{,}000 \\
+6 & TOPORET on Kaggle DR & P5~\cite{belhadj2025plos} & QWK $=0.88$, accuracy $95.5\%$ & 88{,}702 \\
+7 & TOPORET on Messidor-2 and APTOS 2019 & P5~\cite{belhadj2025plos} & QWK $=0.90$ and $0.86$ & 1{,}748; 3{,}662 \\
+8 & H1 graph-contribution test & P5~\cite{belhadj2025plos} & $t_4=3.82$, $p=0.019$, $d_z=1.71$ & 88{,}702 \\
+9 & H2 topological ANOVA & P5~\cite{belhadj2025plos} & $F=84.3$, $p<0.001$ & Kaggle DR \\
 10 & DOTS in distribution & J1~\cite{belhadj2026dots} & QWK $=0.951$ & 88{,}702 \\
 11 & DOTS H3a seven-criterion evaluation & J1~\cite{belhadj2026dots} & $7/7$ criteria met at the point estimate & 10{,}000 \\
 12 & H3b necessity enumeration (investigated family) & J1~\cite{belhadj2026dots} & $6/6$ proper subsets fail & 10{,}000 \\
@@ -38,7 +38,7 @@ is informative in itself. Experiments 1--2 evaluate the graph template entirely 
 medicine; the ten-run re-evaluation of experiment~2 revised its accuracy claim, leaving
 interpretability as the main benefit of the invariants. Experiments 3--5 move to diabetic retinopathy at the proof-of-concept level,
 each isolating one candidate signal against a fixed baseline. Experiments 6--9 form the
-TOPORET validation, ending with the two confirmatory tests (8--9) that decide H1 and H2.
+TOPORET evaluation, ending with the two confirmatory tests (8--9) that decide H1 and H2.
 Experiments 10--12 apply the same discipline to DOTS and H3; experiment 12 is the most
 computationally demanding of the programme, with six independently trained subset
 architectures evaluated against all seven criteria under one protocol. The necessity enumeration (12) uses the $10{,}000$-image test set of the H3a evaluation, so
@@ -57,41 +57,43 @@ that DOTS and every proper subset are compared on identical data.
 \caption[Hyperparameter reference]{Hyperparameter reference: TOPORET versus DOTS.}
 \label{tab:hyper}
 \small
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{@{}P{4.4cm}P{5.0cm}P{4.6cm}@{}}
 \toprule
-Hyperparameter & TOPORET & DOTS \\
+Hyperparameter & TOPORET~\cite{belhadj2025plos} & DOTS \\
 \midrule
 Backbone & EfficientNet-B3 (frozen) & RETFound ViT-L/16 (frozen) \\
-Ordinal method & CORN (loss-based) & CORAL (architectural) \\
-Graph type & Static dual similarity & Dynamic GAT \\
-$\alpha$ (visual/topological balance) & 0.65 & 0.65 \\
-$k$ (neighbours per node) & 15 & 15 \\
+Topological vector & 6-D (\cref{eq:tda-toporet}) & 7-D (\cref{eq:tda}) \\
+Output head & Softmax, class-weighted CE & CORAL (architectural) \\
+Graph construction & Threshold $\tau=0.65$, exact pairs & $k$-NN, $k=15$ (FAISS) \\
+$\alpha$ (visual/topological balance) & 0.6 & 0.65 \\
+Graph layer & GraphSAGE (mean) & Dynamic GAT \\
 $d_h$ (hidden dimension) & 256 & 256 \\
 $L$ (GNN layers) & 2 & 2 \\
-$S$ (samples per layer) & 25 & 25 \\
+$S$ (samples per layer) & 10 & 25 \\
 Dropout $p$ & 0.30 & 0.30 \\
-Class weights $\lambda_0,\ldots,\lambda_4$ & -- & $1.0, 2.5, 3.0, 8.0, 6.0$ \\
+Class weights & $w_c=N/(C\,N_c)$ & $1.0, 2.5, 3.0, 8.0, 6.0$ \\
 Label smoothing $\epsilon$ & -- & 0.05 \\
 Abstention threshold $\tau_U$ & -- & 0.73~nats \\
-Optimiser & Adam, lr $=10^{-3}$ & Adam, lr $=10^{-3}$ \\
-Batch size & 32 & 32 \\
-Epochs & 100 & 100 \\
-Random seed & 42 & 42 \\
+Optimiser & Adam, lr $10^{-3}\to10^{-5}$ (cosine) & Adam, lr $=10^{-3}$ \\
+Batch size & 64 & 32 \\
+Epochs & $\leq200$, early stopping (20) & 100 \\
+Data splits & 5 patient-aware $70/10/20$ & 5 folds, stratified \\
 \bottomrule
 \end{tabular}
+\tabnote{The ordinal variant of TOPORET used as the starting point of DOTS
+(\cref{ch:dots}) keeps the TOPORET architecture (dual-similarity GraphSAGE and topological
+features) with a CORN head, and is trained under the DOTS protocol and graph settings.}
 \end{table}
 
 \paragraph{Reading the comparison.}
-The graph and optimisation hyperparameters ($\alpha$, $k$, $d_h$, $L$, $S$, dropout,
-optimiser, batch size, epochs, seed) are identical in the two systems; only the rows that
-address Gaps~A--C (\cref{sec:ch4-gaps}) -- backbone, ordinal method, graph type, and the
-three DOTS-specific additions (class weights, label smoothing, abstention
-threshold) -- differ. This follows from the ablation design of \cref{tab:ablate}: because
-each gap resolution was introduced as an isolated change, the table records exactly which
-decisions produced the TOPORET-to-DOTS gain, with no confound from incidental re-tuning.
-The GraphSAGE-family hyperparameters were not tuned separately for each system; they
-were taken from GNN-MSOrchest (\cref{sec:msorchest}) and confirmed by the DR-specific
-sweep of \cref{tab:hparam}.
+TOPORET and DOTS were developed under different protocols, and their hyperparameters
+differ beyond the components that address Gaps~A--C (\cref{sec:ch4-gaps}): the
+topological vector, the graph construction ($\tau$-threshold with exact pairwise
+distances versus FAISS $k$-NN), the sampling depth, the optimisation schedule and the data
+splits. The TOPORET-to-DOTS ablation of \cref{tab:ablate} is therefore performed within
+the DOTS protocol, starting from the ordinal variant of TOPORET, so that each gap
+resolution is introduced as an isolated change. The TOPORET hyperparameters were selected
+on validation data (\cref{tab:hparam}).
 
 % ===========================================================================
 \chapter{Statistical Test Reference}
@@ -113,8 +115,8 @@ the observed result and the margin by which the claim survived.
 \toprule
 Claim & Falsified if & Observed & Margin \\
 \midrule
-H1 -- graph QWK gain & $t_4 < 2.78$ & $t_4=3.82$, $p=0.009$ & $\times1.37$ critical \\
-H2 -- topology linked to severity & $F(4,4995) < 3.72$ & $F=1308.9$, $p<0.001$ & $\times352$ critical \\
+H1 -- graph QWK gain & $|t_4| < 2.78$ & $t_4=3.82$, $p=0.019$ & $\times1.37$ critical \\
+H2 -- topology linked to severity & $F < 3.72$ & $F=84.3$, $p<0.001$ & $\times23$ critical \\
 H3a -- all seven criteria & any criterion violated & $7/7$ met at the point estimate (\cref{tab:h3a}) & Sev-NR CI $[1.4\%,2.4\%]$ crosses $2\%$ \\
 H3b -- necessity (investigated family) & any proper subset has Sev-NR $<2\%$ & $6/6$ proper subsets fail & constructive, scoped \\
 CORAL violations & any violation at test time & $0.0\%$ & algebraic identity \\
@@ -122,7 +124,7 @@ Sev-NR point estimate & $\geq 2.0\%$ & $1.9\%$ $[1.4\%,\,2.4\%]$ & $0.1$~pp \\
 \bottomrule
 \end{tabular}
 \tabnote{The critical values are $t_{0.025,4}=2.78$ (the conservative threshold adopted
-for H1) and $F_{0.005;\,4,4995}=3.72$ (Bonferroni-corrected level used for H2); see
+for H1) and $F_{0.005;\,4,\,\infty}\approx3.72$ (conservative level used for H2); see
 \cref{app:stats}.}
 \end{table}
 
@@ -135,31 +137,30 @@ using $H_0$ and $H_1$ features as independent variables.
 
 \section{H1: Paired \texorpdfstring{$t$}{t}-Test}
 \begin{align}
-H_0 &: \mu_{\Delta\mathrm{QWK}} \leq 0 \quad \text{(the graph gives no QWK improvement)}, \\
-H_a &: \mu_{\Delta\mathrm{QWK}} > 0 \quad \text{(the graph gives a positive improvement)}, \\
+H_0 &: \mu_{\Delta\mathrm{QWK}} = 0 \quad \text{(the graph gives no QWK change)}, \\
+H_a &: \mu_{\Delta\mathrm{QWK}} \neq 0 \quad \text{(the graph changes the QWK)}, \\
 t &= \frac{\bar d}{s_d/\sqrt{n}}, \qquad \mathrm{df}=n-1=4,
 \end{align}
-where $\bar d$ is the mean of the five per-fold QWK differences (TOPORET minus
-EfficientNet-B3) and $s_d$ their standard deviation. Because the inferential unit is the
-cross-validation fold, the test has four degrees of freedom; the bootstrap and exact
+where $\bar d$ is the mean of the five per-split QWK differences (TOPORET minus the CNN
+baseline, over five patient-aware $70/10/20$ splits) and $s_d$ their standard deviation. Because the inferential unit is the
+data split, the test has four degrees of freedom; the bootstrap and exact
 permutation analyses of \cref{sec:testimpl} are complementary robustness checks on the
-same five differences, not independent replications. The one-tailed critical value at
-$\alpha=0.05$ is $t_{0.05,4}=2.132$. The more conservative $t_{0.025,4}=2.776$ (that is,
-$\alpha=0.05$ two-tailed) was adopted as the decision threshold to guard against
-directional mis-specification. Observed: $t_4=3.82$, one-tailed $p=0.009$, above both
-thresholds.
+same five differences, not independent replications. The test is two-tailed, with
+critical value $t_{0.025,4}=2.776$ at $\alpha=0.05$. Observed: $t_4=3.82$, two-tailed
+$p=0.019$ (one-tailed $0.009$), on Kaggle DR; $t_4=4.1$ ($p=0.015$) on Messidor-2 and
+$t_4=3.5$ ($p=0.025$) on APTOS~2019~\cite{belhadj2025plos}.
 
-\section{H2: One-Way ANOVA with Bonferroni Correction}
+\section{H2: One-Way ANOVA}
 \begin{align}
-H_0 &: \mu_{G_0}=\mu_{G_1}=\cdots=\mu_{G_4} \quad \text{for the feature tested}, \\
+H_0 &: \mu_{G_0}=\mu_{G_1}=\cdots=\mu_{G_4} \quad \text{for total $H_1$ persistence } \Pi_{H_1}, \\
 H_a &: \text{at least one } \mu_{G_k} \text{ differs}, \\
 F &= \frac{\mathrm{MS}_{\mathrm{between}}}{\mathrm{MS}_{\mathrm{within}}}, \qquad
-\mathrm{df}_1=4,\ \mathrm{df}_2=4995 .
+\mathrm{df}_1=4 .
 \end{align}
-Six features are tested (\cref{tab:anova}); the Bonferroni level is $0.05/6\approx0.0083$,
-lowered to $\alpha=0.005$ for conservatism. Critical value:
-$F_{0.005;\,4,4995}=3.72$. Post-hoc: Tukey HSD~\cite{tukey1949} on all
-$\binom{5}{2}=10$ pairwise grade comparisons per feature.
+A single primary feature, $\Pi_{H_1}$, is tested, at the conservative level $\alpha=0.005$;
+for the large samples of Kaggle DR the critical value is $F_{0.005;\,4,\,\infty}\approx3.72$.
+Post-hoc: Tukey HSD~\cite{tukey1949} on the pairwise grade comparisons. Observed:
+$F=84.3$, $p<0.001$~\cite{belhadj2025plos}.
 
 \section{H3a: Bootstrap Confidence Intervals}
 For each of the seven criteria of \cref{tab:h3a}, a 95\% confidence interval is computed
@@ -188,15 +189,16 @@ d_z &= \frac{\bar\delta}{s_\delta} = \frac{t}{\sqrt{n}}, \\
 \end{align}
 The first formula is used for comparisons between independent groups; the second, where
 $\bar\delta$ and $s_\delta$ are the mean and standard deviation of the paired differences
-over the $n$ folds, is used for the paired $t$-test of H1 ($d_z=3.82/\sqrt5=1.71$); the third
-relates $\eta^2$ to the $F$ statistic of a one-way ANOVA, and gives $\eta^2=0.51$ for the
-primary feature of H2.
+over the $n$ splits, is used for the paired $t$-test of H1 ($d_z=3.82/\sqrt5=1.71$); the third
+relates $\eta^2$ to the $F$ statistic of a one-way ANOVA, and requires the within-groups
+degrees of freedom $df_2$, which are not reported with the H2 statistic
+in~\cite{belhadj2025plos}.
 Effect sizes complement $p$-values: a $p$-value says whether an effect is likely to be
 real, an effect size says how large it is, independently of the sample size. With the large
 samples used in this thesis, even negligible differences can reach significance, which is
 why every primary comparison is reported with its effect size. \Cref{tab:effthresh} gives
-the conventional interpretation thresholds~\cite{cohen1988}; all effect sizes reported in
-\cref{tab:effects} meet or exceed the ``large'' threshold.
+the conventional interpretation thresholds~\cite{cohen1988}; all standardised effect sizes
+reported in \cref{tab:effects} meet or exceed the ``large'' threshold.
 
 \begin{table}[H]
 \centering
@@ -335,7 +337,7 @@ Phase & GPU-hours & Dominant cost \\
 \midrule
 Distributed-systems benchmarks (\cref{ch:found}) & $\sim$40 & SimPy simulation; CPU-bound \\
 Structural proof of concept (\cref{ch:found}) & $\sim$120 & EfficientNet-B0 hybrid ablations; hand-crafted pipelines \\
-TOPORET development and validation (\cref{ch:toporet}) & $\sim$310 & Hyperparameter sweep (\cref{tab:hparam}) $\times$ five folds \\
+TOPORET development and validation (\cref{ch:toporet}) & $\sim$310 & Pairwise Wasserstein graphs; hyperparameter sweep (\cref{tab:hparam}) $\times$ five splits \\
 DOTS development and ablation (\cref{ch:dots}) & $\sim$480 & RETFound-based models across Gaps A--C, five folds \\
 H3b necessity enumeration (\cref{ch:dots}) & $\sim$540 & Six subset architectures $\times$ five benchmarks \\
 \midrule
@@ -357,7 +359,7 @@ Total & $\sim$1{,}490 & \\
 \toprule
 Experiment & Seeds & QWK & Sev-NR \\
 \midrule
-TOPORET (Kaggle EyePACS) & 42, 123, 7 & $0.880\pm0.003$ & $3.4\pm0.2\%$ \\
+TOPORET, ordinal variant (Kaggle EyePACS) & 42, 123, 7 & $0.880\pm0.003$ & $3.4\pm0.2\%$ \\
 DOTS (Kaggle EyePACS) & 42, 123, 7 & $0.951\pm0.003$ & $1.9\pm0.1\%$ \\
 DOTS (APTOS 2019) & 42, 123, 7 & $0.953\pm0.004$ & $1.7\pm0.2\%$ \\
 DOTS (IDRiD) & 42, 123, 7 & $0.878\pm0.005$ & $2.1\pm0.3\%$ \\
@@ -372,10 +374,10 @@ All parameters were selected on training and validation data only, in this order
 \begin{enumerate}
 \item \textbf{Backbone} (EfficientNet-B3 or RETFound): validation-fold QWK; fixed before
 the H3a test.
-\item \textbf{$\alpha=0.65$}: grid $\alpha\in\{0.5,0.6,0.65,0.7,0.8\}$ inside the stable
-range of \cref{tab:hparam}, on training folds; fixed before the H1 test.
-\item \textbf{$k=15$}: grid $k\in\{5,8,10,15,20\}$ on validation-fold QWK; fixed before the
-H1 test.
+\item \textbf{TOPORET graph ($\alpha=0.6$, $\tau=0.65$)}: validation grid search
+(\cref{tab:hparam}); fixed before the H1 test.
+\item \textbf{DOTS graph ($\alpha=0.65$, $k=15$)}: validation-fold QWK; fixed before the H3a
+test.
 \item \textbf{Class weights $\lambda_0,\ldots,\lambda_4$}: grid search on validation-fold Sev-NR and macro-F1
 (\cref{tab:weights}); fixed before the H3a test.
 \item \textbf{Abstention threshold $\tau_U=0.73$ nats}: smallest threshold meeting Sev-NR
@@ -388,16 +390,15 @@ all parameters above were fixed.
 \section{Statistical Test Implementation Details}
 \label{sec:testimpl}
 \begin{itemize}
-\item \textbf{H1 $t$-test:} \texttt{scipy.stats.ttest\_rel}, one-tailed, df $=4$;
-nominal threshold $t_4>2.132$, conservative threshold $t_4>2.776$; both passed
+\item \textbf{H1 $t$-test:} paired, two-tailed, df $=4$; threshold $|t_4|>2.776$; passed
 ($t_4=3.82$).
-\item \textbf{H1 bootstrap:} $10{,}000$ resamples with replacement of the five fold
+\item \textbf{H1 bootstrap:} $10{,}000$ resamples with replacement of the five split
 differences; 95\% CI from the 2.5th and 97.5th percentiles.
 \item \textbf{H1 permutation:} exact enumeration of the $2^5=32$ sign assignments of the
-five fold differences; the one-sided $p$-value is the fraction of assignments whose mean
+five split differences; the one-sided $p$-value is the fraction of assignments whose mean
 difference is at least the observed one. With all five differences positive, $p=1/32$.
-\item \textbf{H2 ANOVA:} \texttt{scipy.stats.f\_oneway}, $n=5{,}000$ stratified sample
-($1{,}000$ per grade); Bonferroni level $0.05/6=0.0083$, lowered to $0.005$.
+\item \textbf{H2 ANOVA:} one-way ANOVA of $\Pi_{H_1}$ across the five grades on Kaggle DR,
+level $0.005$, Tukey HSD post-hoc~\cite{belhadj2025plos}.
 \item \textbf{H3b bootstrap:} $10{,}000$ resamples of prediction-level Sev-NR for each
 subset; the CI of the difference is computed as above.
 \end{itemize}

@@ -60,10 +60,9 @@ Chronic hyperglycaemia triggers polyol-pathway activation, protein kinase C
 up-regulation, oxidative stress and the accumulation of advanced glycation end-products.
 These converge on pericyte apoptosis, basement-membrane thickening and breakdown of the
 blood--retinal barrier~\cite{cheung2010dr}. The healthy retinal vascular tree is
-self-similar, with a fractal dimension close to $1.7$~\cite{masters2004fractal}; in the
-data of this thesis it decreases monotonically from $1.71$ at Grade~0 to $1.57$ at
-Grade~4 (\cref{tab:anova}). This loss of vascular complexity is the biological
-motivation for the persistent-homology features studied in \cref{ch:toporet}.
+self-similar, with a fractal dimension close to $1.7$~\cite{masters2004fractal}, and its
+complexity changes as the disease progresses. This change of vascular structure is the
+biological motivation for the persistent-homology features studied in \cref{ch:toporet}.
 
 Clinically, the cascade follows a predictable anatomical sequence rather than a uniform
 deterioration. Capillary basement-membrane thickening and pericyte loss first produce
@@ -428,19 +427,19 @@ System & Year & Key method & QWK & L1 & L2 & L3 \\
 Gulshan et al.~\cite{gulshan2016jama} & 2016 & Deep CNN (Inception-v3) & n/a$^{\dagger}$ & \xmark & \xmark & \xmark \\
 EfficientNet-B3~\cite{tan2019efficientnet} & 2019 & Compound-scaled CNN & 0.840 & \xmark & \xmark & \xmark \\
 CABNet~\cite{he2021cabnet} & 2021 & Category attention, ResNet & 0.830 & \xmark & \xmark & \xmark \\
-GraphDR$^{\ddagger}$ (baseline) & -- & EfficientNet-B3 $+$ visual population graph & 0.850 & partial & \xmark & \xmark \\
+Visual population graph$^{\ddagger}$ & -- & EfficientNet-B3 $+$ visual population graph & 0.87 & partial & \xmark & \xmark \\
 RETFound~\cite{zhou2023retfound} & 2023 & ViT-L/16, retinal pre-training & 0.920 & \xmark & \xmark & \xmark \\
 SAMF-GB~\cite{belhadj2026samfgb} & 2026 & LightGBM $+$ structural features & 0.882 & \xmark & partial & \xmark \\
 \midrule
-TOPORET~\cite{belhadj2025plos}$^{\star}$ & 2025 & EfficientNet $+$ TDA $+$ GraphSAGE & 0.880 & \cmark & \cmark & \xmark \\
+TOPORET~\cite{belhadj2025plos}$^{\star}$ & 2025 & EfficientNet $+$ TDA $+$ GraphSAGE & 0.88 & \cmark & \cmark & \xmark \\
 DOTS~\cite{belhadj2026dots}$^{\star}$ & 2026 & RETFound $+$ CORAL $+$ GAT $+$ abstention & \textbf{0.951} & \cmark & \cmark & \cmark \\
 \bottomrule
 \end{tabular}
 \tabnote{$^{\dagger}$Gulshan et al.\ report AUC $=0.991$ for referable DR, not QWK.
-$^{\ddagger}$Visual-similarity population graph on the same frozen EfficientNet-B3 features, built in this thesis as the ablation
-control of \cref{ch:toporet}, representative of graph-based DR approaches that use visual
-similarity only; it is not the reproduction of a specific published system, and its QWK is
-measured under the protocol of this thesis. $^{\star}$This thesis. QWK values other than
+$^{\ddagger}$Ablation variant~(C) of TOPORET (\cref{tab:ablation3}): a population graph
+built from visual similarity only, on the same frozen EfficientNet-B3 features,
+representative of graph-based DR approaches that use visual similarity only; it is not the
+reproduction of a specific published system. $^{\star}$This thesis. QWK values other than
 those of the original papers are measured on Kaggle EyePACS under the protocol of
 \cref{ch:toporet}.}
 \end{table}
@@ -457,9 +456,9 @@ capture part of the missing information.
 \paragraph{Pattern 2: domain-matched pre-training is more productive than architectural
 refinement.}
 Architectural refinements of ImageNet-initialised networks changed the QWK only
-marginally in \cref{tab:sota} (CABNet $0.830$; the visual-graph baseline GraphDR, $0.850$,
-$+1.0$~pp over EfficientNet-B3), whereas RETFound (2023) gained $+8.0$~pp over
-EfficientNet-B3 by changing the initialisation rather than the architecture.
+modestly in \cref{tab:sota} (CABNet $0.830$; the visual population graph of
+\cref{ch:toporet}, $0.87$), whereas RETFound (2023) gained $+8.0$~pp over EfficientNet-B3
+by changing the initialisation rather than the architecture.
 
 \paragraph{Pattern 3: the safety--accuracy gap is persistent.}
 The best system without abstention (RETFound, QWK $=0.920$) still has Sev-NR
@@ -505,16 +504,15 @@ A natural question is whether each limitation could be resolved by adding one co
 to an existing state-of-the-art system. Within the systems evaluated in this thesis, the
 answer was no.
 
-Resolving \textbf{L1 alone} (adding a population graph) requires a similarity metric for
-edge construction. A visual-only metric produces a graph that is not significantly better
-than no graph at all (GraphDR: $t_4=1.71$, $p=0.08$, not significant; \cref{tab:h1}). A
-dual metric that includes the Wasserstein distance between persistence diagrams requires
-the TDA pipeline of L2 to be already in place.
+Resolving \textbf{L1 alone} (adding a population graph built from visual similarity only)
+improves QWK by $0.03$ (\cref{tab:ablation3}), but leaves the topology of the vessels
+unused; a dual metric that includes the Wasserstein distance between persistence diagrams
+requires the TDA pipeline of L2 to be already in place.
 
-Resolving \textbf{L2 alone} (adding TDA features without the graph) yields $+0.016$ QWK
-(\cref{tab:ablation3}) -- useful, but far from sufficient. The full $+0.040$ QWK gain
-requires the dual-metric graph of L1 to exploit the topological features in the
-neighbourhood weighting.
+Resolving \textbf{L2 alone} (adding TDA features without the graph) yields $+0.02$ QWK
+(\cref{tab:ablation3}) -- useful, but partial. The largest gain ($+0.04$ QWK) is obtained
+only when topology is used both as a patient feature and inside the similarity of the
+graph of L1.
 
 Resolving \textbf{L3 alone} (the ordinal-safety axis without graph or topology, subset
 $\{O\}$ of \cref{tab:h3b}) leaves Sev-NR $=3.6\%$, still above the $2\%$ target: the
