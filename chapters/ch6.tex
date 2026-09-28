@@ -76,6 +76,10 @@ FDA SaMD guidance & Software as a Medical Device & Locked algorithm; possible 51
 \end{tabular}
 \end{table}
 
+Each row links a requirement to a mechanism that already exists in the code; the
+standards themselves are discussed in turn below, from the software life cycle to the
+classification under the AI Act.
+
 \subsection{IEC 62304: Software Life Cycle and Unit Verification}
 \label{sec:iec62304}
 
@@ -164,6 +168,9 @@ the basis of the phased roadmap of \cref{sec:roadmap}.
 diagnosis). \emph{Major}: potential for delayed but recoverable harm, or systematic
 accuracy loss requiring intervention. \emph{Moderate}: workflow disruption without direct
 patient-safety implications.
+The three critical hazards are those whose effect reaches the patient directly; two of
+them (hazards~1 and~5) are mitigated inside the pipeline, whereas hazard~6 depends on the
+integration of the pipeline into the hospital information system.
 
 \section{EU AI Act Annex III: High-Risk Classification}
 \label{sec:aiact}
@@ -454,15 +461,11 @@ Phase & Period & Key deliverable & Evidence & Status \\
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
-This chapter described the software architecture of the pipelines of this thesis and its
-mapping to selected requirements of IEC~62304, ISO~14971 and the EU AI Act
-(\cref{tab:regmap}); this mapping is not a conformity assessment, a clinical evaluation or
-a certification. The six-stage framework with typed interfaces supports stage-level
-verification, and the FMEA identifies two residual risks: missed severe cases, which are
-reduced but not eliminated, and the absence of an EHR integration, which is not
-implemented. Inference takes $18.3$~ms per image for DGTS and about $75$~ms for DOTS on one
-T4 GPU, which indicates computational feasibility at the laboratory level but not, by
-itself, operational feasibility at national scale. Three ethical considerations --
-fairness, deskilling and accountability -- are identified for explicit future work. The
-General Conclusion now brings together the contributions of the thesis, their practical
-value, their limits and the perspectives they open.
+This chapter mapped the architecture of the pipelines to selected requirements of
+IEC~62304, ISO~14971 and the EU AI Act (\cref{tab:regmap}), as a design aid rather than a
+conformity assessment. The six-stage framework supports stage-level verification; the
+FMEA leaves two residual risks, missed severe cases and the missing EHR integration.
+Inference ($18.3$~ms per image for DGTS, about $75$~ms for DOTS on one T4 GPU) is feasible
+at laboratory level, and fairness, deskilling and accountability remain open ethical
+questions. The General Conclusion now brings together the contributions, limits and
+perspectives of the thesis.

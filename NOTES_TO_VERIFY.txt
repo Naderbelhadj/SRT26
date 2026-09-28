@@ -399,3 +399,10 @@ test_manifest.csv reproduces Table 5.3 exactly.
   placeins page break); half-empty pages removed; every float cited on its page or the
   page before; CLAHE/skeleton figures reordered to match citation order.
 * General Conclusion: new Table GC.1 summarising H1, H2, H3a, H3b.
+
+v10 (final layout pass):
+- Ch.4: sentence after Table 4.3 on split SD (0.2-0.5 pp) vs gain; Messidor-2 largest gain on all three metrics.
+- Ch.4: corrected claim after Algorithm 4.1 (grading a new patient needs its N similarities to the cohort, linear cost; no retraining).
+- Ch.4: Computational Cost (4.4.6) now precedes Population Graph Structure (4.4.7) so Table 4.7 follows its text.
+- Ch.4: conclusion tightened; redundant five-split caveat removed from Construct validity (kept in H1 robustness).
+- Ch.6: bridging sentences after Table 6.1 and after the severity definitions; conclusion tightened.

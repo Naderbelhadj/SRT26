@@ -233,7 +233,7 @@ concentrated at the boundaries between grades. Any grading system, human or auto
 must therefore be judged against this intrinsic ambiguity, and a system that can recognise
 ambiguous cases is valuable in itself. This is also why many programmes grade each image
 twice and send disagreements to a senior grader: the most useful help that an automated
-system can give is often to indicate which images deserve this second look. In the systems developed in this thesis, calibrated grade probabilities and the display of similar reference cases (\cref{ch:dots}) are first steps towards this role; an automatic deferral of ambiguous images is left to future work. Such a system does not replace the second grader; it directs the grader's attention to the cases that need it most.
+system can give is often to indicate which images deserve this second look. In the systems developed in this thesis, calibrated grade probabilities and the display of similar reference cases (\cref{ch:dots}) are first steps towards this role; an automatic deferral of ambiguous images is left to future work. Such a system does not replace the second grader; it directs the grader's attention to the cases that need it most. In the experiments of this thesis, the Mild--Moderate boundary concentrates the largest share of errors for every system (\cref{ch:toporet,ch:dots}), which is consistent with this intrinsic ambiguity.
 
 \section{Screening Programmes and Patient Safety}
 \label{sec:screening}
@@ -463,7 +463,8 @@ other countries; public datasets are small for the severe grades; and a model th
 answers, even when the image is ambiguous, is hard to accept in a clinical workflow. This
 thesis focuses on three limitations that are not practical but \emph{architectural}: they
 recur across the representative systems reviewed above and are unlikely to be removed by
-more data or larger networks alone.
+more data or larger networks alone. They are defined below as properties of an
+architecture, so that each system of \cref{tab:sota} can be checked against them.
 
 \subsection{Three Structural Limitations}
 \label{sec:limits}

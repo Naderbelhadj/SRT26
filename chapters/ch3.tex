@@ -73,6 +73,10 @@ $\Pi_{H_1}$, across the five grades on Kaggle DR, with Tukey HSD post-hoc compar
 conservative significance level $\alpha=0.005$, critical value $F_{0.005;\,4,\,\infty}
 \approx 3.72$.
 
+The two hypotheses are complementary: H1 asks whether relations between patients improve
+the grade, and H2 whether the vascular topology that enters these relations is itself
+related to severity. Their formal statements are collected in \cref{app:stats}.
+
 \section{Proposed Approach}
 \label{sec:ch3-approach}
 
@@ -192,7 +196,12 @@ where $W_2$ is the $2$-Wasserstein distance between persistence diagrams. An edg
 $(v_i,v_j)$ is added when $S_{ij}>\tau$. The two parameters were selected on the validation
 data by a grid search (\cref{tab:hparam}): $\alpha=0.6$ and $\tau=0.65$. Validation accuracy
 is stable within $\alpha\in[0.5,\,0.7]$ and $\tau\in[0.60,\,0.70]$, so the results are not a
-knife-edge consequence of one setting.
+knife-edge consequence of one setting. A lower $\alpha$ gives more weight to topology in the
+similarity, and a higher $\tau$ keeps only the most similar pairs. The selected setting
+gives an average degree of about $12$ (\cref{tab:graphstruct}): large enough for information
+to propagate between patients, and small enough to avoid connecting dissimilar ones. Settings
+outside this range either isolate many patients or merge images of different grades into
+the same neighbourhood.
 
 \begin{table}[H]
 \centering
@@ -250,6 +259,10 @@ $h_i \leftarrow \mathrm{GraphSAGE}(z_i,\{z_j\}_{j\in\mathcal{N}(i)})$\tcp*{\cref
 \Return{$\hat y_i \leftarrow \arg\max_c \mathrm{softmax}(h_i)_c$}
 \end{algorithm}
 
+The first part of \cref{alg:toporet} (lines~1--7) is run once, at training time; the second
+part (lines~8--11) is all that is needed to grade a new patient, which is why a new
+patient never requires retraining the model.
+
 \subsection{Design Choices}
 \label{sec:ch3-design}
 
@@ -288,11 +301,12 @@ does. The balance $\alpha$ and the threshold $\tau$ were selected on validation 
 than fixed a priori.
 
 \paragraph{Exact pairwise graph construction.}
-The graph is built from the exact similarity of every pair of training images, which
-requires $O(N^2)$ Wasserstein distances: about four hours on eight CPU cores for Kaggle DR.
-This is acceptable for a research study but is the main scalability limitation of
-TOPORET; a $k$-nearest-neighbour graph, as in DGTS (\cref{ch:dots}), or approximate
-nearest-neighbour search~\cite{johnson2021faiss} (\cref{tab:latency}) removes it.
+Exact pairwise similarities require $O(N^2)$ Wasserstein distances (about four hours on
+eight CPU cores for Kaggle DR), the main scalability limitation of TOPORET; a $k$-NN graph,
+as in DGTS (\cref{ch:dots}), or approximate search~\cite{johnson2021faiss} removes it.
+The limitation concerns training only: grading a new patient requires its $N$
+similarities to the training cohort (line~9 of \cref{alg:toporet}), a cost linear in the
+size of the cohort, and no new distance between training patients.
 
 \section{Experimentation}
 \label{sec:ch3-exp}
@@ -343,6 +357,13 @@ APTOS 2019 & CNN baseline & $92.9\pm0.5$ & $0.82\pm0.02$ & $0.79\pm0.02$ \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+On every benchmark, the standard deviation over the five splits ($0.2$ to $0.5$
+percentage points of accuracy) is several times smaller than the gain, so the
+improvement is not the artefact of a favourable split. Messidor-2 shows the largest
+gain for accuracy, QWK and macro-F1 alike, which indicates that the gain is not
+limited to one metric. The formal test of the contribution of the graph is H1,
+below.
 
 \subsection{Results: Contribution of the Population Graph (H1)}
 \label{sec:h1}
@@ -479,6 +500,15 @@ Configuration & Accuracy (\%) & QWK & Macro-F1 \\
 \end{tabular}
 \end{table}
 
+\subsection{Computational Cost}
+\label{sec:toporet-cost}
+
+The topological stage takes about $18$~ms per image on the CPU, and grading a new patient
+takes about $23$~ms on an NVIDIA A100 GPU once its features are computed. Building the
+graph of Kaggle DR takes about four hours on eight CPU cores, because of the $O(N^2)$
+pairwise Wasserstein distances, and training GraphSAGE about eight minutes on the
+GPU~\cite{belhadj2025plos}.
+
 \subsection{Population Graph Structure}
 \label{sec:graphstruct}
 
@@ -505,15 +535,6 @@ Dense hubs (degree $>50$) & $0.8\%$ (mostly Grade~0) \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\subsection{Computational Cost}
-\label{sec:toporet-cost}
-
-The topological stage takes about $18$~ms per image on the CPU, and grading a new patient
-takes about $23$~ms on an NVIDIA A100 GPU once its features are computed. Building the
-graph of Kaggle DR takes about four hours on eight CPU cores, because of the $O(N^2)$
-pairwise Wasserstein distances, and training GraphSAGE about eight minutes on the
-GPU~\cite{belhadj2025plos}.
 
 \subsection{Comparison with the Literature}
 \label{sec:toporet-sota}
@@ -627,16 +648,14 @@ QWK measures agreement with the reference grade, which itself contains grader no
 (\cref{sec:grading}); a part of the remaining disagreement may therefore reflect label
 errors rather than model errors. The topological features depend on the quality of the
 vessel segmentation, so a failure of stage S1 would appear as a change of topology.
-Finally, H1 was tested with five splits, which is a small sample for a $t$-test; with five
-splits, the permutation test cannot give a $p$-value below $1/32$.
 
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
 TOPORET~\cite{belhadj2025plos} improves on a strong CNN baseline on three benchmarks
 ($+1.5$ to $+2.3$ percentage points of accuracy, $+0.04$ to $+0.07$ QWK). Its pre-specified
-tests supported H1 ($t_4=3.82$, $p=0.019$ two-tailed, $d_z=1.71$, over five patient-aware
-splits) and H2 as a statistical association ($F=84.3$, $p<0.001$). The population graph
-is the larger contributor and the topological features add a complementary gain. TOPORET,
-however, is trained on one dataset at a time, ignores the order of the grades and does not
-measure missed referrals. The next chapter addresses these gaps with DGTS and DOTS.
+tests supported H1 ($t_4=3.82$, $p=0.019$ two-tailed, $d_z=1.71$) and H2 as a statistical
+association ($F=84.3$, $p<0.001$); the graph is the larger contributor, the topology a
+complementary one. TOPORET, however, is trained on one dataset at a time, ignores the
+order of the grades and does not measure missed referrals; the next chapter addresses
+these gaps with DGTS and DOTS.

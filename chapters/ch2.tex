@@ -80,6 +80,10 @@ Resource-utilisation Gini coefficient & 0.41 & 0.18 ($-56.1\%$) \\
 \end{tabular}
 \end{table}
 
+The gain comes from using the state of neighbouring services: a threshold rule applied node
+by node cannot anticipate an overload that is propagating through the dependency graph.
+This relational effect is the one that the population graph exploits on retinal data.
+
 \subsection{Local Invariants for Anomaly Detection}
 \label{sec:invariants}
 
@@ -403,7 +407,11 @@ beading, capillary closure and new vessels.
 
 \Cref{tab:samf} compares SAMF-GB with
 EfficientNet-B3: SAMF-GB gains $+0.042$ QWK, its classifier runs on a 16-core CPU instead
-of a GPU at about 13 times lower cost, and its predictions can be explained with SHAP.
+of a GPU at about 13 times lower cost, and its predictions can be explained with SHAP. The
+comparison is not a like-for-like benchmark of architectures: SAMF-GB relies on
+pre-computed hand-crafted features, whereas EfficientNet-B3 learns its features end to end.
+What it shows is that structural descriptors alone already carry enough information to
+rival a deep network on this task.
 
 \begin{table}[!htbp]
 \centering
