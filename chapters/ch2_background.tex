@@ -480,3 +480,12 @@ descriptors; CORAL yields consistent grade rankings, and temperature scaling cal
 the confidence scores. The metrics separate accuracy (QWK, AUC) from safety (Sev-NR,
 PDR-NR) and reliability (ECE, rank violations). The next chapter tests these tools
 on simpler settings before applying them to the retina.
+
+\begin{keypoints}
+\begin{itemize}[leftmargin=1.2em,itemsep=1pt,topsep=1pt]
+\item GraphSAGE is inductive: a new patient is graded from its neighbours without retraining the graph.
+\item Persistent homology turns the shape of the vessel skeleton into descriptors that are stable to small perturbations.
+\item CORAL yields rank-consistent ordinal predictions; temperature scaling calibrates the confidence without changing the grade.
+\item Accuracy (QWK, AUC), calibration (ECE) and safety (Sev-NR, PDR-NR) are measured separately throughout the thesis.
+\end{itemize}
+\end{keypoints}

@@ -634,9 +634,13 @@ splits, the permutation test cannot give a $p$-value below $1/32$.
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
 TOPORET~\cite{belhadj2025plos} improves on a strong CNN baseline on three benchmarks
-($+1.5$ to $+2.3$ percentage points of accuracy, $+0.04$ to $+0.07$ QWK). Its pre-specified
-tests supported H1 ($t_4=3.82$, $p=0.019$ two-tailed, $d_z=1.71$, over five patient-aware
-splits) and H2 as a statistical association ($F=84.3$, $p<0.001$). The population graph
-is the larger contributor and the topological features add a complementary gain. TOPORET,
-however, is trained on one dataset at a time, ignores the order of the grades and does not
-measure missed referrals. The next chapter addresses these gaps with DGTS and DOTS.
+($+1.5$ to $+2.3$ percentage points of accuracy, $+0.04$ to $+0.07$ QWK); the population
+graph is the larger contributor, and the topological features add a complementary gain.
+
+\begin{keypoints}
+\begin{itemize}[leftmargin=1.2em,itemsep=0pt,topsep=0pt]
+\item TOPORET combines visual similarity and the Wasserstein distance between persistence diagrams in an inductive population graph.
+\item H1: $t_4=3.82$, $p=0.019$ two-tailed, $d_z=1.71$, five patient-aware splits; H2: $F=84.3$, $p<0.001$ (association).
+\item Single-source training, a nominal loss and unmeasured safety motivate \cref{ch:dots}.
+\end{itemize}
+\end{keypoints}

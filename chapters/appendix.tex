@@ -46,6 +46,35 @@ and H3 (12--13). The external evaluations (11 and 13) are the only ones that use
 seen during training or model selection.
 
 
+\paragraph{Where each result is reported.}
+\Cref{tab:where} links each experiment to the part of the thesis where it is described
+and to its main table, so that every number of \cref{tab:experiments} can be traced.
+
+\begin{table}[!htbp]
+\centering
+\caption[Where each experiment is reported]{Where each experiment of \cref{tab:experiments}
+is reported in the thesis.}
+\label{tab:where}
+\small
+\begin{tabular}{@{}c P{5.4cm} l P{4.6cm}@{}}
+\toprule
+\# & Experiment & Chapter & Main tables \\
+\midrule
+1 & GraphSAGE microservice orchestration & \Cref{ch:found} & \Cref{tab:msorch} \\
+2 & Invariant-augmented anomaly detection & \Cref{ch:found} & \Cref{tab:invariants} \\
+3 & Hybrid CNN--GNN on APTOS~2019 & \Cref{ch:found} & \Cref{tab:hybrid} \\
+4 & LightGBM-HC on Messidor-2 & \Cref{ch:found} & \Cref{tab:lgbm-hp,tab:lgbm-abl} \\
+5 & SAMF-GB & \Cref{ch:found} & \Cref{tab:samf,tab:shap} \\
+6--7 & TOPORET on three benchmarks & \Cref{ch:toporet} & \Cref{tab:crossdata,tab:ablation3} \\
+8 & H1 graph-contribution test & \Cref{ch:toporet} & \Cref{tab:h1} \\
+9 & H2 topological ANOVA & \Cref{ch:toporet} & \Cref{tab:anova} \\
+10--11 & DGTS, cross-validation and EyePACS & \Cref{ch:dots} & \Cref{tab:dgts-abl,tab:dgts-grade} \\
+12 & DOTS, cross-validation and H3a & \Cref{ch:dots} & \Cref{tab:ablate,tab:dots-cv,tab:h3a} \\
+13 & DOTS on Messidor-2, H3b & \Cref{ch:dots} & \Cref{tab:h3b} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 % ===========================================================================
 \chapter{Hyperparameter Reference}
 \label{app:hyper}
@@ -221,6 +250,37 @@ level is corrected with the Bonferroni method and lowered further for conservati
 the claims of \cref{ch:dots} are decided on external data, which were not used for any
 design choice.
 
+\section{Reporting Checklist}
+\label{sec:checklist}
+\Cref{tab:checklist} lists items commonly requested by reporting guidelines for medical
+imaging AI and where each is addressed in this thesis.
+
+\begin{table}[!htbp]
+\centering
+\caption[Reporting checklist]{Reporting checklist: where each item is addressed.}
+\label{tab:checklist}
+\small
+\begin{tabular}{@{}P{5.2cm} P{8.8cm}@{}}
+\toprule
+Item & Where it is addressed \\
+\midrule
+Data sources, size and grade distribution & \Cref{tab:datasets,tab:corpus} \\
+Unit of analysis (image or patient) & \Cref{sec:ch4-protocol}; \cref{app:repro} \\
+Reference standard and label noise & \Cref{sec:grading} \\
+Data splits and leakage control & \Cref{tab:hyper}; \cref{sec:ch4-protocol} \\
+Model description and hyperparameters & \Cref{tab:stages,tab:hyper} \\
+Primary metrics and their definitions & \Cref{sec:metrics}; \cref{eq:nr} \\
+Uncertainty of estimates & Exact and bootstrap intervals (\cref{tab:h3a}) \\
+Ablation of each component & \Cref{tab:ablation3,tab:dgts-abl,tab:ablate} \\
+External validation & \Cref{tab:dgts-grade,tab:h3b} \\
+Failure and error analysis & \Cref{tab:dots-grade}; error structure in \cref{sec:dots} \\
+Calibration & \Cref{sec:dgts,sec:dots} \\
+Limitations and claims not established & \Cref{sec:notestablished}; General Conclusion \\
+Code availability & \Cref{app:repro} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 % ===========================================================================
 \chapter{Reproducibility and Software Environment}
 \label{app:repro}
@@ -328,3 +388,22 @@ of DGTS and the CNN baseline; with five pairs the smallest attainable $p$ is $1/
 five folds, $p=0.013$.
 \item \textbf{Non-referral intervals:} exact Clopper--Pearson intervals from the counts.
 \end{itemize}
+
+\section{Reproducing the Main Results}
+The main results can be reproduced in five steps, using the released code of each
+system and the public datasets of \cref{app:datasets}.
+\begin{enumerate}[itemsep=2pt]
+\item \textbf{Obtain the data.} Download Kaggle EyePACS, APTOS~2019, KaggleDR-F1 and
+Messidor-2 from their original distributors, and check that no image of the external
+sets appears in the training corpus.
+\item \textbf{Build the folds.} Create the five-fold stratified split of the fused corpus
+with random state $42$ (DGTS and DOTS), or the five patient-aware $70/10/20$ splits of
+TOPORET.
+\item \textbf{Train.} Train each system with the hyperparameters of \cref{tab:hyper} on one
+GPU; DOTS takes about $45$~minutes per fold and DGTS about four hours per fold on a T4.
+\item \textbf{Evaluate internally.} Compute QWK, accuracy, macro-F1, ECE and the
+non-referral rates of \cref{eq:nr} on the out-of-fold predictions, and compare them with
+\cref{tab:dgts-abl,tab:dots-cv,tab:h3a} within the tolerance of \cref{sec:tolerance}.
+\item \textbf{Evaluate externally.} Apply the trained models without retraining to
+EyePACS (DGTS) and Messidor-2 (DOTS), and compare with \cref{tab:dgts-grade,tab:h3b}.
+\end{enumerate}
