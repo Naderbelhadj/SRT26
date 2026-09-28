@@ -387,7 +387,7 @@ Mild--Moderate boundary. Adapted from~\cite{belhadj2025plos}.}
 TOPORET reaches QWK $=0.880$ on Kaggle EyePACS (in distribution) and $0.900$ on
 Messidor-2 (out of distribution), a $+2.0$~pp cross-dataset gain consistent with the
 stability of persistence diagrams (\cref{eq:stability}). However, TOPORET fails the
-predefined safety threshold: Sev-NR $=3.4\%>2\%$. This residual gap is addressed in
+predefined safety target: Sev-NR $=3.4\%>2\%$. This residual gap is addressed in
 \cref{ch:dots}.
 
 \Cref{tab:graphstruct} compares the visual-only graph with the dual-similarity graph. The
@@ -615,5 +615,5 @@ $\eta^2=0.51$). Topological information is what made the graph
 useful in these experiments: the visual-only graph gives a non-significant gain, whereas
 the graph with the dual metric and TDA node features gives a very large one, with higher Grade-3
 neighbourhood purity and larger out-of-distribution gains. The remaining gap -- Sev-NR
-$=3.4\%$ against the $2\%$ threshold -- reflects the absence of a mechanism to defer
+$=3.4\%$ against the $2\%$ target -- reflects the absence of a mechanism to defer
 ambiguous cases, which the next chapter adds in the DOTS system.

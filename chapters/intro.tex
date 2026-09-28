@@ -13,7 +13,7 @@ estimated 537 million adults, and this number is expected to reach 783 million b
 adults of working age~\cite{teo2021global,cheung2010dr}. The tragedy of DR is that it is
 silent: vision is usually preserved until the disease is advanced, whereas treatment is
 most effective in the early stages. Regular screening of the retina of every diabetic
-patient is therefore the only way to prevent blindness at the scale of a population.
+patient is therefore the most effective way to prevent blindness at the scale of a population.
 
 Screening relies on fundus photographs graded by trained experts on the five-level
 International Clinical Diabetic Retinopathy (ICDR) scale~\cite{wilkinson2003icdr}. The number of images to grade now far
@@ -37,7 +37,7 @@ considered a future extension (see the General Conclusion).
 
 Despite this progress, none of the representative systems reviewed here simultaneously
 addresses the three architectural requirements defined in this thesis within a single
-evaluated framework. Some systems have been validated prospectively and deployed
+evaluated framework. Several systems have been validated prospectively and deployed
 (\cref{ch:sota}); the point made here is architectural, not a statement about the whole
 literature. Three limitations recur across the representative systems reviewed in this
 thesis:
@@ -45,7 +45,7 @@ thesis:
 \item \textbf{L1 -- no relational context.} Each fundus image is graded in isolation, so
 patients who look alike, and who often share a grade, never inform one another.
 \item \textbf{L2 -- no vascular topology.} Convolutional and transformer networks see local
-texture; they cannot measure the global structure of the vascular tree (its connected
+texture; they do not explicitly measure the global structure of the vascular tree (its connected
 components and loops), which changes as the disease progresses.
 \item \textbf{L3 -- no right to abstain.} Every image receives a grade, even when it is
 ambiguous. The most difficult cases, at the boundary between moderate and severe disease,

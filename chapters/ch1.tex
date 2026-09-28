@@ -463,7 +463,7 @@ EfficientNet-B3 by changing the initialisation rather than the architecture.
 
 \paragraph{Pattern 3: the safety--accuracy gap is persistent.}
 The best system without abstention (RETFound, QWK $=0.920$) still has Sev-NR
-$\approx 3.1\%$, $1.1$~pp above the $2\%$ threshold. The further $+3.1$~pp QWK from
+$\approx 3.1\%$, $1.1$~pp above the $2\%$ target. The further $+3.1$~pp QWK from
 RETFound to DOTS reduces Sev-NR by $38.7\%$ in relative terms: the remaining performance
 gap is concentrated in the safety-critical regime. The experiments of this thesis suggest that closing this gap benefits from changes to the architecture itself, rather than only from larger networks or more training data.
 
@@ -492,13 +492,13 @@ where $\mathcal{C}$ denotes the patient cohort. All the per-image systems of
 \paragraph{Definition 1.2 (L2 -- No Vascular Topology).}
 A system satisfies L2 if and only if its feature map $\varphi : I \to \mathbb{R}^d$ uses
 only operations with bounded receptive fields (convolutions, local attention). Such a
-map cannot compute global topological invariants of the vascular network.
+map does not explicitly compute global topological invariants of the vascular network.
 
 \paragraph{Definition 1.3 (L3 -- No Clinical Safety).}
 A system satisfies L3 if and only if it must produce a grade for every input, with no
 mechanism for deferring genuinely ambiguous cases to a human grader.
 
-\subsection{Why the Limitations Cannot Be Resolved Independently}
+\subsection{Why the Limitations Are Addressed Jointly}
 \label{sec:coupled}
 
 A natural question is whether each limitation could be resolved by adding one component
@@ -517,7 +517,7 @@ requires the dual-metric graph of L1 to exploit the topological features in the
 neighbourhood weighting.
 
 Resolving \textbf{L3 alone} (the ordinal-safety axis without graph or topology, subset
-$\{O\}$ of \cref{tab:h3b}) leaves Sev-NR $=3.6\%$, still above the $2\%$ threshold: the
+$\{O\}$ of \cref{tab:h3b}) leaves Sev-NR $=3.6\%$, still above the $2\%$ target: the
 underlying predictions are not accurate enough for a coverage-preserving abstention
 threshold to bring the error below the line.
 

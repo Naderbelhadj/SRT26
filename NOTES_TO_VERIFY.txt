@@ -209,3 +209,27 @@ Still NOT verifiable (papers not provided)
   F = 1308.9. This is now the largest remaining risk: send P5 to align Ch.4.
 - B2 (LNAI extension of P3): source of Table 3.3 and the Messidor-2 92.1% result.
 - P1 (GNN-MSOrchest), P6 (ENASE), P7 (MIUA), J1 (DOTS), J2 (SAMF-GB).
+
+FINAL STATUS (fourth pass)
+==========================
+Resolved in the text:
+- GraphDR (baseline built in the thesis, no year) -- done.
+- 85 ms vs 6.8 ms -- stated as different measurement scopes, ratio removed.
+- Bootstrap unit for H3a -- stated in Ch.5 (10,000 test images, B = 10,000, stratified
+  by grade), consistent with Appendix C.
+- Test-set composition -- grade distribution stated in Ch.5, with the (derived) fact
+  that severe grades are over-represented (12.6% vs at most ~7% for a random sample)
+  and its consequence for QWK/accuracy.
+- Tau sweep table explicitly labelled "validation folds", as the protocol states.
+- Terminology harmonised: "the 2% target" everywhere (no more threshold/line/rule).
+- Remaining absolute claims softened ("the only way", "cannot measure", section titles).
+
+STILL REQUIRES YOUR DATA (cannot be written without inventing numbers)
+- Value of the referral threshold t (rule "refer if P(Y>=3) > t"): add to Table B.1.
+- Confirmation that the tau sweep values (93.8% / 1.9% at 0.73) are validation values;
+  if they are test values, the table and the protocol text must change.
+- Sampling procedure of the 10,000-image test set and its exclusion from the EyePACS
+  training folds.
+- Sev-NR CI [1.4%, 2.4%]: with 1,256 severe images and a grade-stratified bootstrap,
+  the expected half-width is about +/-0.75 pp; please re-run the bootstrap script.
+- P5 (PLOS ONE) to align Chapter 4 (TDA features, graph construction, ANOVA F).

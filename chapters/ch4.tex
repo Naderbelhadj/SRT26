@@ -3,7 +3,7 @@
 
 TOPORET showed that a population graph and topological features improve DR grading, but
 it does not reach the safety-oriented target of this thesis: its Severe-DR Non-Referral
-Rate of $3.4\%$ is above the $2\%$ threshold, because every image is graded, even when the model is unsure. This
+Rate of $3.4\%$ is above the $2\%$ target, because every image is graded, even when the model is unsure. This
 chapter presents the main system of the thesis, DOTS (Deep Ordinal Transformer
 System)~\cite{belhadj2026dots}, which adds the third axis that TOPORET lacks: ordinal
 prediction with guaranteed rank consistency and a calibrated right to abstain.
@@ -227,8 +227,9 @@ $\tau_U=0.73$ is the only tested value that satisfies both constraints.
 
 \begin{table}[H]
 \centering
-\caption[Threshold sweep for entropy abstention]{Threshold sweep for entropy abstention. $\tau_U=0.73$ is the minimal
-threshold satisfying both the Sev-NR and coverage constraints.}
+\caption[Threshold sweep for entropy abstention]{Threshold sweep for entropy abstention on the
+validation folds. $\tau_U=0.73$ is the minimal threshold satisfying both the Sev-NR and
+coverage constraints.}
 \label{tab:tau}
 \small
 \begin{tabular}{cccc}
@@ -367,12 +368,19 @@ predictable once in clinical use.
 DOTS is evaluated on the five public benchmarks of \cref{app:datasets}: Kaggle EyePACS,
 APTOS~2019, IDRiD, Messidor-2 and DDR, acquired in four countries with different cameras.
 The held-out test set of the H3a evaluation contains $10{,}000$ images from APTOS~2019 and
-Kaggle EyePACS; the other benchmarks are used to measure performance across acquisition
+Kaggle EyePACS. Its grade distribution (\cref{tab:abstention}) is $52.3\%$, $10.2\%$,
+$24.9\%$, $6.1\%$ and $6.4\%$ for Grades~0--4, so that $1{,}256$ images ($12.6\%$) are
+severe. A random sample of $10{,}000$ images from these two sources could contain at most
+about $7\%$ severe images (\cref{tab:datasets}), so the test set over-represents the severe
+grades. This enrichment increases the number of severe cases on which Sev-NR and PDR-NR
+are estimated, but it also means that prevalence-dependent metrics, such as QWK and
+accuracy, describe this test set rather than a screening population with natural
+prevalence. The other benchmarks are used to measure performance across acquisition
 conditions.
 
 Four reference systems are compared with DOTS: EfficientNet-B3~\cite{tan2019efficientnet},
-the most common convolutional baseline; RETFound~\cite{zhou2023retfound}, the strongest
-retinal foundation model; TOPORET (\cref{ch:toporet}), which resolves L1 and L2 only; and
+the most common convolutional baseline; RETFound~\cite{zhou2023retfound}, a leading
+retinal foundation model; TOPORET (\cref{ch:toporet}), which addresses L1 and L2 only; and
 the six reduced systems of the necessity analysis (\cref{sec:h3b}), which remove one or two
 of the three axes. All systems share the same data splits, pre-processing and number of
 training epochs.
@@ -448,8 +456,9 @@ $\tau_U$, the final architecture or any other hyperparameter; the order in which
 choices were frozen is recorded in \cref{app:repro}. The seven evaluation criteria and their thresholds were fixed at
 the same time, before any test result was seen: QWK $>0.90$, AUC $>0.97$, ECE $<0.05$,
 Sev-NR $<2\%$, PDR-NR $<1.5\%$, coverage $>90\%$ and $0\%$ rank violations. Each criterion
-is reported with a bootstrap 95\% confidence interval, but the pre-specified decision rule
-uses the point estimate (\cref{app:stats}).
+is reported with a 95\% confidence interval obtained by a bootstrap of the $10{,}000$ test
+images ($B=10{,}000$ resamples, stratified by true grade), but the pre-specified decision
+rule uses the point estimate (\cref{app:stats}).
 
 \section{Results}
 \label{sec:ch4-results}
@@ -541,8 +550,8 @@ DOTS & $\mathbf{0.951}$ & $\mathbf{0.953}$ & $0.878$ & $\mathbf{0.948}$ & $\math
 
 To isolate the contribution of each architectural change between TOPORET and
 DOTS, a sequential ablation introduces Gaps~A, B and~C one at a time (\cref{tab:ablate}). Each
-addition improves both QWK and Sev-NR, and no single addition crosses the $2\%$ line on
-its own: the threshold is reached only when the last component is added.
+addition improves both QWK and Sev-NR, and no single addition brings Sev-NR below the $2\%$ target on
+its own: the target is reached, at the point estimate, only when the last component is added.
 
 \begin{table}[H]
 \centering
@@ -561,8 +570,8 @@ $+$ Dynamic GAT (partial Gap C) & $0.943$ & $2.2\%$ & $0.0\%$ \\
 $+$ Entropy abstention (full Gap C) $=$ DOTS & $0.951$ & $1.9\%$ & $0.0\%$ \\
 \bottomrule
 \end{tabular}
-\tabnote{Each row adds one Gap resolution. No single addition crosses the
-$2\%$ safety line on its own.}
+\tabnote{Each row adds one Gap resolution. No single addition brings Sev-NR below
+the $2\%$ target on its own.}
 \end{table}
 
 \subsection{Failure-Mode Analysis}
@@ -765,7 +774,7 @@ All six proper subsets fail Sev-NR $<2\%$ (\cref{tab:h3b}). The closest failure 
 $\{R,O\}$ at $2.2\%$: graph and ordinal safety, but no topology. It lies $0.3$~pp above
 the line, and the bootstrap 95\% interval of the difference with DOTS is
 $[-0.54,\,-0.08]$~pp, which excludes zero. Within this family and specification, removing topology alone is
-therefore enough to miss the safety rule, even when the other two axes are kept.
+therefore enough to miss the safety target, even when the other two axes are kept.
 
 Within the investigated DOTS architectural family and experimental specification, the
 complete relational--structural--ordinal configuration is thus the only evaluated
@@ -819,12 +828,12 @@ supports the necessity of the structural axis.
 \begin{enumerate}
 \item \textbf{Bootstrap CI:} $\Delta(\mathrm{DOTS}-\{R,O\})=-0.31$~pp, 95\% CI
 $[-0.54,\,-0.08]$~pp. The interval excludes zero.
-\item \textbf{Threshold sensitivity:} if the threshold were relaxed to $2.5\%$ (a
+\item \textbf{Threshold sensitivity:} if the target were relaxed to $2.5\%$ (a
 plausible alternative for some programmes), $\{R,O\}$ would pass. The necessity claim is
-therefore contingent on the $2\%$ threshold, which is a policy choice, not a
+therefore contingent on the $2\%$ target, which is a policy choice, not a
 mathematical law.
 \item \textbf{Largest benchmark:} on Kaggle EyePACS alone ($N=88{,}702$), $\{R,O\}$
-reaches Sev-NR $=2.18\%$, again above the threshold.
+reaches Sev-NR $=2.18\%$, again above the target.
 \item \textbf{Scope:} H3b is established constructively within the evaluated
 architectural family and specification. It does not claim that no conceivable two-axis
 system could satisfy the criterion (\cref{sec:scope}).
@@ -917,7 +926,7 @@ Under these assumptions, the projected number of potentially non-referred severe
 about $600$ lower with DOTS than with EfficientNet-B3, a relative reduction of $56\%$ that
 does not depend on the assumed prevalence. This is a projection from retrospective point
 estimates, not an observed number of cases avoided. The cost is that $6.2\%$ of images (about $31{,}000$ per year) are deferred
-to human graders; these are, by construction, the most ambiguous cases. The projection
+to human graders; these are the cases with the highest predictive entropy, which concentrate at grade boundaries (\cref{tab:abstention}). The projection
 concerns only non-referral at the point estimate; it ignores the uncertainty of Sev-NR and
 says nothing about the downstream value of earlier treatment.
 
@@ -962,15 +971,15 @@ all seven criteria at the point estimate (H3b).
 \Cref{fig:progress} traces the full progression from the 2019
 baseline to DOTS, showing the cumulative impact of each contribution on accuracy and
 safety. The improvement is monotone in both QWK and Sev-NR: no component degrades the
-others. The safety threshold is crossed only at the final step (entropy abstention), and
+others. The Sev-NR point estimate falls below the safety target only at the final step (entropy abstention), and
 only when all earlier components are in place. This is consistent with the scoped necessity result of H3b.
 
 The two metrics are not driven by the same components. The largest gain in accuracy comes
 from the retinal foundation model ($+0.041$ QWK), whereas the largest single reduction of
 the non-referral rate comes from the dual-similarity graph with topological features
 ($-0.7$~pp, from $4.1\%$ to $3.4\%$), followed by the CORAL head ($-0.5$~pp). Abstention adds
-the smallest QWK gain of all steps ($+0.008$) but is the step that crosses the $2\%$
-threshold. A design driven by accuracy alone would therefore have stopped after the
+the smallest QWK gain of all steps ($+0.008$) but is the step that brings the Sev-NR point estimate below the $2\%$
+target. A design driven by accuracy alone would therefore have stopped after the
 foundation model and missed the safety criterion; in the family studied here, reaching the
 safety target at the point estimate required all three axes.
 
@@ -1018,7 +1027,7 @@ Claim & Evidence & Strength \\
 \midrule
 H1: dual-metric graph improves QWK & Pre-specified $t$-test over five folds ($t_4=3.82$, $p=0.009$, $d_z=1.71$); bootstrap CI excludes 0; exact permutation $p=0.031$ (complementary checks on the same folds) & Strong \\
 H2: $H_0/H_1$ association with severity (not causation) & Pre-specified ANOVA ($F=1308.9$, $\eta^2=0.51$, Bonferroni) & Strong \\
-H3a: $7/7$ criteria met at the point estimate & Point-estimate pass (Sev-NR $=1.9\%$); 95\% CI $[1.4\%,\,2.4\%]$ exceeds the threshold & Moderate \\
+H3a: $7/7$ criteria met at the point estimate & Point-estimate pass (Sev-NR $=1.9\%$); 95\% CI $[1.4\%,\,2.4\%]$ exceeds the target & Moderate \\
 H3b: no proper subset sufficient, within the investigated family & Exhaustive $6/6$ enumeration; bootstrap CI of the closest case excludes 0 & Moderate \\
 Super-additive interaction (\cref{ch:toporet}) & $+0.040 > +0.026$; consistent with an interaction model & Suggestive \\
 Synergistic gains (\cref{ch:found}) & $7.0 > 6.3$~pp; consistent with complementary information & Suggestive \\
