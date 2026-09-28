@@ -584,12 +584,3 @@ that runs on a standard CPU ($2.1$~ms per image once the features are extracted)
 These results do not prove that a population graph will work on retinal images, but they
 show that it is worth testing, with topology fused into the similarity that builds the
 graph. The next chapter implements this idea in TOPORET.
-
-\begin{keypoints}
-\begin{itemize}[leftmargin=1.2em,itemsep=1pt,topsep=1pt]
-\item Outside medicine, appending interpretable invariants to a graph model brings interpretability and robustness, but no significant accuracy gain over ten runs.
-\item On APTOS~2019, the hybrid CNN--GNN model with geometric and topological invariants gains $+7.0$~pp of binary accuracy.
-\item SAMF-GB reaches QWK $=0.882$ against $0.840$ for a GPU EfficientNet-B3, with a CPU classifier of $2.1$~ms per image.
-\item Several independent methods agree that global vascular structure carries information complementary to deep visual features.
-\end{itemize}
-\end{keypoints}
