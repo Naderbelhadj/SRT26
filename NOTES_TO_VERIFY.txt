@@ -334,3 +334,21 @@ test_manifest.csv reproduces Table 5.3 exactly.
 * H3b: {R,O} 2.2% is 0.2 pp above the target (was "0.3 pp above the line"); 0.3 pp above DOTS.
 * S=25 sampled neighbours with k=15: stated as an upper bound.
 * t = 0.60 confirmed by the author as the value available.
+
+=== Final hard pass ===
+* CORN: the thesis said CORN offers no rank-consistency guarantee, which contradicts
+  Shi et al. (chain-rule product is monotone) and the thesis's own Ch.2 sentence. Now:
+  CORN is rank consistent when decoded by the chain-rule product; the ordinal variant of
+  TOPORET read the binary outputs directly (the only way the observed 2.1% violations can
+  arise). CORAL preferred because its guarantee holds for any decoding.
+* EyePACS {R,O} N=88,702 clarified as 5-fold out-of-fold predictions.
+* !!! MATHEMATICAL INCONSISTENCY (t = 0.60) !!!
+  For an accepted image (entropy <= 0.73 nats) whose most probable grade is <= 2, the
+  maximum possible P(Y>=3) is about 0.50 (numerical check; min entropy of a distribution
+  with argmax<=2 and P(Y>=3)>0.6 is 1.06 nats). So with t = 0.60 every accepted severe
+  image predicted <= 2 is NOT referred. The confusion matrix gives 11.5% of 554 accepted
+  Grade 3 (=64) + 0.6% of 624 accepted Grade 4 (=4) = 68 such images -> Sev-NR >= 68/1256
+  = 5.4%, not 1.9%. Consistency requires t well below 0.5 (or a different confusion
+  matrix). The author kept t = 0.60; check the value in the code.
+* Pattern to prepare: DOTS values on the H3a test set (QWK 0.951, Sev-NR 1.9%) equal the
+  EyePACS 5-fold values of tab:ablate; {R,O} 2.2% vs 2.18%.

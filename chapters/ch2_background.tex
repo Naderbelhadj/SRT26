@@ -304,9 +304,14 @@ b_k \leftarrow \min(b_k,\, b_{k-1} - \epsilon), \qquad k=2,\ldots,K-1 .
 \end{equation}
 This guarantees $\hat P(Y\geq 1)\geq \hat P(Y\geq 2)\geq\cdots$ for every possible input
 and every weight configuration. It is an algebraic identity, not a statistical tendency:
-it yields $0\%$ rank violations at inference time. The loss-based alternative
-CORN~\cite{shi2023corn}, used by the ordinal variant of TOPORET that serves as the
-starting point of DOTS (\cref{ch:dots}), offers no such guarantee.
+it yields $0\%$ rank violations at inference time. CORN~\cite{shi2023corn} obtains rank
+consistency differently: its $K-1$ binary tasks estimate conditional probabilities
+$\hat P(Y>k\mid Y>k-1)$, and the cumulative probabilities are their chain-rule product,
+which cannot increase with $k$. The guarantee therefore depends on how the outputs are
+read at inference: if each binary output is used directly as $\hat P(Y>k)$, as in the
+ordinal variant of TOPORET that serves as the starting point of DOTS (\cref{ch:dots}),
+nothing prevents inconsistent rankings. CORAL's guarantee, in contrast, holds whatever
+the decoding.
 
 \Cref{fig:coral} summarises the resulting architecture. The single shared weight vector
 is what makes the guarantee possible: all binary questions use the same score $s_i$, and

@@ -33,8 +33,9 @@ grade each image independently and give no guarantee on the order of the grades.
 DR grading is often treated either as plain classification or as regression on the grade
 value. Ordinal methods decompose the problem into cumulative binary decisions; among them,
 CORAL~\cite{cao2020coral} enforces rank consistency through shared weights and ordered
-biases, while CORN~\cite{shi2023corn} models conditional probabilities and relies on the
-training loss to keep the grades ordered. To our knowledge, rank consistency has not
+biases, while CORN~\cite{shi2023corn} models conditional probabilities and is rank
+consistent only when the cumulative probabilities are decoded as their chain-rule
+product. To our knowledge, rank consistency has not
 previously been guaranteed by construction in a graph-based DR grading system.
 
 \paragraph{Uncertainty and abstention in medical AI.}
@@ -109,9 +110,11 @@ that, within this controlled ablation, is associated with domain-matched pre-tra
 \subsubsection{Gap B: Ordinal Rank Violations}
 \label{sec:gap-b}
 
-The ordinal variant of TOPORET uses a CORN ordinal head~\cite{shi2023corn}. At inference
-time nothing in the architecture prevents $\hat P(Y\geq 2)>\hat P(Y\geq 1)$, a logically
-impossible ordinal violation. Empirically, $2.1\%$ of its test predictions exhibit such
+The ordinal variant of TOPORET uses a CORN-trained ordinal head~\cite{shi2023corn} whose
+binary outputs are read directly as cumulative probabilities $\hat P(Y\geq k)$, without
+the chain-rule product that makes CORN rank consistent. At inference time nothing in this
+decoding prevents $\hat P(Y\geq 2)>\hat P(Y\geq 1)$, a logically impossible ordinal
+violation. Empirically, $2.1\%$ of its test predictions exhibit such
 violations. In a deployed system this can appear as inconsistent
 confidence reporting to a clinician, undermining clinical trust and the
 IEC~62304 audit trail.
@@ -268,8 +271,11 @@ is therefore obtained without any retinal-specific training of the backbone with
 thesis.
 
 \paragraph{CORAL rather than CORN.}
-The ordinal variant of TOPORET used CORN, which models conditional probabilities and usually trains well, but
-whose rank consistency depends on the learned weights. In a safety-critical setting, an
+The ordinal variant of TOPORET used a CORN-trained head, which usually trains well, but
+whose outputs were decoded directly as cumulative probabilities, so that its rank
+consistency depended on the learned weights. Decoding by the chain-rule product would
+also have removed the violations; CORAL was preferred because its guarantee holds for any
+decoding and can be audited by checking the order of $K-1$ bias values alone. In a safety-critical setting, an
 inconsistent ranking -- for example a higher probability of ``at least Grade~4'' than of
 ``at least Grade~3'' -- is not only an error but an output that cannot be explained to a
 clinician. CORAL removes this failure mode by construction, at the cost of a shared weight
@@ -891,7 +897,7 @@ $[-0.54,\,-0.08]$~pp. The interval excludes zero.
 plausible alternative for some programmes), $\{R,O\}$ would pass. The necessity claim is
 therefore contingent on the $2\%$ target, which is a policy choice, not a
 mathematical law.
-\item \textbf{Largest benchmark:} on Kaggle EyePACS alone ($N=88{,}702$), $\{R,O\}$
+\item \textbf{Largest benchmark:} on Kaggle EyePACS alone ($N=88{,}702$, 5-fold out-of-fold predictions), $\{R,O\}$
 reaches Sev-NR $=2.18\%$, again above the target.
 \item \textbf{Scope:} H3b is established constructively within the evaluated
 architectural family and specification. It does not claim that no conceivable two-axis
