@@ -430,3 +430,5 @@ v14 (publications verified online, author confirmed ICAART papers are published)
 - P2: ICAART 2026 vol. 2, pp. 1090-1101 (SCITEPRESS).
 - P3: ICAART 2026 vol. 5, pp. 4635-4642 (dblp) - restored (v13 had removed them).
 - P4 (ICPRAM 2026) not found online: kept "to appear". DOIs of P2/P3 not retrieved (SCITEPRESS blocked from this environment).
+
+v15: ENASE 2026 (P5) and ICPRAM 2026 (P4) marked published (author confirmation for ENASE; both listed on dblp). Volume/pages not retrieved (dblp/SCITEPRESS/Crossref blocked from this environment) -> author to add. Note: dblp also lists an IJCNN 2025 paper (distributed invariants, cybersecurity knowledge graphs, GNN + LLM) not cited in the thesis.
