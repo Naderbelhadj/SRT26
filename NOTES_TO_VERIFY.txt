@@ -478,3 +478,5 @@ v22 (coherence with the public TOPORET code, file by file; other research repos 
 - App. D.1: TOPORET repo URL + what the code covers (tests of H1 and Tukey computed from fold outputs).
 - Ch.6: S5 check "no test image in the training graph" = deployment setting; holds for DGTS, not for transductive TOPORET experiments.
 - Table 6.6 placed right after its first mention; App. D.8 condensed.
+
+v23: float form audit - 16 figures, 51 tables, 1 algorithm (68); numbering consecutive in every chapter (0 gaps); table captions above, figure captions below (all); lists of figures/tables match (16/51/1); 5 tables given short titles so no list entry ends with a period; no hard-coded Fig./Tab. references.
