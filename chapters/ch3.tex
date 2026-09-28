@@ -194,7 +194,8 @@ data by a grid search (\cref{tab:hparam}): $\alpha=0.6$ and $\tau=0.65$. Validat
 is stable within $\alpha\in[0.5,\,0.7]$ and $\tau\in[0.60,\,0.70]$, so the results are not a
 knife-edge consequence of one setting.
 
-\begin{table}[!htbp]
+\enlargethispage{4\baselineskip}
+\begin{table}[H]
 \centering
 \caption[Hyperparameter sensitivity of TOPORET]{Hyperparameter sensitivity of TOPORET: validation accuracy (\%) on Kaggle DR
 for the balance $\alpha$ and the edge threshold $\tau$~\cite{belhadj2025plos}.}
@@ -402,7 +403,7 @@ grades (Mild $+0.12$, Moderate and Severe $+0.09$), and the macro-average AUC ri
 $0.954$ to $0.970$. This is the behaviour expected from a population graph: a borderline
 image is connected to similar patients, whose labels help to resolve the ambiguity.
 
-\begin{figure}[!tb]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{toporet_confusion}
 \caption[Confusion matrices of the CNN baseline and the population graph]{Normalised
