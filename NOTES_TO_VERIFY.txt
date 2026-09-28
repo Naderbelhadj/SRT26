@@ -406,3 +406,5 @@ v10 (final layout pass):
 - Ch.4: Computational Cost (4.4.6) now precedes Population Graph Structure (4.4.7) so Table 4.7 follows its text.
 - Ch.4: conclusion tightened; redundant five-split caveat removed from Construct validity (kept in H1 robustness).
 - Ch.6: bridging sentences after Table 6.1 and after the severity definitions; conclusion tightened.
+
+v11: Résumé FR: French guillemets, Sev-NR defined at first use, wording of the H3b sentence.
