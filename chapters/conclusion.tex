@@ -39,7 +39,7 @@ any single benchmark ($p=0.06$--$0.09$) but remains so for the three benchmarks 
 ($p=0.015$). The TOPORET results were obtained transductively with image-level folds,
 whereas the DGTS result is inductive. Second, persistent-homology descriptors extracted from
 retinal vascular structures show a statistically significant association with ICDR
-severity (H2: $F=84.3$, $p<0.001$); this is an association, not evidence of a causal or
+severity (H2: $F=84.3$, $p<0.001$, a small effect, $\eta^2\approx0.01$); this is an association, not evidence of a causal or
 biological mechanism. A topological signal also helps on the feature-space neighbourhoods
 of DGTS ($+0.030$ QWK), although it cannot be interpreted anatomically there. Third, DOTS
 meets the screening safety criteria at the point estimate, internally (QWK $=0.953$,
@@ -59,7 +59,7 @@ thesis. All evidence is retrospective (Level~1).}
 Hypothesis & Test and data & Result & Verdict \\
 \midrule
 H1 -- the population graph adds information & Paired two-tailed $t$-test over five folds, three benchmarks; fold-overlap correction (\cref{ch:toporet}) & $t_4=3.82$, $p=0.019$, $+0.04$ QWK; corrected $p=0.015$ combined; DGTS: $+0.018$ QWK, inductive & Supported (combined evidence) \\
-H2 -- vessel topology is associated with severity & One-way ANOVA of $\Pi_{H_1}$ on Kaggle DR (\cref{ch:toporet}) & $F=84.3$, $p<0.001$, monotone increase with grade & Supported (association) \\
+H2 -- vessel topology is associated with severity & One-way ANOVA of $\Pi_{H_1}$ on Kaggle DR (\cref{ch:toporet}) & $F=84.3$, $p<0.001$, monotone increase with grade; small effect ($\eta^2\approx0.01$) & Supported (association) \\
 H3a -- DOTS meets the safety criteria & Criteria of \cref{tab:criteria}, internally and on Messidor-2 (\cref{ch:dots}) & Sev-NR $0.97\%$ internal, $1.4\%$ external; QWK $0.953$ and $0.931$ & Supported at the point estimate \\
 H3b -- no reduced variant suffices & Four ablation variants on Messidor-2 (\cref{ch:dots}) & Sev-NR $2.9$--$5.8\%$ for all variants & Supported within the ablation \\
 \bottomrule
@@ -168,7 +168,7 @@ the three axes in one model -- a population graph with vascular topology and a C
 head -- and to add a deferral mechanism built on the calibrated probabilities of DOTS, so
 that the most uncertain images are sent to a human grader. Such a model should then be
 evaluated in a prospective, multi-site reader study, pre-registered and powered on the
-number of severe cases; this is the first step of the planned translation roadmap of
+number of severe cases (about $1{,}240$, \cref{sec:roadmap}); this is the first step of the planned translation roadmap of
 \cref{sec:roadmap}. On the methodological side, retinal foundation models such as RETFound
 could replace the ImageNet-pre-trained backbones; anatomically grounded persistent homology
 could replace the feature-space descriptors of DGTS; and learnable topological layers could

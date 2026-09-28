@@ -214,20 +214,22 @@ d &= \frac{\bar x_1-\bar x_2}{s_{\mathrm{pooled}}}, \qquad
 s_{\mathrm{pooled}} = \sqrt{\frac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2}}, \\
 d_z &= \frac{\bar\delta}{s_\delta} = \frac{t}{\sqrt{n}}, \\
 \eta^2 &= \frac{\mathrm{SS}_{\mathrm{between}}}{\mathrm{SS}_{\mathrm{total}}}
-        = \frac{df_1\,F}{df_1\,F+df_2} .
+        = \frac{df_1\,F}{df_1\,F+df_2} . \label{eq:eta}
 \end{align}
 The first formula is used for comparisons between independent groups; the second, where
 $\bar\delta$ and $s_\delta$ are the mean and standard deviation of the paired differences
 over the $n$ splits, is used for the paired $t$-test of H1 ($d_z=3.82/\sqrt5=1.71$); the third
-relates $\eta^2$ to the $F$ statistic of a one-way ANOVA, and requires the within-groups
-degrees of freedom $df_2$, which are not reported with the H2 statistic
-in~\cite{belhadj2025plos}.
+relates $\eta^2$ to the $F$ statistic of a one-way ANOVA. For H2, run on the $35{,}126$
+labelled Kaggle DR images ($df_1=4$, $df_2=35{,}121$), it gives $\eta^2=0.0095$, a small
+effect by the thresholds of \cref{tab:effthresh}.
 Effect sizes complement $p$-values: a $p$-value says whether an effect is likely to be
 real, an effect size says how large it is, independently of the sample size. With the large
 samples used in this thesis, even negligible differences can reach significance, which is
 why every primary comparison is reported with its effect size. \Cref{tab:effthresh} gives
 the conventional interpretation thresholds~\cite{cohen1988}; all standardised effect sizes
-reported for H1 meet or exceed the ``large'' threshold.
+reported for H1 meet or exceed the ``large'' threshold, but they measure the consistency of
+the gain across five overlapping folds and are inflated by that overlap, like the $t$-test;
+the size of the gain itself is $+0.04$ QWK.
 
 \begin{table}[!htbp]
 \centering

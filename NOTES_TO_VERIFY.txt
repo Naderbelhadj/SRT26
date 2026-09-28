@@ -450,3 +450,9 @@ v17: rigorous float audit (68 floats: mentioned, after mention, no heading betwe
 v18 (from v17):
 - Form: spell-check of the whole body (no real typo; only hyphenation artefacts and names); xurl loaded so long URLs break cleanly in the bibliography (APTOS entry was badly stretched); orphan lines forbidden (clubpenalty 10000, widows already forbidden); all 68 floats re-audited OK.
 - Content: General Conclusion - new limitation (transductive, image-level TOPORET evaluation; descriptor surrogate; fellow-eye; H1 combined only) and first perspective (re-run TOPORET with patient-level folds and per-fold graph); lessons paragraph tightened, with a lesson on released code as evidence; Table 1.3 note (TOPORET transductive CV); Table 1.2 note defines "Kaggle DR" vs "EyePACS" (same 35,126 labelled images); Abstract/Resume state TOPORET was evaluated transductively.
+
+v19 (gaps covered by computation from published figures, no new experiment):
+- H2 effect size: eta^2 = 4F/(4F+df2) with df2 = 35,121 -> 0.0095 (small); robustness: F ~ 42 even with effective n halved (two eyes). Added in Ch.4, App. C.5, GC.1, conclusion, summary.
+- H1 d_z = 1.71 reinterpreted as consistency across (overlapping) folds, size of gain = +0.04 QWK.
+- Sev-NR sample size: upper CP bound < 2% at ~1% needs ~650 severe images; 80% power (true 1%, H0 2%, exact one-sided binomial, alpha 0.025) needs ~1,240 severe images (~25,000 screened at 5% prevalence). Added in Ch.5 (5.8.2), Ch.6 roadmap, conclusion.
+- One-page summary (EN/FR/AR): "inductive" removed for TOPORET, transductive evaluation, corrected H1, small H2 effect.

@@ -419,7 +419,8 @@ in~\cite{belhadj2025plos}.}
 
 \paragraph{H1 supported.}
 On the primary benchmark, $t_4=3.82$ ($p=0.019$, two-tailed),
-$d_z=1.71$ (very large effect), with a margin of $\times1.37$ over the pre-specified critical
+$d_z=1.71$, which measures the consistency of the gain across the folds rather than its
+size ($+0.04$ QWK), with a margin of $\times1.37$ over the pre-specified critical
 value; the test is also passed on Messidor-2 and APTOS~2019. The population graph is
 associated with a gain of $+0.04$ QWK and $+1.5$ percentage points of accuracy over
 independent classification. Because the inferential unit is the cross-validation fold,
@@ -491,7 +492,13 @@ factor of about $23$.}
 
 \paragraph{H2 supported.}
 Total $H_1$ persistence increases monotonically with severity, $F=84.3$, $p<0.001$, about
-$23$ times the pre-specified critical value. Consistently, intra-grade
+$23$ times the pre-specified critical value. The association is statistically robust but
+small: over the $35{,}126$ images of the test, $F=84.3$ corresponds to $\eta^2\approx0.01$
+(\cref{eq:eta}), so the grade groups explain about $1\%$ of the variance of $\Pi_{H_1}$.
+Because the two eyes of a patient are not independent, the effective sample size is smaller
+than the number of images; even if it were halved, $F$ would remain about $42$, far above
+the critical value. A small effect is consistent with the ablation: topology is a
+complementary signal ($+0.02$ QWK), not a substitute for the visual features. Consistently, intra-grade
 topological distances are systematically smaller than inter-grade distances for all
 grades~\cite{belhadj2025plos}. The analysis demonstrates a statistically
 significant association between the extracted topological descriptors and ICDR severity;

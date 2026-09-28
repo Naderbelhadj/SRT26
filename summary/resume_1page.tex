@@ -25,10 +25,11 @@ Diabetic retinopathy (DR) is a leading cause of preventable blindness. This thes
 three limitations of automated DR grading: no relational context between patients, no use
 of the topology of the retinal vessel network, and no safety-oriented grading (grade order
 and missed referrals of severe cases are rarely modelled or measured). It proposes TOPORET,
-an inductive population graph whose edges combine visual and topological (persistent-homology)
-similarity; pre-specified tests support the contribution of the graph (H1: $t_4=3.82$,
-$p=0.019$) and the association of topological features with severity (H2: $F=84.3$,
-$p<0.001$). Two systems are then trained on a fused corpus of $5{,}859$ images. DGTS, a
+a population graph whose edges combine visual and topological (persistent-homology)
+similarity, evaluated transductively; pre-specified tests support the contribution of the
+graph (H1: $t_4=3.82$, $p=0.019$; $p=0.015$ for three benchmarks after correction for fold
+overlap) and a small but robust association of topological features with severity (H2:
+$F=84.3$, $p<0.001$). Two systems are then trained on a fused corpus of $5{,}859$ images. DGTS, a
 population graph regularised by persistent homology, reaches QWK $=0.941$ in
 cross-validation and $0.925$ without retraining on $35{,}126$ EyePACS images. DOTS, an
 ordinal pipeline (EfficientNet-B3, feature refinement encoder, CORAL, test-time
@@ -44,10 +45,11 @@ traite trois limites du classement automatique de la RD : l'absence de contexte
 relationnel entre patients, l'absence d'exploitation de la topologie du réseau vasculaire
 rétinien, et l'absence d'un classement orienté sécurité (l'ordre des grades et la
 non-référence des cas sévères sont rarement modélisés ou mesurés). Elle propose TOPORET, un
-graphe de population inductif dont les arêtes combinent similarité visuelle et topologique
-(homologie persistante) ; des tests fixés à l'avance soutiennent l'apport du graphe (H1 :
-$t_4=3{,}82$, $p=0{,}019$) et l'association des descripteurs topologiques avec la sévérité
-(H2 : $F=84{,}3$, $p<0{,}001$). Deux systèmes sont ensuite entraînés sur un corpus fusionné
+graphe de population dont les arêtes combinent similarité visuelle et topologique
+(homologie persistante), évalué de façon transductive ; des tests fixés à l'avance
+soutiennent l'apport du graphe (H1 : $t_4=3{,}82$, $p=0{,}019$ ; $p=0{,}015$ sur trois bases
+après correction du chevauchement des plis) et une association faible mais robuste des
+descripteurs topologiques avec la sévérité (H2 : $F=84{,}3$, $p<0{,}001$). Deux systèmes sont ensuite entraînés sur un corpus fusionné
 de $5\,859$ images. DGTS, un graphe de population régularisé par l'homologie persistante,
 atteint un QWK de $0{,}941$ en validation croisée et de $0{,}925$ sans réentraînement sur
 $35\,126$ images EyePACS. DOTS, une chaîne ordinale (EfficientNet-B3, encodeur de
@@ -65,7 +67,7 @@ pas une validation clinique. Douze publications soutiennent ce travail.
 استغلال طوبولوجيا الشبكة الوعائية للشبكية، وغياب تصنيف موجَّه نحو السلامة يراعي ترتيب الدرجات
 ويقيس الحالات الشديدة غير المُحالة. تقترح الأطروحة نظام
 \en{TOPORET}،
-وهو مخطط سكاني استقرائي تجمع روابطه بين التشابه البصري والتشابه الطوبولوجي (التماثل المستمر)،
+وهو مخطط سكاني قُيِّم بطريقة تحويلية، تجمع روابطه بين التشابه البصري والتشابه الطوبولوجي (التماثل المستمر)،
 وتدعم اختبارات محددة مسبقاً مساهمة المخطط
 (الفرضية \en{H1}: \en{$t_4=3.82$}، \en{$p=0.019$})
 وارتباط السمات الطوبولوجية بشدة المرض
