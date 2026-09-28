@@ -200,7 +200,6 @@ tens of thousands of images, the $k$ nearest neighbours are found with approxima
 libraries such as FAISS~\cite{johnson2021faiss}, which keeps graph construction fast
 enough for a screening service.
 
-\enlargethispage{3\baselineskip}
 \section{Topological Data Analysis}
 \label{sec:ph}
 
@@ -470,15 +469,10 @@ QWK, AUC, ECE, Sev-NR & Accuracy, calibration and safety evaluation & -- & 3--5 
 \end{tabular}
 \end{table}
 
-\enlargethispage{3\baselineskip}
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
-This chapter introduced the methodological tools on which the thesis relies. Deep
-convolutional networks provide the visual features; the inductive
-GraphSAGE model exploits the similarity between patients while grading a new patient in
-constant time; persistent homology turns the shape of the vessel skeleton into stable
-descriptors; CORAL yields consistent grade rankings, and temperature scaling calibrates
-the confidence scores. The metrics separate accuracy (QWK, AUC) from safety (Sev-NR,
-PDR-NR) and reliability (ECE, rank violations). The next chapter tests these tools
-on simpler settings before applying them to the retina.
+This chapter introduced the tools of the thesis: convolutional features, the inductive
+GraphSAGE model, persistent homology of the vessel skeleton, CORAL ordinal regression and
+temperature scaling, together with metrics that separate accuracy, calibration and safety.
+The next chapter tests these tools on simpler settings before applying them to the retina.
