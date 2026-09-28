@@ -1,0 +1,11 @@
+build/
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.loa
+*.bbl
+*.blg
+summary/*.pdf
