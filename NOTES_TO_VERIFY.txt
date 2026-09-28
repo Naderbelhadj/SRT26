@@ -424,3 +424,9 @@ v13 (second examiner-level pass):
 - Ch.4: stability claim now matches Table 4.2 grid (93.9-95.5%, neighbours within 1.1 pt); "73% Grade 0" -> 74.2% as in Table 1.2; unverifiable sentence on settings outside range removed.
 - Ch.6: note that Table 6.4 batch times come from the ENASE framework, not the faster TOPORET implementation (18 ms); Table 6.5 kept in its section.
 - Publications: P3 no longer shows "vol. 5, pp. 4635-4642" (contradicted bib "to appear"; implausible pages) -> author to add real pages/DOI when published; Mezghich role "co-advising" consistent with title page.
+
+v14 (publications verified online, author confirmed ICAART papers are published):
+- P1 corrected to the published record (dblp/SCITEPRESS): "GNN-MSOrchest: Graph Neural Networks Based Approach for Micro-Services Orchestration - A Simulation Based Design Use Case", Belhadj, Mezghich, Fattahi, Latrach, ICAART 2025 vol. 3, pp. 933-939, doi:10.5220/0013238200003890 (thesis had a different title and listed Ghayoula instead of Fattahi).
+- P2: ICAART 2026 vol. 2, pp. 1090-1101 (SCITEPRESS).
+- P3: ICAART 2026 vol. 5, pp. 4635-4642 (dblp) - restored (v13 had removed them).
+- P4 (ICPRAM 2026) not found online: kept "to appear". DOIs of P2/P3 not retrieved (SCITEPRESS blocked from this environment).
