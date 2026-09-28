@@ -2,6 +2,7 @@
 \addcontentsline{toc}{chapter}{General Conclusion}
 \markboth{General Conclusion}{}
 \label{ch:conclusion}
+\lotgroup{General Conclusion}
 
 This thesis addressed the automated grading of diabetic retinopathy in a context where
 screening needs grow much faster than the number of human graders, and where an automated
@@ -44,6 +45,25 @@ meets the screening safety criteria at the point estimate, internally (QWK $=0.9
 Sev-NR $=0.97\%$, PDR-NR $=1.27\%$) and on the independent Messidor-2 dataset (QWK
 $=0.931$, Sev-NR $=1.4\%$, PDR-NR $=1.9\%$), whereas none of its four reduced variants
 reaches Sev-NR $\leq2\%$ on Messidor-2 (H3a and H3b).
+\Cref{tab:hypsummary} summarises the outcome of the three hypotheses.
+
+\begin{table}[!htbp]
+\centering
+\caption[Outcome of the research hypotheses]{Outcome of the research hypotheses of the
+thesis. All evidence is retrospective (Level~1).}
+\label{tab:hypsummary}
+\small
+\begin{tabular}{@{}P{3.4cm}P{3.9cm}P{4.4cm}P{2.6cm}@{}}
+\toprule
+Hypothesis & Test and data & Result & Verdict \\
+\midrule
+H1 -- the population graph adds information & Paired two-tailed $t$-test, five patient-aware splits, three benchmarks (\cref{ch:toporet}) & $t_4=3.82$, $p=0.019$, $+0.04$ QWK; DGTS: $+0.018$ QWK on a second corpus & Supported \\
+H2 -- vessel topology is associated with severity & One-way ANOVA of $\Pi_{H_1}$ on Kaggle DR (\cref{ch:toporet}) & $F=84.3$, $p<0.001$, monotone increase with grade & Supported (association) \\
+H3a -- DOTS meets the safety criteria & Criteria of \cref{tab:criteria}, internally and on Messidor-2 (\cref{ch:dots}) & Sev-NR $0.97\%$ internal, $1.4\%$ external; QWK $0.953$ and $0.931$ & Supported at the point estimate \\
+H3b -- no reduced variant suffices & Four ablation variants on Messidor-2 (\cref{ch:dots}) & Sev-NR $2.9$--$5.8\%$ for all variants & Supported within the ablation \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 The interpretation of the third result requires particular caution. With $309$ severe
 images, the exact 95\% interval of the internal Sev-NR is $[0.2\%,\,2.8\%]$, whose upper

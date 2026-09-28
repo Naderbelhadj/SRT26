@@ -100,7 +100,7 @@ reused in \cref{ch:dots,ch:reg}.
 what makes each stage unit-testable in isolation (\cref{sec:iec62304}); the systems of
 \cref{ch:dots} keep this decomposition and change the content of some stages.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[TOPORET six-stage modular pipeline]{TOPORET six-stage modular pipeline. Each stage has a typed interface contract
 that supports IEC~62304-style unit verification.}
@@ -129,16 +129,7 @@ thinning~\cite{zhang1984thinning} gives a one-pixel skeleton; components smaller
 $50$ pixels are removed as artefacts. \Cref{fig:clahe} shows the effect of CLAHE, and
 \cref{fig:skeleton} follows stages S1--S3 on one image.
 
-\begin{figure}[!tb]
-\centering
-\includegraphics[width=0.86\textwidth]{vessel_skeleton_persistence}
-\caption[Vessel skeleton extraction and topological features (stages S1--S3)]{Vessel skeleton extraction and topological features (stages S1--S3):
-(a)~vessel network, (b)~Zhang--Suen skeleton $P_i$, (c)~Vietoris--Rips persistence
-diagram $D_i$ (filled: $H_0$ components; open: $H_1$ loops).}
-\label{fig:skeleton}
-\end{figure}
-
-\begin{figure}[H]
+\begin{figure}[!htbp]
 \centering
 \begin{minipage}{0.86\textwidth}
 \begin{subfigure}[t]{0.4\textwidth}\centering
@@ -154,12 +145,22 @@ diagram $D_i$ (filled: $H_0$ components; open: $H_1$ loops).}
 \label{fig:clahe}
 \end{figure}
 
+\begin{figure}[!tb]
+\centering
+\includegraphics[width=0.86\textwidth]{vessel_skeleton_persistence}
+\caption[Vessel skeleton extraction and topological features (stages S1--S3)]{Vessel skeleton extraction and topological features (stages S1--S3):
+(a)~vessel network, (b)~Zhang--Suen skeleton $P_i$, (c)~Vietoris--Rips persistence
+diagram $D_i$ (filled: $H_0$ components; open: $H_1$ loops).}
+\label{fig:skeleton}
+\end{figure}
+
 \paragraph{Stages S2--S4: visual and topological features.}
 EfficientNet-B3~\cite{tan2019efficientnet}, pre-trained on ImageNet and kept frozen, gives a
 visual embedding $x_i^{\mathrm{CNN}}\in\mathbb{R}^{1536}$; a backbone comparison on the
 validation data of Kaggle DR (VGG-16, ResNet-50, EfficientNet-B0 and~B3) favoured
 EfficientNet-B3~\cite{belhadj2025plos}. The branch points of the skeleton form a point cloud
-$P_i$, on which a Vietoris--Rips filtration is computed with GUDHI~\cite{maria2014gudhi}.
+$P_i$ (\cref{fig:skeleton}b), on which a Vietoris--Rips filtration is computed with
+GUDHI~\cite{maria2014gudhi}, giving the persistence diagram of \cref{fig:skeleton}c.
 From each persistence diagram $D_i^{H_0}$ and $D_i^{H_1}$, three statistics are computed:
 the total persistence $\Pi=\sum_f (d_f-b_f)$, the persistence entropy
 $E=-\sum_f p_f\log p_f$ with $p_f=(d_f-b_f)/\Pi$, and the number $n_\ell$ of long-lived
@@ -193,7 +194,7 @@ data by a grid search (\cref{tab:hparam}): $\alpha=0.6$ and $\tau=0.65$. Validat
 is stable within $\alpha\in[0.5,\,0.7]$ and $\tau\in[0.60,\,0.70]$, so the results are not a
 knife-edge consequence of one setting.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Hyperparameter sensitivity of TOPORET]{Hyperparameter sensitivity of TOPORET: validation accuracy (\%) on Kaggle DR
 for the balance $\alpha$ and the edge threshold $\tau$~\cite{belhadj2025plos}.}
@@ -321,7 +322,7 @@ smallest on APTOS~2019, whose more variable image quality degrades skeletonisati
 benchmark is trained and tested within itself; transfer across benchmarks without
 retraining is a separate question, studied in~\cite{belhadj2026miua}.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[TOPORET results on three benchmarks]{TOPORET versus the CNN baseline on three benchmarks (mean $\pm$ SD over
 five patient-aware splits)~\cite{belhadj2025plos}.}
@@ -351,7 +352,7 @@ Paired two-tailed $t$-test across the five splits, TOPORET versus the CNN baseli
 Decision threshold $|t_4|>2.78$ (\cref{sec:hyp}). \Cref{tab:h1} reports the test on the
 three benchmarks.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[H1 confirmatory test: graph versus independent classification]{H1 confirmatory test: TOPORET versus independent per-image classification
 (paired two-tailed $t$-test over five splits)~\cite{belhadj2025plos}.}
@@ -418,7 +419,7 @@ Kaggle DR, with Tukey HSD post-hoc comparisons~\cite{tukey1949} and a conservati
 significance level $\alpha=0.005$ (critical value about $3.72$). \Cref{tab:anova} reports the
 result.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[ANOVA of total $H_1$ persistence across ICDR grades]{One-way ANOVA of the primary topological feature across the five ICDR
 grades (Kaggle DR)~\cite{belhadj2025plos}.}
@@ -460,7 +461,7 @@ splits~\cite{belhadj2025plos}). The contributions are therefore complementary bu
 additive: the full gain is close to, and not larger than, the sum of the individual gains
 ($+0.02+0.03$ QWK; $+0.6+1.0$~pp of accuracy).
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Ablation of TOPORET]{Ablation of TOPORET on Kaggle DR (mean over five
 splits)~\cite{belhadj2025plos}.}
@@ -487,7 +488,7 @@ useful neighbourhood while keeping the graph sparse. Isolated nodes are rare and
 mostly poor-quality images; GraphSAGE then grades them from their own features. Dense hubs
 are mostly Grade~0 images with common appearances.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Structure of the TOPORET population graph]{Structure of the TOPORET population graph on the Kaggle DR training
 split~\cite{belhadj2025plos}.}
@@ -522,7 +523,7 @@ systems are those reported by their authors on their own splits, so the comparis
 approximate; only the CNN baseline and TOPORET were evaluated under an identical protocol
 on all three benchmarks.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[TOPORET versus published systems]{TOPORET versus published systems (accuracy, \%). $^\dagger$As reported by the
 original authors on their own splits; --: not evaluated in the original

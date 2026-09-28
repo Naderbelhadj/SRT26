@@ -130,7 +130,7 @@ would be optimistic. The external evaluations on EyePACS (checked for duplicates
 Messidor-2 are not affected by this issue, which is why the conclusions of this chapter
 rest primarily on them.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Composition of the fused training corpus]{Composition of the fused training
 corpus. $N_{\mathrm{train}}$ and $N_{\mathrm{val}}$ are per-fold averages of the five-fold
@@ -185,7 +185,7 @@ less strict than one that would require a predicted grade of at least~$3$, and i
 kept in mind when comparing Sev-NR values across studies. \Cref{tab:criteria} lists the
 criteria of H3a.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Screening safety criteria of H3a]{Screening safety criteria of H3a: evaluation
 targets of this thesis, taken from the DOTS article~\cite{belhadj2026dots} and informed by
@@ -261,7 +261,7 @@ Under five-fold cross-validation DGTS reaches QWK $=0.941\pm0.008$ (bootstrap 95
 $[0.925,\,0.957]$), accuracy $87.1\pm1.4\%$ and macro-F1 $77.8\pm2.1\%$.
 \Cref{tab:dgts-abl} isolates each component.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[DGTS ablation]{DGTS ablation (mean $\pm$ SD over five folds)~\cite{belhadj2026dgts}.
 A1--A5 are trained on APTOS~2019 alone, A6--A7 on the fused corpus.}
@@ -311,7 +311,7 @@ runs with seeds $42$--$46$), DGTS reaches QWK $=0.925\pm0.008$ (95\% CI $[0.909,
 accuracy $88.0\pm0.9\%$ and macro-F1 $77.0\pm1.1\%$, a drop of only $0.016$ QWK from
 cross-validation.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[DGTS per-grade results in cross-validation and on EyePACS]{DGTS per-grade F1
 (precision / recall) in five-fold cross-validation and zero-shot on EyePACS
@@ -398,7 +398,7 @@ Inference with five augmentations takes about $75$~ms per image.
 
 \Cref{tab:ablate} adds the components one at a time under an identical ten-epoch budget.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Progressive DOTS ablation]{Progressive DOTS ablation (five-fold cross-validation,
 $5{,}859$ images, ten-epoch budget)~\cite{belhadj2026dots}. $\Delta$QWK is the gain over the
@@ -434,7 +434,7 @@ $[0.9440,\,0.9613]$), accuracy $89.8\pm0.6\%$ and macro-F1 $81.8\pm0.9\%$
 (\cref{tab:dots-cv}). The lowest fold ($0.9452$) is above the best single-source ordinal
 result reported on APTOS~2019 in the DOTS article ($0.921$).
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[DOTS five-fold cross-validation]{DOTS five-fold cross-validation (twelve
 epochs)~\cite{belhadj2026dots}.}
@@ -461,7 +461,7 @@ predictions. Of the $597$ errors, $495$ ($82.9\%$) are between adjacent grades, 
 predicted as PDR and no PDR image as No DR. The dominant confusion is Mild$\to$Moderate
 ($162$ of $592$ Mild images), an over-referral rather than an under-referral.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[DOTS per-grade results]{DOTS per-grade results over the $5{,}859$ out-of-fold
 predictions~\cite{belhadj2026dots}.}
@@ -497,7 +497,7 @@ CNN baseline gives $p=0.013$.
 \Cref{tab:h3a} confronts DOTS with the criteria of \cref{tab:criteria}. Internally, $3$ of
 the $309$ Severe images and $6$ of the $472$ PDR images are predicted as No DR or Mild.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[H3a: DOTS against the screening safety criteria]{H3a: DOTS against the screening
 safety criteria, internally (five-fold out-of-fold predictions) and on Messidor-2. Exact
@@ -531,7 +531,7 @@ statistical confidence.
 
 \Cref{tab:h3b} evaluates the variants of the ablation on Messidor-2.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[H3b: external validation of the ablation variants on Messidor-2]{H3b: external
 validation of the ablation variants on Messidor-2 ($1{,}744$ images, never used for
@@ -573,7 +573,7 @@ advantage.
 differ in backbone, loss and external dataset, so their numbers are not directly
 comparable; they are complementary rather than competing.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[DGTS and DOTS compared]{DGTS and DOTS compared on the same fused corpus.}
 \label{tab:systems}
@@ -616,7 +616,7 @@ proliferative cases ($5{,}000$), with the external Messidor-2 rates of \cref{tab
 prevalences are assumptions, not measurements, and the rates are transferred from a
 retrospective dataset.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Clinical impact projection]{Projected non-referred cases per year for $500{,}000$
 screened patients (assumed prevalence: $5\%$ severe, $1\%$ proliferative), using the
@@ -647,7 +647,7 @@ human graders, and it inherits the uncertainty of the rates of \cref{tab:h3b}.
 
 \Cref{tab:claims} states the strength of each claim of this chapter.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Claims of Chapter 5 and strength of evidence]{Claims of this chapter and
 strength of the supporting evidence.}

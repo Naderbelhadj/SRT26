@@ -52,7 +52,7 @@ faithful explanations; their usefulness to clinicians has not been evaluated.
 \Cref{tab:regmap} maps selected requirements of each standard or article to the mechanism
 of the pipelines relevant to it. The mapping is a design aid, not evidence of conformity.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Regulatory-oriented mapping of the pipeline mechanisms]{Regulatory-oriented
 mapping: selected requirements and the pipeline mechanisms relevant to them (not a
@@ -93,7 +93,7 @@ replaced and audited in isolation. \Cref{tab:unittests} gives the verification p
 associated with each stage; it lists what must be checked at each boundary, and is a
 design document rather than a report of test results.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Stage-level verification plan (IEC 62304)]{Stage-level verification plan of the
 six-stage framework (IEC~62304 unit verification).}
@@ -200,7 +200,7 @@ $3{,}000$ Kaggle DR images~\cite{belhadj2026enase}, the time needed to grade a n
 with TOPORET on an A100 GPU~\cite{belhadj2025plos}, and the per-image inference time of DGTS
 and DOTS on a single NVIDIA T4 GPU~\cite{belhadj2026dgts,belhadj2026dots}.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Computational cost of the pipelines]{Computational cost of the pipelines. Top:
 batch processing of the six-stage framework on $N=3{,}000$ images~\cite{belhadj2026enase}.
@@ -272,7 +272,7 @@ confirmed during conformity assessment. This property is relevant to the ``locke
 versus ``continuously learning'' distinction discussed by the
 FDA~\cite{fda2017samd,fda2019aiml}.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption[Three-tier deployment architecture (proposed)]{Proposed three-tier deployment architecture for a screening programme.}
 \label{tab:tiers}
@@ -406,13 +406,26 @@ surveillance, none of which is conducted here.
 \section{Towards Clinical Deployment: Translation Roadmap}
 \label{sec:roadmap}\label{app:roadmap}
 
+
+
 A possible translation into clinical practice is outlined in four planned phases
 (\cref{tab:roadmap}), following the four levels of evidence used in diagnostic AI
 evaluation: Level~1 computational evidence, Level~2 prospective agreement with human
 readers, Level~3 randomised patient outcomes, and Level~4 regulatory clearance. This
 thesis provides Level~1 evidence only.
 
-\begin{table}[!tb]
+
+
+Phase~2 is the critical next step. It would combine the three axes in one model with an
+automatic deferral of uncertain images, and evaluate it in a pre-registered, multi-site
+reader study in which ophthalmologists grade images with and without the system. Its
+primary success criterion would be a Sev-NR below $2\%$ with the upper bound of its 95\%
+confidence interval also below $2\%$, which would close the main statistical limitation of
+the present results. Because Sev-NR concerns rare severe cases, the sample size would have
+to be set by a power calculation on the number of severe cases, and is likely to be large.
+The dates of Phases~2--4 are indicative.
+
+\begin{table}[H]
 \centering
 \caption[Four-phase clinical translation roadmap (planned)]{Four-phase clinical
 translation roadmap. Phases~2--4 are planned directions, not commitments; they depend on
@@ -430,15 +443,6 @@ Phase & Period & Key deliverable & Evidence & Status \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-Phase~2 is the critical next step. It would combine the three axes in one model with an
-automatic deferral of uncertain images, and evaluate it in a pre-registered, multi-site
-reader study in which ophthalmologists grade images with and without the system. Its
-primary success criterion would be a Sev-NR below $2\%$ with the upper bound of its 95\%
-confidence interval also below $2\%$, which would close the main statistical limitation of
-the present results. Because Sev-NR concerns rare severe cases, the sample size would have
-to be set by a power calculation on the number of severe cases, and is likely to be large.
-The dates of Phases~2--4 are indicative.
 
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}

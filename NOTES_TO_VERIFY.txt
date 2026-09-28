@@ -393,3 +393,9 @@ test_manifest.csv reproduces Table 5.3 exactly.
 * Calibration: comparison table no longer juxtaposes the two ECE 0.031; DGTS temperature
   reported as the published fold range 1.38-1.47. Prepared oral explanation in the report.
 * Criteria table width fixed; no visible overfull boxes; 0 errors, 0 undefined refs.
+
+=== Final form pass ===
+* All floats switched from [H] to [!htbp] (except the roadmap table, pinned [H] to avoid a
+  placeins page break); half-empty pages removed; every float cited on its page or the
+  page before; CLAHE/skeleton figures reordered to match citation order.
+* General Conclusion: new Table GC.1 summarising H1, H2, H3a, H3b.
