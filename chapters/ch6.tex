@@ -1,48 +1,65 @@
 \section*{Introduction}
 \phantomsection\addcontentsline{toc}{section}{Introduction}
 
-An accurate and safe algorithm is only one part of a clinical product. To be used in a
-screening programme, DOTS must also be built as medical-device software: its components
+An algorithm with favourable retrospective performance is only one part of a clinical
+product. To be used in a screening programme, a system such as DOTS would also have to be
+built as medical-device software: its components
 must be verifiable, its risks analysed, its decisions traceable and explainable, and it
 must integrate with the hospital information system. In Europe, these requirements are
 set by the IEC~62304 and ISO~14971 standards and by the EU AI Act, which classifies AI
 used in medical devices as high-risk.
 
-This chapter describes how these requirements shaped the design of DOTS from the start,
-rather than being added afterwards. We first map each standard and article to the
-architectural mechanism that addresses it, then present the verification strategy, the
+This chapter describes how regulatory-oriented principles shaped the design of DOTS from
+the start, rather than being added afterwards. We first map selected requirements of each
+standard and article to the architectural mechanism relevant to it, then present the verification strategy, the
 risk analysis, the latency and scalability of the system, its integration with electronic
 health records and its three-tier deployment architecture. We end with the audit trail and
 explanation template, the ethical considerations, and an explicit statement of what this
 design approach does not solve.
 
-\section{Regulatory Compliance as a Design Principle}
+\section{Regulatory-Oriented Design Principles}
 \label{sec:regprinciple}
 
-The DR grading systems reviewed in \cref{ch:sota} treat regulatory compliance as a
-post-hoc assessment: a system is built to maximise accuracy, and a regulatory dossier is
-assembled afterwards to argue that it is acceptably safe. DOTS inverts this sequence.
-Every major design decision of \cref{ch:dots} was motivated, in part, by the requirement
-to satisfy IEC~62304~\cite{iec62304}, ISO~14971~\cite{iso14971} and Articles~9--15 of the
-EU AI Act~\cite{euaiact2024} by construction, not by retrofit.
+The architecture of DOTS was designed with regulatory-oriented principles relevant to
+IEC~62304~\cite{iec62304}, ISO~14971~\cite{iso14971} and the applicable requirements of
+Articles~9--15 of the EU AI Act~\cite{euaiact2024} in mind. The mapping presented in this
+chapter documents how selected architectural mechanisms address requirements relevant to
+software life-cycle management, risk management, traceability, human oversight and
+transparency.
+
+This mapping should not be interpreted as formal regulatory compliance, conformity
+assessment, clinical evaluation, CE marking, FDA clearance or notified-body approval.
+Those activities require evidence and processes beyond the scope of the present doctoral
+work (\cref{sec:regnotsolve}).
+
+Research prototypes of DR grading are often built to maximise accuracy first, with
+regulatory questions addressed afterwards. In DOTS, several major design decisions of
+\cref{ch:dots} were instead motivated, in part, by these regulatory-oriented principles.
 
 The distinction matters in practice. A system designed for accuracy and retrofitted for
-compliance typically needs architectural surgery when a gap is discovered late. For
+regulatory requirements may need architectural changes when a gap is discovered late. For
 example, it may turn out that no component can produce a per-prediction explanation
 satisfying Article~13. A separate post-hoc explainability module (Grad-CAM, SHAP,
 LIME~\cite{selvaraju2017gradcam,lundberg2017shap,ribeiro2016lime}) then has to be added,
 and its explanations may not faithfully represent the model's actual decision process. In
-DOTS, the GAT attention weights $\alpha_{ij}$ (\cref{eq:att}) used to make the prediction
-\emph{are} the explanation, not a separate approximation of it.
+DOTS, the GAT attention weights $\alpha_{ij}$ (\cref{eq:att}) are computed in the forward
+pass that produces the prediction and are logged with it; they provide an
+attention-derived explanatory signal rather than a separate post-hoc approximation. This
+signal is not, by itself, a demonstrated faithful explanation: attention weights are not
+guaranteed to reflect the causal importance of each neighbour, and their faithfulness was
+not evaluated in this thesis.
 
 \section{Mapping Regulatory Standards to Architectural Mechanisms}
 \label{sec:regmap}
 
-\Cref{tab:regmap} maps each standard or article to the DOTS mechanism that addresses it.
+\Cref{tab:regmap} maps selected requirements of each standard or article to the DOTS
+mechanism relevant to it. The mapping is a design aid, not evidence of conformity.
 
 \begin{table}[H]
 \centering
-\caption[Regulatory standards mapped to DOTS mechanisms]{Regulatory standards mapped to DOTS mechanisms.}
+\caption[Regulatory-oriented mapping of DOTS mechanisms]{Regulatory-oriented mapping:
+selected requirements and the DOTS mechanisms relevant to them (not a conformity
+assessment).}
 \label{tab:regmap}
 \small
 \begin{tabular}{@{}P{3.3cm}P{3.9cm}P{7.2cm}@{}}
@@ -54,10 +71,10 @@ ISO 14971 & Risk management (FMEA) & Six hazard classes; typed exception at ever
 EU AI Act Art.~9 & Risk-management system & FMEA $+$ typed exception handling \\
 EU AI Act Art.~10 & Data governance & Five-dataset evaluation; documented provenance (\cref{app:datasets}) \\
 EU AI Act Art.~11--12 & Technical documentation, logging & Versioned YAML configurations; structured prediction log \\
-EU AI Act Art.~13 & Transparency to users & GAT weights $\alpha_{ij}$ $+$ interpretable TDA features \\
+EU AI Act Art.~13 & Transparency to users & Attention-derived signal ($\alpha_{ij}$) $+$ interpretable TDA features \\
 EU AI Act Art.~14 & Human oversight & Entropy abstention $\to$ mandatory specialist review \\
 EU AI Act Art.~15 & Accuracy and robustness & Five-benchmark validation $+$ calibration analysis \\
-FDA SaMD guidance & Software as a Medical Device & Locked algorithm; 510(k) or De Novo pathway \\
+FDA SaMD guidance & Software as a Medical Device & Locked algorithm; possible 510(k) or De Novo pathway (not initiated) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -141,7 +158,7 @@ Mode and Effects Analysis (FMEA) of DOTS identifies six hazards, each with a sev
 
 \paragraph{Residual risk acceptance.}
 Hazard~6 is the only Critical hazard whose mitigation is incomplete. Its residual risk is
-acceptable for the Level~1 computational validation of this thesis, but not for clinical
+acceptable for the Level~1 computational evaluation of this thesis, but not for clinical
 deployment without the Phase~2 FHIR adapter; this distinction is the basis of the phased
 roadmap (\cref{sec:roadmap}), not an oversight.
 
@@ -162,7 +179,8 @@ Phase~2 deliverable rather than a present capability.
 
 Annex~III of the EU AI Act classifies AI systems used as safety components of medical
 devices as high-risk, which triggers the requirements of Articles~9--15 before CE
-marking. DOTS addresses each of them by construction.
+marking. The DOTS design includes mechanisms relevant to each of them; whether these
+mechanisms are sufficient would be decided only by a formal conformity assessment.
 \begin{description}[style=nextline,leftmargin=1.2em]
 \item[Art.~9 (risk management)] The FMEA of \cref{tab:fmea}, combined with typed
 exception handling at every stage boundary, forms a documented, maintainable
@@ -174,20 +192,25 @@ of IDRiD).
 all twelve principal experiments (\cref{app:results}) and the structured prediction log
 of \cref{sec:audit}.
 \item[Art.~13 (transparency)] GAT attention weights and TDA feature values, surfaced
-through the explanation template of \cref{sec:audit}, give transparency intrinsic to the
-inference path rather than a post-hoc approximation.
+through the explanation template of \cref{sec:audit}, provide attention-derived and
+feature-level explanatory signals computed in the inference path; their faithfulness as
+explanations has not been evaluated.
 \item[Art.~14 (human oversight)] Entropy-based abstention (\cref{sec:abst}) makes human
-oversight mandatory for exactly the cases where the model is least reliable.
-\item[Art.~15 (accuracy, robustness)] The five-benchmark validation (\cref{tab:bench}) and
-the calibration analysis (\cref{tab:ece}) document accuracy and robustness across
-acquisition conditions (four countries, several camera models).
+review mandatory for the cases with the highest predictive uncertainty, which on the
+retrospective data concentrate at the most ambiguous grade boundaries.
+\item[Art.~15 (accuracy, robustness)] The five-benchmark retrospective evaluation
+(\cref{tab:bench}) and the calibration analysis (\cref{tab:ece}) document accuracy and
+robustness across several acquisition conditions (four countries, several camera models).
 \end{description}
 
 \section{Scalability and Per-Patient Latency}
 \label{sec:latency}
 
-\Cref{tab:latency} breaks the per-patient latency down by stage. Stage S3 (TDA) accounts
-for $57\%$ of the total and is the principal computational bottleneck; GPU-accelerated
+\Cref{tab:latency} breaks the per-patient latency down by stage. The measurements were
+obtained under the experimental hardware and software configuration of \cref{app:repro}
+(one NVIDIA A100 GPU for stages S2, S5 and S6, and a 16-core CPU for stage S3; software
+versions in \cref{tab:software}), with images processed one at a time. Stage S3 (TDA)
+accounts for $57\%$ of the total and is the principal computational bottleneck; GPU-accelerated
 persistent homology (for example with giotto-tda~\cite{tauzin2021giotto}) could in
 principle reduce it substantially, but this has not been validated within the thesis.
 
@@ -211,15 +234,22 @@ S6 -- GAT/GraphSAGE ($S=25$, $L=2$) & $O(S^L)=O(625)$ & 1.2~ms \\
 Total & & 31.4~ms \\
 \bottomrule
 \end{tabularx}
-\tabnote{At 31.4~ms per image, one GPU processes about 115{,}000 images per hour when
-images are processed one at a time; batching would increase throughput further.}
+\tabnote{Measured under the laboratory configuration of \cref{app:repro} (A100 GPU for
+S2, S5, S6; 16-core CPU for S3), one image at a time. At 31.4~ms per image, this
+corresponds to about 115{,}000 images per hour in that configuration.}
 \end{table}
 
-\paragraph{Throughput at national scale.}
-At $31.4$~ms per image, one GPU processes about $115{,}000$ images per hour. A national
-programme screening $500{,}000$ patients a year (about $1{,}370$ per day at steady state)
-therefore needs a small fraction of one GPU: compute cost is not a barrier to national
-deployment.
+\paragraph{Computational feasibility.}
+The measured inference latency is $31.4$~ms per image under the experimental hardware and
+software configuration described in this thesis. The profiling identifies
+persistent-homology computation as the principal computational bottleneck, accounting for
+approximately $57\%$ of the measured latency. For comparison, a programme screening
+$500{,}000$ patients a year corresponds to about $1{,}370$ patients per day at steady state,
+well below the laboratory throughput. These measurements indicate computational
+feasibility at the laboratory level, but they do not by themselves establish operational
+feasibility for a national screening programme, which also depends on image acquisition,
+network infrastructure, integration with information systems (\cref{sec:fhir}), quality
+control and human review of deferred cases.
 
 \paragraph{Memory footprint.}
 The population graph must keep the fused embedding of every reference patient. Its $1031$
@@ -250,22 +280,24 @@ workflow.
 inside the clinician's existing EHR interface rather than in a separate application.
 \end{enumerate}
 The FHIR adapter is the targeted Phase~2 deliverable (\cref{sec:roadmap}). At the time of
-writing it is the largest gap between DOTS as a validated research system and DOTS as a
-deployable clinical product.
+writing it is the largest gap between DOTS as a retrospectively evaluated research system
+and a clinical product.
 
 \section{Three-Tier Deployment Architecture}
 \label{sec:tiers}
 
 \Cref{tab:tiers} describes the three deployment tiers. The separation is itself a
-regulatory design choice: because Tier~2 (the validated inference engine) is decoupled
-from Tier~3 (site-specific integration), a new Tier~3 implementation at a new site does
-not require re-validation of Tier~2, provided the Tier~2 software version is unchanged.
+regulatory-oriented design choice: because Tier~2 (the inference engine) is decoupled from
+Tier~3 (site-specific integration), a new Tier~3 implementation at a new site is intended
+not to require re-verification of Tier~2, provided the Tier~2 software version is
+unchanged; whether this holds for a given regulatory pathway would have to be confirmed
+during conformity assessment.
 This property is directly relevant to the ``locked'' versus ``continuously learning''
 distinction in FDA guidance~\cite{fda2017samd}.
 
 \begin{table}[H]
 \centering
-\caption[Three-tier deployment architecture for national screening]{Three-tier deployment architecture for national screening.}
+\caption[Three-tier deployment architecture (proposed)]{Proposed three-tier deployment architecture for a screening programme.}
 \label{tab:tiers}
 \small
 \begin{tabular}{@{}l P{7.4cm} P{4.4cm}@{}}
@@ -273,7 +305,7 @@ distinction in FDA guidance~\cite{fda2017samd}.
 Tier & Function & Status \\
 \midrule
 1: Acquisition & Fundus camera, DICOM capture, local quality check (S1 rejects ungradable images) & Mature (existing clinical infrastructure) \\
-2: Inference & DOTS six-stage pipeline (\cref{tab:stages}) as a containerised inference service & Complete, validated in this thesis \\
+2: Inference & DOTS six-stage pipeline (\cref{tab:stages}) as a containerised inference service & Implemented; retrospectively evaluated in this thesis \\
 3: Integration & FHIR R4 adapter, CDS Hooks, EHR write-back, audit-log persistence & Phase 2 deliverable (\cref{sec:fhir}) \\
 \bottomrule
 \end{tabular}
@@ -284,8 +316,9 @@ Tier & Function & Status \\
 
 Every prediction is logged with the patient pseudonym, the image DICOM UID, a timestamp,
 the full five-grade probability vector, the entropy value, the abstention flag and the
-GAT attention weights of the five most-attended neighbours. Logs are retained for ten
-years, which meets IEC~62304 traceability needs and is compatible with the
+GAT attention weights of the five most-attended neighbours. The design specifies a
+ten-year retention period, intended to support IEC~62304-style traceability and to be
+compatible with the
 storage-limitation principle of GDPR Article~5(1)(e)~\cite{gdpr2016} for medical
 records, subject to national retention rules.
 
@@ -295,15 +328,18 @@ quantities, reads:
 \begin{quote}\small\itshape
 Grade [$k$] predicted with [$p$]\% confidence. The five most similar neighbours had
 grades [$g_1,\ldots,g_5$] with attention weights [$\alpha_1,\ldots,\alpha_5$]. $H_1$
-persistence [$v$] is consistent with Grade [$k$] according to the validated association
+persistence [$v$] is consistent with Grade [$k$] according to the statistical association
 of \cref{tab:anova}. Predictive entropy $H_i=[h]$ nats is [below/above] the abstention
 threshold $\tau_U=0.73$.
 \end{quote}
 
 The template is built entirely from quantities computed during the forward pass. No
-separate explanation model is needed, which removes the risk, well documented in the
-explainable-AI literature, that a post-hoc explanation misrepresents the actual decision
-process.
+separate explanation model is needed, which avoids one specific risk documented in the
+explainable-AI literature: that a separate post-hoc approximation misrepresents the model.
+It does not remove the broader question of whether attention weights faithfully reflect
+the decision process; the template therefore reports them as attention weights, not as
+causal contributions, and evaluating their faithfulness with clinicians is left to the
+Phase~2 reader study.
 
 \subsection{Future Extension: Evidence-Grounded LLM Explanations}
 \label{sec:llm}
@@ -384,23 +420,24 @@ question of legal and professional accountability when an automated system contr
 to a missed diagnosis; that question is left to the regulatory and legal review of
 Phases~3--4 (\cref{sec:roadmap}). In all cases, DOTS is designed as a decision-support tool: the responsibility for the final referral decision remains with the clinician.
 
-\section{What Regulatory-by-Construction Does Not Solve}
+\section{What Regulatory-Oriented Design Does Not Solve}
 \label{sec:regnotsolve}
 
-Designing for compliance from the outset avoids a specific class of late architectural
-surgery; it is worth being equally explicit about what it does not solve. Mapping DOTS to
-IEC~62304, ISO~14971 and the EU AI Act (\cref{tab:regmap}) documents
-\emph{architectural} compliance: the system has the structural features (typed
-interfaces, FMEA, audit logging, abstention) that a notified body would expect. It does
+Designing with regulatory requirements in mind from the outset can avoid some late
+architectural changes; it is worth being equally explicit about what it does not solve.
+Mapping DOTS to IEC~62304, ISO~14971 and the EU AI Act (\cref{tab:regmap}) documents a
+regulatory-oriented \emph{architecture}: the system has structural features (typed
+interfaces, FMEA, audit logging, abstention) of the kind that a notified body would
+expect to examine. It does
 not constitute the conformity assessment, clinical evaluation or notified-body review
 required before CE marking; those remain Phase~2--4 activities outside the scope of a
 doctoral thesis. Likewise, the FHIR gap of \cref{sec:fhir} is not a hypothetical risk: it
 is the concrete reason why DOTS could not be connected to a live clinical workflow today.
 
-The honest claim is therefore narrower than ``DOTS is compliant'': DOTS's architecture was
-shaped by the requirements it will eventually need to satisfy. This has a practical
-consequence for replication. Because each compliance property is embedded in the pipeline
-rather than asserted afterwards, any laboratory that reproduces the six-stage pipeline
+The claim is therefore narrower than ``DOTS is compliant'': DOTS was designed according to
+regulatory-oriented principles relevant to IEC~62304, ISO~14971 and the EU AI Act. This
+has a practical consequence for replication. Because each of these design properties is
+embedded in the pipeline rather than asserted afterwards, any laboratory that reproduces the six-stage pipeline
 with the released code (\cref{app:repro}) also reproduces these properties; the FHIR
 adapter is the only element that requires site-specific work before clinical use. The
 results of \cref{ch:toporet,ch:dots} constitute Level~1 (computational) evidence
@@ -411,26 +448,29 @@ which is conducted here.
 \section{Towards Clinical Deployment: Translation Roadmap}
 \label{sec:roadmap}\label{app:roadmap}
 
-The regulatory-oriented design of this chapter prepares DOTS for certification, but does
-not replace the clinical evidence that certification requires. The translation of DOTS
-into clinical practice is therefore planned in four phases (\cref{tab:roadmap}), following
+The regulatory-oriented design of this chapter is intended to facilitate a future
+regulatory assessment, but does not replace the clinical evidence that such an assessment
+requires. A possible translation of DOTS into clinical practice is therefore outlined in
+four planned phases (\cref{tab:roadmap}), following
 the four levels of evidence used in diagnostic AI evaluation: Level~1 computational
 evidence, Level~2 prospective agreement with human readers, Level~3 randomised patient
 outcomes, and Level~4 regulatory clearance. This thesis provides Level~1 evidence only.
 
 \begin{table}[!tb]
 \centering
-\caption[Four-phase clinical translation roadmap]{Four-phase clinical translation roadmap.}
+\caption[Four-phase clinical translation roadmap (planned)]{Four-phase clinical
+translation roadmap. Phases~2--4 are planned directions, not commitments; they depend on
+partnerships, funding and ethics approval beyond the doctoral work.}
 \label{tab:roadmap}
 \small
 \begin{tabular}{@{}c l P{7.6cm} l l@{}}
 \toprule
 Phase & Period & Key deliverable & Evidence & Status \\
 \midrule
-1 & 2023--2026 & Nine publications; five-benchmark validation; necessity proof & Level 1 & Complete \\
+1 & 2023--2026 & Eleven publications (List of Publications); five-benchmark retrospective evaluation; scoped necessity analysis (H3b) & Level 1 & Complete \\
 2 & 2026--2027 & Multi-site reader study ($\geq3$ sites, $N\geq200$, pre-registered); FHIR R4 adapter & Level 2 & Planned \\
 3 & 2027--2028 & Randomised trial: AI-assisted versus standard-of-care screening & Level 3 & Planned \\
-4 & 2028--2029 & CE marking (EU AI Act, high-risk); FDA 510(k) or De Novo & Level 4 & Planned \\
+4 & 2028--2029 & Regulatory assessment towards CE marking (EU AI Act, high-risk) and a possible FDA 510(k) or De Novo submission & Level 4 & Planned \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -440,20 +480,25 @@ Phase~2 is the critical next step. It combines a pre-registered, multi-site read
 grade images with and without DOTS, with the implementation of the FHIR~R4 adapter of
 \cref{sec:fhir}. Its primary success criterion is a Sev-NR below $2\%$ with the upper
 bound of its 95\% confidence interval also below $2\%$, which would close the main
-statistical limitation of the present results. Ethics approval and the FHIR adapter have no
+statistical limitation of the present results. The figure $N\geq200$ is a minimum
+only: because Sev-NR concerns rare severe cases, the final sample size would have to be
+set by a power calculation on Sev-NR, and is likely to be substantially larger. Ethics approval and the FHIR adapter have no
 technical dependency and can proceed in parallel. The dates of Phases~2--4 are indicative:
 they depend on clinical and industrial partnerships beyond the doctoral work.
 
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
-This chapter mapped DOTS to IEC~62304, ISO~14971 and the EU AI Act by construction
-(\cref{tab:regmap}), documented a 47-test verification suite with full interface coverage
-of the six stages, and identified the FHIR R4 adapter (Tier~3) as the main remaining
-barrier between a computationally validated system and a clinically deployed product.
-Per-patient inference ($31.4$~ms) does not depend on cohort size, so the inductive design
-choice of \cref{ch:found} carries through to deployment scale. The three-tier
-architecture decouples the validated inference engine from site-specific integration.
+This chapter described the regulatory-oriented design of DOTS and its mapping to selected
+requirements of IEC~62304, ISO~14971 and the EU AI Act (\cref{tab:regmap}); this mapping
+is not a conformity assessment, a clinical evaluation or a certification. It documented a
+47-test verification suite with full interface coverage of the six stages, and identified
+the FHIR R4 adapter (Tier~3), which is not implemented, as the main remaining barrier
+between a retrospectively evaluated research system and a clinical product. Per-patient
+inference ($31.4$~ms under the laboratory configuration of \cref{app:repro}) does not
+depend on cohort size, which indicates computational feasibility at the laboratory level
+but not, by itself, operational feasibility at national scale. The three-tier
+architecture decouples the inference engine from site-specific integration.
 Three ethical considerations -- fairness, deskilling and accountability -- are identified
 for explicit future work. The General Conclusion now brings together the contributions of the thesis, their
 practical value, their limits and the perspectives they open.

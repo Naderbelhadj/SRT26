@@ -6,9 +6,10 @@ DR grading, and that graph and topological signals should be fused rather than s
 concatenated. This chapter turns these observations into a complete grading framework,
 TOPORET~\cite{belhadj2025plos}. TOPORET connects patients in an inductive population graph
 whose edges combine two similarities: how alike the fundus images look to a CNN, and how
-alike their vessel networks are topologically. It is, to the best of our knowledge, the
-first DR grading system to address the relational limitation (L1) and the structural
-limitation (L2) at the same time.
+alike their vessel networks are topologically. This thesis introduces it as a DR grading
+system that addresses the relational limitation (L1) and the structural limitation (L2)
+at the same time; we are not aware of an earlier system combining these two elements in a
+single inductive population graph.
 
 We first review related work on population graphs and topological features in medical
 imaging. We then state the two hypotheses tested in this chapter, present the six-stage
@@ -26,8 +27,8 @@ with phenotypic similarity between subjects~\cite{parisot2018disease}. The idea 
 similar patients tend to share a diagnosis, so the graph can propagate information from
 labelled to unlabelled subjects. These approaches are usually transductive: the whole
 cohort, including the test patients, must be present when the model is trained, which is
-not compatible with a screening service where new patients arrive every day. In DR
-grading, graph-based approaches have used visual similarity only; we re-implement such a
+not compatible with a screening service where new patients arrive every day. In the DR
+grading work reviewed here, graph-based approaches have used visual similarity only; we re-implement such a
 visual-only graph (GraphDR) as the control of this chapter.
 
 \paragraph{Topological features in medical imaging.}
@@ -310,10 +311,12 @@ primary feature, total $H_1$ persistence ($\Pi_{H_1}$, $\eta^2=0.51$), the first
 ($\beta_1$, $\eta^2=0.50$) and the fractal dimension ($D_f$, $\eta^2=0.49$), consistent with neovascularisation (Grade~4) as the
 hallmark of proliferative DR. In practical terms, an $\eta^2$ of $0.51$ means that the ICDR grade alone explains about half of the variance of the total $H_1$ persistence across images.
 
-\paragraph{H2 confirmed.}
+\paragraph{H2 supported.}
 $F(4,4995)=1308.9$, $p<0.001$, $\eta^2=0.51$ (large effect) for the pre-specified primary
 feature $\Pi_{H_1}$. The null hypothesis is rejected with a margin of about $\times 352$
-over the Bonferroni-corrected critical value.
+over the Bonferroni-corrected critical value. The analysis demonstrates a strong
+statistical association between the extracted topological descriptors and ICDR severity;
+it does not show that topology causes, or mechanistically explains, disease severity.
 
 \subsection{Results: Contribution of the Population Graph (H1)}
 \label{sec:h1}
@@ -340,10 +343,13 @@ TOPORET (dual sim.\ $+$ TDA) & $0.880\pm0.009$ & 3.82 & 0.009 & 1.71 \\
 \end{tabular}
 \end{table}
 
-\paragraph{H1 confirmed.}
-$t_4=3.82$, $p=0.009$, $d_z=1.71$ (very large effect). The population graph contributes
-$+4.0$~pp QWK beyond independent classification, with a margin of $\times1.37$ over the
-conservative critical value.
+\paragraph{H1 supported.}
+$t_4=3.82$, $p=0.009$, $d_z=1.71$ (very large effect). The population graph is associated
+with a $+4.0$~pp QWK gain beyond independent classification, with a margin of $\times1.37$
+over the conservative critical value. Because the inferential unit is the cross-validation
+fold, the paired $t$-test has four degrees of freedom. Bootstrap and exact permutation
+analyses were therefore reported as complementary robustness checks rather than as
+independent replications.
 
 \paragraph{Statistical robustness of H1.}
 Five folds are a small sample for a paired $t$-test, even though $N=88{,}702$ images are
@@ -453,7 +459,9 @@ acquired on different continents with different cameras~\cite{kaggle2015eyepacs,
 decenciere2014messidor,porwal2018idrid}. The gain of TOPORET is larger out of
 distribution ($+0.053$ and $+0.046$) than in distribution ($+0.040$), which is
 consistent with TDA features being more invariant than CNN embeddings to acquisition
-shifts. This is an important property for screening, where images come from many different camera models.
+shifts. This would be an important property for screening, where images come from many
+different camera models, but two external datasets are not enough to establish it in
+general.
 
 \begin{table}[H]
 \centering
@@ -479,7 +487,7 @@ Its QWK of $0.880$ is lower than that of RETFound ($0.920$); the difference is d
 backbone (RETFound uses a ViT-L/16 pre-trained on $1.6$ million retinal images, TOPORET an
 ImageNet EfficientNet-B3). This is by design: TOPORET was built to test H1 and H2 at
 controlled backbone quality before adding RETFound in DOTS. Its contribution is not the
-highest QWK but the first simultaneous resolution of L1 and L2.
+highest QWK but the joint treatment of L1 and L2 in a single framework.
 
 \begin{table}[H]
 \centering
@@ -501,16 +509,16 @@ TOPORET & 0.880 & 3.4\% & \cmark & \cmark & \xmark \\
 \section{Discussion}
 \label{sec:ch3-discussion}
 
-\subsection{Why the Dual Metric Is Strictly Necessary for H1}
+\subsection{Why the Dual Metric Matters for H1}
 \label{sec:dualnecessary}
 
 A critical finding of \cref{tab:h1} is that the visual-only graph (GraphDR) fails the
 pre-specified H1 threshold ($t_4=1.71$, $p=0.08$, n.s.), whereas the dual-metric graph
 passes it ($t_4=3.82$, $p=0.009$). This is not a marginal difference: it separates a
 non-significant gain from a very large confirmed effect. The Wasserstein topological
-component is therefore not a performance bonus but the component that makes H1
-confirmable; without it, the population graph provides no statistically significant
-benefit over per-image classification.
+component is therefore, in these experiments, the component that makes the H1 test pass;
+without it, the population graph provided no statistically significant benefit over
+per-image classification.
 
 \subsection{Biological Interpretation of the TDA Features}
 \label{sec:tda-bio}
@@ -523,17 +531,17 @@ grades); and $\Delta$ (maximum $H_1$ persistence) captures neovascular fronds at
 ($\eta^2=0.65$, the strongest effect). These mappings are post-hoc plausibility arguments
 supporting H2; its statistical validity rests on the pre-specified ANOVA.
 
-\subsection{From Confirmed Hypotheses to a Deployable System}
+\subsection{From Supported Hypotheses to a Safety-Oriented System}
 \label{sec:ch3-deploy}
 
-H1 and H2 jointly establish that the relational and structural axes contribute genuine,
-statistically independent information. The Sev-NR of $3.4\%$ is a reminder that
+H1 and H2 jointly support the view that the relational and structural axes contribute
+useful information to grading. The Sev-NR of $3.4\%$ is a reminder that
 statistical significance and clinical sufficiency are different standards. A $+4.0$~pp
 QWK gain and a large ANOVA effect size are exactly what a methods paper would report as a
 success; neither, alone or combined, certifies a system safe to triage real patients.
 
 TOPORET's residual gap is therefore not a failure of H1 or H2 -- both remain
-confirmed -- but a demonstration that confirming the relational and structural hypotheses
+supported -- but a demonstration that confirming the relational and structural hypotheses
 leaves the safety hypothesis (H3) untested. \Cref{tab:graphstruct} makes the mechanism
 visible: even with the improved Grade-3 purity of $68.7\%$, roughly one in three of a
 Severe-NPDR patient's nearest neighbours carries a different grade. This is exactly the
@@ -576,9 +584,11 @@ decision thresholds of the tests were fixed before the experiments.
 \paragraph{External validity.}
 The hypotheses were tested on Kaggle EyePACS, a large but single benchmark whose labels come
 from a screening network in the United States. The cross-dataset results on Messidor-2 and
-IDRiD (\cref{tab:crossdata}) show that the gain survives a change of country and camera, but
-the ANOVA of H2 was not repeated on external data, and the small size of IDRiD limits the
-precision of the results obtained on it.
+IDRiD (\cref{tab:crossdata}) indicate that the gain persisted after a change of country and
+camera, but the ANOVA of H2 was not repeated on external data, and the small size of IDRiD
+limits the precision of the results obtained on it. All sample sizes are image counts;
+some benchmarks contain several images of the same patient, so the results are image-level
+and patient-level generalisation is interpreted cautiously.
 
 \paragraph{Construct validity.}
 QWK measures agreement with the reference grade, which itself contains grader noise
@@ -592,8 +602,9 @@ with five folds, the permutation test cannot give a $p$-value below $1/32$.
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
-TOPORET confirmed H1 ($t_4=3.82$, $p=0.009$, $d_z=1.71$) and H2 ($F(4,4995)=1308.9$,
-$p<0.001$, $\eta^2=0.51$) through pre-specified tests. The dual-similarity metric is a
+The pre-specified tests of TOPORET supported H1 ($t_4=3.82$, $p=0.009$, $d_z=1.71$, over
+five folds) and H2 as a statistical association ($F(4,4995)=1308.9$, $p<0.001$,
+$\eta^2=0.51$). The dual-similarity metric is a
 prerequisite rather than an option: the visual-only graph gives a non-significant gain,
 whereas the Wasserstein-augmented graph gives a very large one, with higher Grade-3
 neighbourhood purity and larger out-of-distribution gains. The remaining gap -- Sev-NR

@@ -35,8 +35,9 @@
 \end{axis}
 \end{tikzpicture}
 \caption[Progressive contribution from EfficientNet-B3 to DOTS]{Progressive contribution from EfficientNet-B3 to DOTS. Bars: QWK (left axis);
-line: Sev-NR (right axis). Every addition improves both metrics, and the $2\%$ safety
-threshold is crossed only at the last step (entropy abstention). The values are printed on
+line: Sev-NR (right axis). Every addition improves both metrics, and the Sev-NR point
+estimate falls below the $2\%$ target only at the last step (entropy abstention; 95\% CI
+$[1.4\%,\,2.4\%]$). The values are printed on
 the bars and the line; the last four steps correspond to the ablation of \cref{tab:ablate}.}
 \label{fig:progress}
 \end{figure}

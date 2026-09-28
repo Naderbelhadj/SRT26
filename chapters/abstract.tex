@@ -4,46 +4,43 @@
 \begingroup\setstretch{1.2}
 
 \paragraph{Background.}
-Diabetic retinopathy (DR) affects an estimated 103 million adults worldwide and is a
-leading cause of preventable blindness in the working-age population.
-Automated screening is clinically essential, yet no system identified in the reviewed
-literature resolves three co-existing structural limitations at once: L1 (no relational
-context between patients), L2 (no global vascular topology), and L3 (no clinical safety
-mechanism: every image is graded, and the Severe-DR Non-Referral Rate, Sev-NR, stays above
-the $2\%$ threshold).
+Diabetic retinopathy (DR) affects about 103 million adults and is a leading cause of
+preventable blindness. None of the representative systems reviewed here addresses, in one evaluated framework,
+three requirements: L1 (relational context between patients), L2 (global vascular
+topology), and L3 (a safety mechanism: every image is graded, and the Severe-DR
+Non-Referral Rate, Sev-NR, stays above the $2\%$ target adopted here). ``Disease
+progression'' is operationalised as cross-sectional prediction of ordinal ICDR severity
+from a single fundus image, not as longitudinal prediction.
 
 \paragraph{Methods.}
-This thesis is an eleven-publication research programme. Three hypotheses are pre-specified,
-each with its test and rejection threshold: H1, an inductive population graph adds
-information that a per-image classifier cannot recover; H2, $H_0/H_1$ persistent homology
+Eleven publications support this thesis. Three hypotheses are pre-specified, each with
+its test and rejection threshold: H1, an inductive population graph adds
+information beyond that captured by a per-image classifier; H2, $H_0/H_1$ persistent homology
 of the retinal vasculature is associated with severity; H3, the combination of the three
-axes is sufficient (H3a) and, within the evaluated architectural family, necessary (H3b)
-for seven predefined computational criteria. Foundations established on distributed
-systems are transferred to DR grading
-through hybrid models, the
-TOPORET population-graph framework
-and the DOTS system.
+axes reaches seven predefined computational criteria (H3a) and, within the investigated
+architectural family, no proper subset of the axes does (H3b). A graph template first evaluated on
+distributed systems is carried over, by analogy, to hybrid models, the TOPORET population
+graph and the DOTS system.
 
 \paragraph{Results.}
-H1 is confirmed ($t_4=3.82$, one-tailed $p=0.009$; $+4.0$ percentage points of quadratic
-weighted kappa, QWK). H2 is confirmed ($F(4,4995)=1308.9$, $p<0.001$, $\eta^2=0.51$).
-On five public benchmarks ($N>108{,}000$ images; $10{,}000$ held-out test predictions),
-DOTS reaches QWK $=0.951$, AUC $=0.988$, ECE $=0.040$, Sev-NR $=1.9\%$, coverage
-$93.8\%$ and $0\%$ ordinal rank violations: H3a is met at the point estimate, but the
-95\% confidence interval of Sev-NR, $[1.4\%,\,2.4\%]$, still crosses the $2\%$ line.
-H3b holds by exhaustive enumeration: all six proper subsets of the three axes fail
-Sev-NR $<2\%$.
+H1 is supported ($t_4=3.82$, one-tailed $p=0.009$ over five folds, with bootstrap and
+permutation checks; $+4.0$ points of quadratic weighted kappa, QWK). H2 is supported as a strong statistical association
+($F(4,4995)=1308.9$, $p<0.001$, $\eta^2=0.51$). On public benchmarks ($108{,}301$ images,
+not necessarily independent patients; $10{,}000$ held-out test images), DOTS reaches QWK $=0.951$, AUC $=0.988$, ECE $=0.040$,
+Sev-NR $=1.9\%$, coverage $93.8\%$ and $0\%$ ordinal rank violations. The Sev-NR 95\%
+confidence interval, $[1.4\%,\,2.4\%]$, extends above the $2\%$ target: H3a is met at the
+point estimate only, not with statistical confidence. Within the investigated family, all
+six proper subsets of the axes miss Sev-NR $<2\%$ (H3b).
 
 \paragraph{Conclusions.}
-The three limitations can be resolved in one architecture, and no proper subset of it
-meets all predefined criteria. This is Level~1 (computational, retrospective) evidence,
-not a licence for clinical use; a four-phase pathway (2026--2029) towards prospective
-validation and CE/FDA submission is proposed. The three-axis framework is offered as a
-template for any graded disease with an ordinal scale, a structural anatomical prior and
-an international safety threshold.
+DOTS is not claimed to be clinically validated or regulatory-ready; the thesis shows that, within the investigated architectural family, relational, structural/topological and
+ordinal-safety mechanisms can be integrated into a single system that achieves favourable
+safety-oriented performance on retrospective public benchmarks. This is Level~1
+(computational, retrospective) evidence, not prospective clinical safety; a planned
+pathway towards prospective validation and regulatory assessment is outlined.
 
 \vspace{0.6em}
 \noindent\textbf{Keywords:} diabetic retinopathy; graph neural networks; GraphSAGE;
-persistent homology; ordinal regression; CORAL; selective prediction; clinical AI safety;
+persistent homology; ordinal regression; CORAL; selective prediction; safety-oriented evaluation;
 RETFound; medical device software.
 \par\endgroup

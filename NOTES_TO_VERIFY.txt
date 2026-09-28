@@ -60,3 +60,52 @@ Still inconsistent with the papers (not changed, see Audit_These_vs_Papiers.md):
   APTOS instead of IDRiD, and reports F = 84.3 for the H2 ANOVA (the thesis now says 1308.9).
 - Dedication and acknowledgements mention "the late Prof. Jaouher Fattahi", who is a
   co-author of P3, P4, P5 and B2 in 2026: please check.
+
+Pre-defence audit corrections (claims calibrated to the evidence; no number changed)
+=====================================================================================
+Applied throughout abstract, resume, General Introduction, Chapters 1, 2, 4, 5, 6,
+General Conclusion, appendices and figure captions:
+- H3a: "7/7 pass" -> "met at the point estimate (PE)"; Sev-NR CI [1.4%, 2.4%] stated
+  wherever H3a is claimed; status "Met (PE)", strength "Moderate".
+- H3b: always "within the investigated architectural family and experimental
+  specification"; no claim of universal necessity.
+- Safety: "safe / clinically deployable" -> "safety-oriented", "retrospective evidence";
+  Chapter 5 renamed "Safety-Oriented Ordinal Grading ...".
+- Regulation: Chapter 6 renamed "Software Architecture and Regulatory-Oriented Design";
+  Section 6.1 "Regulatory-Oriented Design Principles"; explicit statement that the
+  mapping is not a conformity assessment / CE / FDA / notified-body approval.
+- Attention weights: "attention-derived explanatory signal", faithfulness not evaluated.
+- H2: association, not causation. H1: 4 df, bootstrap/permutation = complementary checks.
+- 108,301 = images, not independent patients (table note, Ch.5 "Unit of analysis",
+  Appendix D, limitations).
+- "Disease progression" operationalised as cross-sectional ordinal severity grading
+  (new paragraph in the General Introduction; abstract; resume; conclusion).
+- IDRiD gap: plausible, not demonstrated, explanation.
+- ~600 cases: "projected potentially non-referred severe cases", not cases avoided.
+- 31.4 ms: stated with its hardware/software configuration; "not a barrier to national
+  deployment" replaced by laboratory-level computational feasibility.
+- Roadmap: "Nine publications" -> "Eleven publications"; Phases 2-4 = planned, not
+  commitments; Phase 2 N>=200 flagged as a minimum pending a power calculation on Sev-NR.
+- "first system", "every published system", "not a coincidence", "no system can be
+  used" -> scoped to the representative systems reviewed in the thesis.
+- Test-set isolation (backbone, alpha, k, class weights, tau_U, architecture) now stated
+  in the body of Chapter 5 and in the General Introduction, not only in Appendix D.
+
+Please confirm before submission
+--------------------------------
+1. Patient-level splits: the text now says results are image-level and that some
+   benchmarks contain several images per patient (e.g. both eyes in EyePACS). If the
+   folds WERE grouped by patient, add one sentence saying so (Appendix D, "Randomness and
+   Seeding", and Chapter 5, "Unit of analysis"); if they were NOT, the current wording is
+   correct but expect the question at the defence.
+2. Title: kept as the administrative title; the operational definition of "disease
+   progression" is in the General Introduction. If ENSI allows a change, the more precise
+   title would be "Deep Learning-Based Prediction of Diabetic Retinopathy Severity Using
+   Medical Imaging: Graph, Topological, and Ordinal Learning for Automated Grading"
+   (chapters/title.tex).
+3. The journal title of J1 ("... Satisfying Clinical Safety Criteria ...") was left
+   unchanged because it is the submitted title; be ready to explain the point-estimate
+   caveat if asked.
+4. "To our knowledge" statements (TOPORET, persistence descriptors as graph edges, CORAL
+   in graph-based DR grading): keep only if the literature search is up to date at the
+   submission date.

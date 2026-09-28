@@ -7,7 +7,7 @@ structure of the vascular tree, and they cannot decline to answer. Each limitati
 for a family of methods that is well established on its own but rarely used in medical
 image grading: graph neural networks for relations between patients, topological data
 analysis for the structure of the vessels, and ordinal prediction with calibrated
-abstention for safe decisions.
+abstention for safety-oriented decisions.
 
 This chapter introduces these methods and the tools used to evaluate them. We first
 recall the deep-learning models used for medical images, from convolutional networks to
@@ -235,8 +235,8 @@ d_B(D_f, D_g) \;\leq\; \lVert f-g\rVert_\infty ,
 \label{eq:stability}
 \end{equation}
 where $d_B$ is the bottleneck distance. TOPORET compares diagrams with the closely related
-Wasserstein distance $W_2$ (\cref{eq:dualsim}). This robustness is the proposed
-explanation of the $+2.0$~pp out-of-distribution gain of TOPORET on Messidor-2
+Wasserstein distance $W_2$ (\cref{eq:dualsim}). This robustness is a plausible, but not
+demonstrated, explanation of the $+2.0$~pp out-of-distribution gain of TOPORET on Messidor-2
 (\cref{sec:crossdata}).
 
 Persistence is what makes the method robust. A single threshold $\varepsilon$ would give
@@ -372,10 +372,13 @@ SHAP~\cite{lundberg2017shap} approximate the model locally with a simple one. Fo
 displaying such explanations has been shown to help graders~\cite{sayres2019integrated}.
 Their limitation is that they approximate the model and may not reflect its actual
 reasoning. \emph{Intrinsic} explanations, by contrast, come from quantities that the model
-computes to make its decision, such as attention weights or interpretable features. The
-systems of this thesis rely on intrinsic explanations: the similar patients selected by
-the graph, their attention weights and the topological features of the vessel network
-(\cref{sec:audit}).
+computes to make its decision, such as attention weights or interpretable features.
+Intrinsic signals are not automatically faithful either: attention weights, in
+particular, are not guaranteed to measure the causal importance of each input. The
+systems of this thesis rely on such intrinsic, attention-derived explanatory signals --
+the similar patients selected by the graph, their attention weights and the topological
+features of the vessel network (\cref{sec:audit}) -- whose faithfulness was not evaluated
+in this thesis.
 
 \section{Evaluation Metrics and Statistical Tests}
 \label{sec:metrics}
@@ -442,7 +445,7 @@ Method & Role in the thesis & Limitation & Chapters \\
 \midrule
 EfficientNet-B3, RETFound & Visual features of the fundus image & -- & 3--5 \\
 GraphSAGE & Inductive population graph; constant-time grading of a new patient & L1 & 3--5 \\
-Graph attention (GAT) & Patient-specific neighbour weights; intrinsic explanation & L1 & 5 \\
+Graph attention (GAT) & Patient-specific neighbour weights; attention-derived explanatory signal & L1 & 5 \\
 Persistent homology & Topological descriptors of the vessel skeleton & L2 & 3--5 \\
 CORN & Ordinal head of TOPORET & L3 & 4 \\
 CORAL & Rank-consistent ordinal head of DOTS & L3 & 5 \\

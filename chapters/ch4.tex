@@ -2,8 +2,8 @@
 \phantomsection\addcontentsline{toc}{section}{Introduction}
 
 TOPORET showed that a population graph and topological features improve DR grading, but
-it is not safe enough for screening: its Severe-DR Non-Referral Rate of $3.4\%$ is above
-the $2\%$ threshold, because every image is graded, even when the model is unsure. This
+it does not reach the safety-oriented target of this thesis: its Severe-DR Non-Referral
+Rate of $3.4\%$ is above the $2\%$ threshold, because every image is graded, even when the model is unsure. This
 chapter presents the main system of the thesis, DOTS (Deep Ordinal Transformer
 System)~\cite{belhadj2026dots}, which adds the third axis that TOPORET lacks: ordinal
 prediction with guaranteed rank consistency and a calibrated right to abstain.
@@ -12,8 +12,8 @@ We first review related work on retinal foundation models, ordinal regression an
 abstention in medical AI. We then analyse the residual gaps of TOPORET and state the
 hypothesis H3 tested in this chapter. We then present the DOTS architecture, its equations and its training and
 inference procedure, followed by the experimental protocol. The results are reported in
-four steps: sufficiency (the seven clinical criteria), necessity (can any axis be
-removed?), effect sizes and clinical impact, and comparison with the literature. A
+four steps: the seven clinical-oriented criteria (H3a), a scoped necessity analysis (can
+any axis be removed within the investigated family?), effect sizes and clinical impact, and comparison with the literature. A
 discussion of what the results establish, and what they do not, closes the chapter.
 
 \section{Related Work}
@@ -59,11 +59,11 @@ stage and axis by axis.
 
 \input{figures/fig_dots}
 
-TOPORET (\cref{ch:toporet}) confirms H1 and H2: a population graph and topological
-features each contribute independently to ordinal grading accuracy. Yet TOPORET is not a
-clinically deployable system. At Sev-NR $=3.4\%$, a programme screening $500{,}000$
-patients a year would leave about $850$ of its $25{,}000$ severe cases unreferred
-(\cref{sec:impact}) -- a rate incompatible with the $2\%$ threshold adopted in this thesis
+TOPORET (\cref{ch:toporet}) supports H1 and H2: a population graph and topological
+features are each associated with better ordinal grading accuracy. Yet TOPORET does not
+meet the safety-oriented target of this thesis. At Sev-NR $=3.4\%$, under the illustrative
+assumptions of \cref{sec:impact}, a programme screening $500{,}000$ patients a year would
+leave a projected $850$ of its $25{,}000$ severe cases unreferred -- a rate incompatible with the $2\%$ threshold adopted in this thesis
 from national screening practice~\cite{scanlon2017english}.
 
 DOTS (Deep Ordinal Transformer System) is the architectural response to this
@@ -77,8 +77,8 @@ TOPORET predictions on the validation set.
 \subsection{Three Residual Gaps and Their Solutions}
 \label{sec:ch4-gaps}
 
-TOPORET resolves L1 and L2 but leaves three architectural gaps that prevent
-clinical deployment. \Cref{fig:gaps} names each gap, the DOTS component
+TOPORET addresses L1 and L2 but leaves three architectural gaps with respect to the
+seven predefined criteria. \Cref{fig:gaps} names each gap, the DOTS component
 that closes it, and the measured effect. \Cref{sec:gap-a,sec:gap-b,sec:gap-c} take the rows
 in order.
 
@@ -97,7 +97,8 @@ RETFound~\cite{zhou2023retfound}, by contrast, is pre-trained by masked
 autoencoding (MAE)~\cite{he2022mae} directly on $1.6$ million retinal images. Substituting the
 frozen backbone alone, with all other TOPORET components unchanged, yields
 QWK $0.880\to 0.921$ (component ablation, \cref{sec:ablation4}), a $+4.1$~pp improvement
-attributable entirely to domain-matched pre-training.
+that, within this controlled ablation, is associated with domain-matched pre-training
+(the backbones also differ in architecture and size, so the attribution is not exclusive).
 
 \subsubsection{Gap B: Ordinal Rank Violations}
 \label{sec:gap-b}
@@ -131,7 +132,8 @@ unsafe automated decision.
 \label{sec:h3def}
 
 The third hypothesis of the thesis has two parts. (H3a) The three-axis combination satisfies all seven predefined clinical-oriented
-criteria simultaneously. (H3b) No proper subset of the three axes does so.
+criteria simultaneously. (H3b) Within the investigated architectural family and
+experimental specification, no proper subset of the three axes does so.
 \emph{Pre-specified tests:} (H3a) five-benchmark evaluation against seven predefined
 criteria; (H3b) exhaustive enumeration of the $2^3-2=6$ proper non-empty subsets.
 
@@ -198,8 +200,12 @@ z'_i=\mathrm{GAT}(z_i,G)=\sum_{j\in\mathcal N(i)}\alpha_{ij}Wz_j,
 \end{equation}
 Unlike the static TOPORET graph, $\alpha_{ij}$ is patient-specific: two query
 patients sharing neighbour $j$ may attend to $j$ with different weights.
-``Neighbour $j$ contributed $\alpha_{ij}=0.34$ to this prediction'' is therefore
-a well-defined inference-time quantity (EU AI Act Article~13).
+``Neighbour $j$ received attention weight $\alpha_{ij}=0.34$ in this prediction'' is
+therefore a well-defined inference-time quantity that can be reported to the user
+(relevant to the transparency obligations of EU AI Act Article~13). It is an
+attention-derived explanatory signal; attention weights are not, in general, guaranteed to
+be faithful measures of feature importance, and their faithfulness was not evaluated in
+this thesis.
 
 \subsection{Entropy-Based Safety Abstention}
 \label{sec:abst}
@@ -266,8 +272,9 @@ vector for all thresholds; the ablation shows that this constraint does not redu
 In TOPORET, the weight of an edge is fixed once the graph is built. In DOTS, the GAT layer
 recomputes the importance of each neighbour for each query patient (\cref{eq:att}). This
 allows the model to rely on different neighbours for different patients, and it produces,
-for every prediction, a ranked list of the neighbours that influenced it, which serves
-directly as an explanation.
+for every prediction, a ranked list of the neighbours with the highest attention weights.
+This list is an attention-derived explanatory signal, useful for review, rather than a
+demonstrated faithful explanation of the decision.
 
 \paragraph{Entropy as the abstention criterion.}
 Several uncertainty estimates could decide when to abstain: Monte Carlo
@@ -275,8 +282,8 @@ dropout~\cite{gal2016dropout} or deep ensembles~\cite{lakshminarayanan2017ensemb
 capture epistemic uncertainty better, but require several forward passes per image, which
 multiplies the latency. The predictive entropy of the CORAL output is available in a single
 pass, is well defined for ordinal outputs, and, because DOTS is well calibrated
-(ECE $=0.040$), tracks the actual probability of error closely enough to meet the safety
-criterion. Combining it with ensemble-based uncertainty is a natural extension.
+(ECE $=0.040$), tracked the actual probability of error closely enough, on the
+retrospective data, to reach the Sev-NR target at the point estimate. Combining it with ensemble-based uncertainty is a natural extension.
 
 \subsection{Training and Inference Procedure}
 
@@ -293,7 +300,7 @@ returns a grade or defers the case to a human grader. The two parts share the sa
 feature extractors, so that a new patient is processed exactly like the training images.
 
 \begin{algorithm}[H]
-\caption{DOTS: training and safe inference with abstention.}
+\caption{DOTS: training and inference with safety-oriented abstention.}
 \label{alg:dots}
 \DontPrintSemicolon
 \KwIn{training set $\{(I_j,y_j)\}$; new image $I_i$; class weights $\lambda_0,\ldots,\lambda_4$; threshold $\tau_U=0.73$}
@@ -325,19 +332,20 @@ cost of each training run moderate (\cref{tab:compute}). At inference time, the 
 of grading a new patient does not depend on the size of the cohort: the features of the new
 image are computed once, its neighbours are retrieved with an approximate nearest-neighbour
 query, and the GAT layer aggregates a fixed number of sampled neighbours. The complete
-procedure takes $31.4$~ms per image (\cref{tab:latency}), dominated by the topological
-features, and the abstention test itself adds a negligible cost, since the entropy is
+procedure takes $31.4$~ms per image under the hardware and software configuration of
+\cref{app:repro} (\cref{tab:latency}), dominated by the topological features, and the abstention test itself adds a negligible cost, since the entropy is
 computed from the five grade probabilities that the model outputs anyway. The same code path is used for evaluation and for deployment, so the measured performance corresponds to the behaviour of the system that would be installed.
 
 \subsection{Regulatory-Oriented Design}
 \label{sec:regdesign}
 
-The architectural choices above also address key regulatory obligations \emph{by
-construction}, not by retrofit: the typed stages support IEC~62304 unit verification, the
-per-stage typed exceptions support ISO~14971 risk management, the GAT weights
-$\alpha_{ij}$ provide the per-prediction transparency of EU AI Act Article~13, and entropy
-abstention implements the human oversight of Article~14. \Cref{ch:reg} develops this
-mapping in full (\cref{tab:regmap}).
+The architectural choices above were also made with regulatory-oriented principles in mind,
+rather than retrofitted: the typed stages support IEC~62304-style unit verification, the
+per-stage typed exceptions support ISO~14971-style risk management, the GAT weights
+$\alpha_{ij}$ provide an attention-derived signal relevant to the transparency obligations
+of EU AI Act Article~13, and entropy abstention is a mechanism relevant to the human
+oversight of Article~14. \Cref{ch:reg} develops this mapping (\cref{tab:regmap}); it is a
+design mapping, not a conformity assessment.
 
 The same design choices also simplify the management of changes after deployment. Because
 the RETFound backbone and the topological extractor are frozen and versioned, and because
@@ -345,9 +353,9 @@ every stage has a typed contract, a modification can be confined to one stage an
 by that stage's unit tests, without re-validating the whole pipeline. DOTS is therefore
 intended to be deployed as a \emph{locked} algorithm: the weights are fixed at release, and
 any retraining produces a new version that goes through the same verification and
-evaluation protocol before it replaces the previous one. This is the model expected by
-current medical-device regulations for software whose behaviour must remain predictable
-once in clinical use.
+evaluation protocol before it replaces the previous one. This mirrors the ``locked''
+algorithm model described in regulatory guidance for software whose behaviour must remain
+predictable once in clinical use.
 
 \section{Experimental Protocol}
 \label{sec:ch4-protocol}
@@ -373,6 +381,16 @@ the class weights of the CORAL loss, $\lambda=(1.0,2.5,3.0,8.0,6.0)$ for Grades~
 (\cref{tab:weights}), and the abstention threshold $\tau_U=0.73$~nats (\cref{tab:tau}).
 Both were selected on the validation folds only. The complete list of hyperparameters is
 given in \cref{app:hyper}.
+
+\paragraph{Unit of analysis.}
+All sample sizes in this chapter are numbers of retinal images. The five benchmarks
+contain $108{,}301$ images in total (\cref{tab:datasets}), but these are not necessarily
+$108{,}301$ independent patients: some benchmarks contain several images of the same
+patient (for example both eyes in Kaggle EyePACS). Cross-validation folds are stratified by
+grade (\cref{app:repro}); the results are therefore image-level estimates, and
+generalisation to new patients and populations is interpreted cautiously. The absence of
+complete patient-level longitudinal and demographic metadata also limits population-level
+clinical inference.
 
 \subsection{Evaluation Protocol and Contamination Controls}
 \label{sec:protocol}
@@ -411,7 +429,11 @@ such risk and the rule that blocks it.
 
 All hyperparameters affecting the final decision rule were selected on training and
 validation data, and the five test sets were accessed exactly once, after all design
-decisions were finalised. The seven evaluation criteria and their thresholds were fixed at
+decisions were finalised. In particular, no held-out test set was used to choose the
+backbone (EfficientNet-B3 or RETFound), the dual-similarity weight $\alpha$, the number of
+neighbours $k$, the class weights $\lambda_0,\ldots,\lambda_4$, the abstention threshold
+$\tau_U$, the final architecture or any other hyperparameter; the order in which these
+choices were frozen is recorded in \cref{app:repro}. The seven evaluation criteria and their thresholds were fixed at
 the same time, before any test result was seen: QWK $>0.90$, AUC $>0.97$, ECE $<0.05$,
 Sev-NR $<2\%$, PDR-NR $<1.5\%$, coverage $>90\%$ and $0\%$ rank violations. Each criterion
 is reported with a bootstrap 95\% confidence interval, but the pre-specified decision rule
@@ -425,40 +447,46 @@ uses the point estimate (\cref{app:stats}).
 
 DOTS is evaluated against seven pre-specified criteria on the combined
 APTOS $+$ Kaggle EyePACS test set ($N=10{,}000$); \cref{tab:h3a} lists each criterion,
-its threshold and the result. H3a is satisfied at the
-point-estimate level, but statistical compliance with the predefined safety
-threshold is not established (95\% CI upper bound $2.4\%$ exceeds $2\%$).
+its threshold and the result. DOTS achieves a Sev-NR of $1.9\%$, which is below the
+predefined $2\%$ evaluation target at the point estimate. However, the corresponding 95\%
+confidence interval $[1.4\%,\,2.4\%]$ extends above the target. The present retrospective
+evaluation therefore demonstrates performance toward the predefined target, but does not
+establish statistical compliance with the $2\%$ criterion. Accordingly, H3a is considered
+achieved at the point-estimate level, with moderate evidential strength
+(\cref{tab:claims}), rather than as definitive statistical confirmation of the safety
+criterion.
 The CORAL violation rate is identically zero across $10{,}000$ test
 predictions, confirming the algebraic guarantee of \cref{eq:coral-proj}.
 
 \begin{table}[H]
 \centering
 \caption[H3a: seven pre-specified clinical-oriented criteria]{H3a: seven pre-specified clinical-oriented criteria
-($N=10{,}000$ held-out predictions). Pass $=$ the point estimate meets the
-threshold.}
+($N=10{,}000$ held-out predictions). ``Pass (PE)'' $=$ the point estimate meets the
+threshold; it does not imply that the whole confidence interval does.}
 \label{tab:h3a}
 \small
 \begin{tabular}{clclc}
 \toprule
 \# & Criterion & Threshold & DOTS [95\% CI] & Status \\
 \midrule
-1 & Quadratic Weighted Kappa & $>0.90$ & $0.951$ $[0.941,\,0.957]$ & Pass \\
-2 & AUC (macro one-vs-rest) & $>0.97$ & $0.988$ $[0.982,\,0.994]$ & Pass \\
-3 & Expected Calibration Error & $<0.05$ & $0.040$ $[0.034,\,0.046]$ & Pass \\
-4 & Severe-DR Non-Referral Rate & $<2.0\%$ & $1.9\%$ $[1.4\%,\,2.4\%]$ & Pass \\
-5 & PDR Non-Referral Rate & $<1.5\%$ & $0.8\%$ $[0.4\%,\,1.2\%]$ & Pass \\
-6 & Coverage (after abstention) & $>90\%$ & $93.8\%$ $[91.2\%,\,96.4\%]$ & Pass \\
-7 & CORAL rank violations & $=0\%$ & $0.0\%$ $[0.0\%,\,0.0\%]$ & Pass \\
+1 & Quadratic Weighted Kappa & $>0.90$ & $0.951$ $[0.941,\,0.957]$ & Pass (PE) \\
+2 & AUC (macro one-vs-rest) & $>0.97$ & $0.988$ $[0.982,\,0.994]$ & Pass (PE) \\
+3 & Expected Calibration Error & $<0.05$ & $0.040$ $[0.034,\,0.046]$ & Pass (PE) \\
+4 & Severe-DR Non-Referral Rate & $<2.0\%$ & $1.9\%$ $[1.4\%,\,2.4\%]$ & Pass (PE)$^{\dagger}$ \\
+5 & PDR Non-Referral Rate & $<1.5\%$ & $0.8\%$ $[0.4\%,\,1.2\%]$ & Pass (PE) \\
+6 & Coverage (after abstention) & $>90\%$ & $93.8\%$ $[91.2\%,\,96.4\%]$ & Pass (PE) \\
+7 & CORAL rank violations & $=0\%$ & $0.0\%$ $[0.0\%,\,0.0\%]$ & Pass (PE) \\
 \bottomrule
 \end{tabular}
-\tabnote{The Sev-NR 95\% CI upper bound is $2.4\%$,
-so statistical compliance with the $2\%$ line is not established.}
+\tabnote{$^{\dagger}$The Sev-NR 95\% CI upper bound is $2.4\%$, above the $2\%$
+target: the point estimate meets the target, but statistical compliance with the $2\%$
+criterion is not established.}
 \end{table}
 
 The seven criteria are not arbitrary: QWK and AUC are the standard ordinal and
 discriminative metrics of the DR literature; ECE operationalises calibration
-for triage; Sev-NR and PDR-NR are taken from published national screening
-guidelines; coverage stops abstention from trivially buying safety; rank
+for triage; the Sev-NR and PDR-NR targets are adopted from national screening
+practice~\cite{scanlon2017english} as evaluation targets for this thesis; coverage stops abstention from trivially buying safety; rank
 violations are the architectural guarantee of CORAL.
 
 \subsection{Cross-Benchmark Performance}
@@ -467,8 +495,11 @@ violations are the architectural guarantee of CORAL.
 \Cref{tab:bench} reports the QWK of DOTS and of three reference systems on the five
 public benchmarks~\cite{kaggle2015eyepacs,aptos2019,porwal2018idrid,
 decenciere2014messidor,li2019ddr}. DOTS has the highest QWK on four of them; on IDRiD,
-the smallest dataset ($N=516$), RETFound remains higher ($0.901$ against $0.878$), a gap
-discussed among the limitations in the General Conclusion.
+the smallest dataset ($N=516$ images), RETFound remains higher ($0.901$ against $0.878$).
+The lower performance observed on IDRiD may be associated with its substantially smaller
+sample size and consequently smaller population graph. This provides a plausible
+methodological explanation for the observed gap, but the present experiments do not
+establish a causal relationship between graph size and cross-dataset performance.
 
 \begin{table}[H]
 \centering
@@ -487,7 +518,7 @@ DOTS & $\mathbf{0.951}$ & $\mathbf{0.953}$ & $0.878$ & $\mathbf{0.948}$ & $\math
 \end{tabular}
 \end{table}
 
-\Cref{fig:bench} shows the same results graphically. The ranking of the systems is the same on all benchmarks except IDRiD, which suggests that the gains of DOTS do not depend on a particular camera or population.
+\Cref{fig:bench} shows the same results graphically. The ranking of the systems is the same on all benchmarks except IDRiD, which is consistent with gains that are not specific to one camera or population, although five retrospective benchmarks without demographic metadata cannot establish this in general.
 
 \input{figures/fig_bench}
 
@@ -552,8 +583,8 @@ error is adjacent-grade confusion (Grade~$k\leftrightarrow k\pm1$), consistent w
 known difficulty of the ICDR scale at grade boundaries, where inter-rater agreement among
 ophthalmologists is only moderate ($\kappa\approx0.55$--$0.65$ at the Grade~2/3
 boundary). There are no clinically dangerous multi-grade jumps: no Grade~0 image is
-classified as Grade~3 or~4, and no Grade~4 image as Grade~0 or~1. This is the empirical
-counterpart of the rank-consistency guarantee of CORAL.
+classified as Grade~3 or~4, and no Grade~4 image as Grade~0 or~1. This is consistent with,
+although not implied by, the rank-consistency guarantee of CORAL.
 
 \subsubsection{Abstention by True Grade}
 
@@ -710,12 +741,20 @@ set used for H3a.
 \end{tabular}
 \end{table}
 
-\paragraph{H3b confirmed.}
+\paragraph{H3b supported within the investigated family.}
 All six proper subsets fail Sev-NR $<2\%$ (\cref{tab:h3b}). The closest failure is
 $\{R,O\}$ at $2.2\%$: graph and ordinal safety, but no topology. It lies $0.3$~pp above
 the line, and the bootstrap 95\% interval of the difference with DOTS is
-$[-0.54,\,-0.08]$~pp, which excludes zero. Removing topology alone is therefore enough to
-miss the safety rule, even when the other two axes are at their strongest.
+$[-0.54,\,-0.08]$~pp, which excludes zero. Within this family and specification, removing topology alone is
+therefore enough to miss the safety rule, even when the other two axes are kept.
+
+Within the investigated DOTS architectural family and experimental specification, the
+complete relational--structural--ordinal configuration is thus the only evaluated
+configuration whose Sev-NR point estimate falls below the predefined $2\%$ target while
+satisfying the complete set of predefined criteria. This result supports the practical
+necessity of jointly considering the three axes within the investigated architecture
+family. It does not establish that every conceivable architecture lacking one of these
+components would fail the same criterion.
 
 \subsection{Full Seven-Criterion Breakdown by Subset}
 
@@ -781,11 +820,12 @@ the same five benchmarks, the same seven criteria, the same architecture family 
 ViT backbone $+$ optional graph $+$ optional TDA $+$ optional CORAL $+$ optional
 abstention). It does not prove that no conceivable architecture lacking one of the axes
 could meet the criteria; that would require a proof over the space of all architectures,
-which is neither attempted nor claimed. The result reads: among the best-tuned
-implementations of each proper subset achievable in this family, none satisfies all
-seven criteria, while the full combination does. This is the standard scope of a
-constructive necessity argument in applied machine learning, strengthened here by
-exhaustive rather than partial enumeration.
+which is neither attempted nor claimed. The result reads: among the implementations of each proper subset trained in this family
+under the same protocol, none satisfies all seven criteria, while the full combination
+does so at the point estimate. This is the usual scope of a constructive
+necessity argument in applied machine learning, with the advantage here of exhaustive
+rather than partial enumeration of the six subsets; it also inherits the uncertainty of
+each Sev-NR estimate, since the DOTS interval itself extends above $2\%$.
 
 \section{Effect Sizes and Clinical Impact}
 \label{sec:ch4-impact}
@@ -825,7 +865,7 @@ Necessity (H3b) & Constructive enumeration & $6/6$ subsets fail & -- \\
 A projection makes the practical stakes concrete. Sev-NR is the proportion of severe
 cases (Grades~3--4) that are \emph{not} referred, so the number of missed cases is
 \begin{equation}
-\text{missed severe cases per year} \;=\; N\times\pi_{\mathrm{sev}}\times\text{Sev-NR},
+\text{projected non-referred severe cases per year} \;=\; N\times\pi_{\mathrm{sev}}\times\text{Sev-NR},
 \label{eq:impact}
 \end{equation}
 where $N$ is the number of patients screened per year and $\pi_{\mathrm{sev}}$ the
@@ -847,19 +887,20 @@ Quantity & EfficientNet-B3 & DOTS & Difference \\
 \midrule
 Sev-NR & 4.3\% & 1.9\% & $-2.4$~pp \\
 PDR-NR & 2.0\% & 0.8\% & $-1.2$~pp \\
-Missed severe cases (Grades 3--4) per year & 1{,}075 & 475 & $-600$ ($-56\%$) \\
+Projected non-referred severe (G3--4) per year & 1{,}075 & 475 & $-600$ ($-56\%$) \\
 \quad of which proliferative (Grade 4) & 100 & 40 & $-60$ ($-60\%$) \\
 Images deferred to a human grader per year & 0 & 31{,}000 & -- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Under these assumptions, moving from EfficientNet-B3 to DOTS avoids about $600$ missed
-sight-threatening cases per year, a relative reduction of $56\%$ that holds for any
-prevalence. The cost is that $6.2\%$ of images (about $31{,}000$ per year) are deferred
+Under these assumptions, the projected number of potentially non-referred severe cases is
+about $600$ lower with DOTS than with EfficientNet-B3, a relative reduction of $56\%$ that
+does not depend on the assumed prevalence. This is a projection from retrospective point
+estimates, not an observed number of cases avoided. The cost is that $6.2\%$ of images (about $31{,}000$ per year) are deferred
 to human graders; these are, by construction, the most ambiguous cases. The projection
-counts only directly prevented missed referrals, not the downstream value of earlier
-treatment.
+concerns only non-referral at the point estimate; it ignores the uncertainty of Sev-NR and
+says nothing about the downstream value of earlier treatment.
 
 \paragraph{A caveat on causal interpretation.}
 The projection assumes that the retrospective Sev-NR improvement transfers to prospective
@@ -870,16 +911,16 @@ established clinical outcome before that validation.
 \subsection{Synthesis: Sufficiency, Necessity and Magnitude}
 \label{sec:synthesis}
 
-This chapter completes a three-part evidential structure that began in \cref{ch:dots}.
-H3a (\cref{sec:h3a-eval}) established sufficiency: the full architecture clears every
-threshold at the point estimate. H3b (\cref{sec:h3b}) established necessity within the
-evaluated family: no proper subset does. The effect-size and clinical-impact analyses add
+This chapter completes a three-part evidential structure.
+H3a (\cref{sec:h3a-eval}) showed that the full architecture clears every threshold at the
+point estimate, although the Sev-NR interval extends above $2\%$. H3b (\cref{sec:h3b})
+showed, within the investigated family, that no proper subset does. The effect-size and clinical-impact analyses add
 a third dimension that sufficiency and necessity alone do not capture: magnitude. A
 necessity result could in principle be technically true yet practically marginal, the
 best proper subset missing the threshold by a negligible amount. This is not the case
 here: the best proper subset, $\{R,O\}$, misses by $0.3$~pp in absolute terms, a relative
-Sev-NR increase of about $16\%$ over DOTS, or about $75$ additional missed severe cases
-per year in the projection of \cref{tab:impact}.
+Sev-NR increase of about $16\%$ over DOTS, or about $75$ additional projected non-referred
+severe cases per year under the assumptions of \cref{tab:impact}.
 
 \section{Comparison with the Literature}
 \label{sec:ch4-lit}
@@ -892,8 +933,9 @@ Ensembles improve raw accuracy ($+1$--$2$~pp QWK) but do not address L1, L2 or
 L3. Self-supervised retinal pre-training, used alone, addresses only Gap~A.
 Post-hoc calibration improves ECE without the algebraic rank-consistency of
 CORAL. DOTS's claim is not that any single component is novel, but that this
-specific combination, applied to this seven-criterion specification, is both
-architecturally coherent and empirically necessary (\cref{ch:dots}, H3b).
+specific combination, applied to this seven-criterion specification, is architecturally
+coherent and, within the investigated family, the only evaluated configuration that meets
+all seven criteria at the point estimate (H3b).
 
 \subsection{Progressive Contribution Analysis}
 \label{sec:progress}
@@ -902,8 +944,7 @@ architecturally coherent and empirically necessary (\cref{ch:dots}, H3b).
 baseline to DOTS, showing the cumulative impact of each contribution on accuracy and
 safety. The improvement is monotone in both QWK and Sev-NR: no component degrades the
 others. The safety threshold is crossed only at the final step (entropy abstention), and
-only when all earlier components are in place. This is the experimental counterpart of
-the constructive necessity established by H3b.
+only when all earlier components are in place. This is consistent with the scoped necessity result of H3b.
 
 The two metrics are not driven by the same components. The largest gain in accuracy comes
 from the retinal foundation model ($+0.041$ QWK), whereas the largest single reduction of
@@ -911,8 +952,8 @@ the non-referral rate comes from the dual-similarity graph with topological feat
 ($-0.7$~pp, from $4.1\%$ to $3.4\%$), followed by the CORAL head ($-0.5$~pp). Abstention adds
 the smallest QWK gain of all steps ($+0.008$) but is the step that crosses the $2\%$
 threshold. A design driven by accuracy alone would therefore have stopped after the
-foundation model and missed the safety criterion; a design driven by safety needs all
-three axes.
+foundation model and missed the safety criterion; in the family studied here, reaching the
+safety target at the point estimate required all three axes.
 
 \input{figures/fig_progressive}
 
@@ -922,15 +963,20 @@ three axes.
 \subsection{Interpreting the Seven-Criterion Result}
 \label{sec:interp7}
 
-The ``$7/7$ pass'' result of \cref{tab:h3a} establishes that, on five
-retrospective public benchmarks with stratified bootstrap intervals, DOTS's
-point estimates clear every threshold drawn from published national screening
-guidelines. It does not establish that DOTS will continue to clear these
+The ``$7/7$ at the point estimate'' result of \cref{tab:h3a} establishes that, on the
+retrospective held-out test set, DOTS's point estimates clear every predefined threshold,
+including the Sev-NR target adopted from national screening practice. It does not
+establish that the Sev-NR target is met with statistical confidence, since the upper bound
+of its 95\% interval ($2.4\%$) lies above $2\%$. It does not establish that DOTS will continue to clear these
 thresholds on prospective data, nor that the specific threshold values are
 themselves optimal. Clearing the bar on retrospective data is Level~1 evidence
 in the hierarchy of the General Conclusion, not Level~2--4 evidence. The
-chapter therefore says that DOTS \emph{satisfies} the seven criteria, not that
-it is \emph{proven safe}.
+chapter therefore says that DOTS \emph{reaches the seven criteria at the point estimate},
+not that it is \emph{proven safe}. The results provide retrospective computational
+evidence of favourable safety-oriented performance on the evaluated public datasets. They
+do not establish prospective clinical safety, clinical effectiveness, or readiness for
+routine clinical deployment; prospective multi-site validation with independent clinical
+readers remains necessary before such conclusions can be drawn.
 
 \subsection{Claim--Evidence--Strength Mapping}
 \label{sec:claims}
@@ -951,14 +997,14 @@ confirmatory. Projected: extrapolation beyond the data.}
 \toprule
 Claim & Evidence & Strength \\
 \midrule
-H1: dual-metric graph improves QWK & Pre-specified $t$-test ($t_4=3.82$, $p=0.009$, $d_z=1.71$); bootstrap CI excludes 0; exact permutation $p=0.031$ & Strong \\
-H2: $H_0/H_1$ association with severity & Pre-specified ANOVA ($F=1308.9$, $\eta^2=0.51$, Bonferroni) & Strong \\
-H3a: $7/7$ criteria met & Point-estimate pass (Sev-NR $=1.9\%$); 95\% CI $[1.4\%,\,2.4\%]$ exceeds the threshold & Moderate \\
-H3b: no proper subset sufficient & Exhaustive $6/6$ enumeration; bootstrap CI of the closest case excludes 0 & Moderate \\
+H1: dual-metric graph improves QWK & Pre-specified $t$-test over five folds ($t_4=3.82$, $p=0.009$, $d_z=1.71$); bootstrap CI excludes 0; exact permutation $p=0.031$ (complementary checks on the same folds) & Strong \\
+H2: $H_0/H_1$ association with severity (not causation) & Pre-specified ANOVA ($F=1308.9$, $\eta^2=0.51$, Bonferroni) & Strong \\
+H3a: $7/7$ criteria met at the point estimate & Point-estimate pass (Sev-NR $=1.9\%$); 95\% CI $[1.4\%,\,2.4\%]$ exceeds the threshold & Moderate \\
+H3b: no proper subset sufficient, within the investigated family & Exhaustive $6/6$ enumeration; bootstrap CI of the closest case excludes 0 & Moderate \\
 Super-additive interaction (\cref{ch:toporet}) & $+0.040 > +0.026$; consistent with an interaction model & Suggestive \\
 Synergistic gains (\cref{ch:found}) & $7.0 > 6.3$~pp; consistent with complementary information & Suggestive \\
 Cross-dataset generalisation & OOD $\Delta$QWK $\geq$ in-distribution $\Delta$QWK; consistent with stability & Suggestive \\
-About $600$ fewer missed severe cases per year & Projection at the point estimate, assumed prevalence (\cref{tab:impact}) & Projected \\
+About $600$ fewer projected non-referred severe cases per year & Projection at the point estimate, assumed prevalence (\cref{tab:impact}) & Projected \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -977,10 +1023,11 @@ least three sites) is required before any claim of clinically validated safety.
 per-image demographic annotations; fairness across age, sex and ethnicity has not been
 evaluated.
 \item \textbf{No longitudinal validity.} The population graph is static (one visit per
-patient). Temporal graphs using disease progression are a research perspective.
-\item \textbf{No regulatory certification.} The thesis demonstrates a regulatory-oriented
-design consistent with IEC~62304, ISO~14971 and the EU AI Act. It is not a regulatory
-submission.
+patient), and ``disease progression'' is operationalised as cross-sectional severity
+grading. Longitudinal prediction of individual trajectories is a research perspective.
+\item \textbf{No regulatory certification.} The thesis documents a regulatory-oriented
+design, mapped to requirements of IEC~62304, ISO~14971 and the EU AI Act. It is not a
+conformity assessment, a clinical evaluation or a regulatory submission.
 \item \textbf{The necessity claim is scoped.} H3b shows that the six proper subsets of
 DOTS fail Sev-NR $<2\%$ within the evaluated family and specification, not that no
 conceivable two-axis architecture could succeed.
@@ -999,34 +1046,39 @@ structural-invariant approach, not a formal transfer guarantee.
 \caption{Outcome of the pre-specified hypotheses.}
 \label{tab:hypsummary}
 \small
-\begin{tabular}{@{}l P{3.6cm} P{4.2cm} l l@{}}
+\begin{tabular}{@{}l P{3.4cm} P{3.9cm} l l@{}}
 \toprule
 Hypothesis & Pre-specified test & Result & Effect & Status \\
 \midrule
-H1 -- relational & Paired $t$-test, five folds & $t_4=3.82$, $p=0.009$ & $d_z=1.71$ & Confirmed \\
-H2 -- structural & One-way ANOVA, Bonferroni & $F(4,4995)=1308.9$, $p<0.001$ & $\eta^2=0.51$ & Confirmed \\
-H3a -- sufficiency & Seven criteria, five benchmarks & $7/7$ met at the point estimate & -- & Met$^{\ast}$ \\
-H3b -- necessity & Exhaustive enumeration & $6/6$ proper subsets fail & -- & Confirmed \\
+H1 -- relational & Paired $t$-test, five folds & $t_4=3.82$, $p=0.009$ & $d_z=1.71$ & Supported \\
+H2 -- structural & One-way ANOVA, Bonferroni & $F(4,4995)=1308.9$, $p<0.001$ & $\eta^2=0.51$ & Supported$^{\dagger}$ \\
+H3a -- sufficiency & Seven criteria, held-out test set & $7/7$ met at the point estimate & -- & Met (PE)$^{\ast}$ \\
+H3b -- necessity & Exhaustive enumeration & $6/6$ proper subsets fail & -- & Supported$^{\ddagger}$ \\
 \bottomrule
 \end{tabular}
-\tabnote{$^{\ast}$The upper bound of the 95\% confidence interval of Sev-NR ($2.4\%$) still
-exceeds the $2\%$ threshold.}
+\tabnote{$^{\dagger}$Statistical association, not causation.
+$^{\ast}$Point estimate only: the upper bound of the 95\% confidence interval of
+Sev-NR ($2.4\%$) exceeds the $2\%$ target, so statistical compliance is not established.
+$^{\ddagger}$Within the investigated architectural family and experimental specification
+only.}
 \end{table}
 
 \section*{Conclusion}
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
-This chapter presented DOTS and evaluated it from four complementary angles. Sufficiency:
-all seven predefined criteria are met at the point estimate on five public benchmarks,
-with QWK $=0.951$, Sev-NR $=1.9\%$ (95\% CI $[1.4\%,\,2.4\%]$) and $0\%$ rank violations.
-Necessity: none of the six systems obtained by removing one or two axes reaches
-Sev-NR $<2\%$; the closest, without topology, misses by a margin whose bootstrap interval
-excludes zero. Magnitude: all primary effect sizes are large, and under explicit
-prevalence assumptions the Sev-NR reduction corresponds to about $600$ fewer missed severe
-cases per year in a programme of $500{,}000$ patients. Limits: the evidence is
-retrospective, and the upper confidence bound of Sev-NR still crosses the threshold.
+This chapter presented DOTS and evaluated it from four complementary angles. Seven
+criteria (H3a): all seven predefined criteria are met at the point estimate on the
+retrospective held-out test set, with QWK $=0.951$, Sev-NR $=1.9\%$ (95\% CI
+$[1.4\%,\,2.4\%]$) and $0\%$ rank violations; because the interval extends above $2\%$,
+statistical compliance with the Sev-NR target is not established. Scoped necessity (H3b):
+within the investigated family, none of the six systems obtained by removing one or two
+axes reaches Sev-NR $<2\%$; the closest, without topology, misses by a margin whose
+bootstrap interval excludes zero. Magnitude: the primary effect sizes are large, and under
+explicit prevalence assumptions the Sev-NR reduction corresponds to a projected $600$ fewer
+potentially non-referred severe cases per year in a programme of $500{,}000$ patients.
+Limits: the evidence is retrospective and image-level.
 
-A grading system that is accurate and safe on retrospective data is not yet a medical
-device. The next chapter describes how DOTS was engineered for deployment: its software
-architecture, its verification, and the mapping of its design to the regulatory
-requirements of medical-device software.
+A grading system with favourable safety-oriented performance on retrospective data is not
+yet a medical device. The next chapter describes the software architecture of DOTS, its
+verification, and the regulatory-oriented mapping of its design to requirements relevant to
+medical-device software.

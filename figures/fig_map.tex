@@ -18,17 +18,17 @@
 \node[box, fill=failf, draw=failred] (l1) at (0,-1.3) {\textbf{L1 -- no graph}\\Each image is scored alone;\\neighbours are ignored};
 \node[box, fill=black!4, draw=black!50] (q1) at (\dx,-1.3) {Does a similarity graph add information that a CNN cannot recover alone?};
 \node[box, fill=axisRf, draw=axisR] (s1) at (2*\dx,-1.3) {\textbf{Axis R}\\Dual-similarity graph\\GraphSAGE, $k{=}15$};
-\node[box, fill=okf, draw=okgreen] (e1) at (3*\dx,-1.3) {\textbf{H1 confirmed}\\$t_4{=}3.82$, $p{=}0.009$\\$d_z{=}1.71$; ${+}4.0$ pp QWK};
+\node[box, fill=okf, draw=okgreen] (e1) at (3*\dx,-1.3) {\textbf{H1 supported}\\$t_4{=}3.82$, $p{=}0.009$\\$d_z{=}1.71$; ${+}4.0$ pp QWK};
 
 \node[box, fill=axisSf, draw=axisS] (l2) at (0,-1.3-\dy) {\textbf{L2 -- no topology}\\CNNs see local texture,\\not vessel loops ($H_1$)};
 \node[box, fill=black!4, draw=black!50] (q2) at (\dx,-1.3-\dy) {Do $H_0/H_1$ persistence features track ICDR severity?};
 \node[box, fill=axisSf, draw=axisS] (s2) at (2*\dx,-1.3-\dy) {\textbf{Axis S}\\7-D Vietoris--Rips\\vector (GUDHI)};
-\node[box, fill=okf, draw=okgreen] (e2) at (3*\dx,-1.3-\dy) {\textbf{H2 confirmed}\\$F(4,4995){=}1308.9$\\$\eta^2{=}0.51$ (large)};
+\node[box, fill=okf, draw=okgreen] (e2) at (3*\dx,-1.3-\dy) {\textbf{H2 supported}\\$F(4,4995){=}1308.9$\\$\eta^2{=}0.51$ (association)};
 
 \node[box, fill=axisOf, draw=axisO] (l3) at (0,-1.3-2*\dy) {\textbf{L3 -- no safety}\\Every image is graded;\\Sev-NR $>2\%$ before DOTS};
 \node[box, fill=black!4, draw=black!50] (q3) at (\dx,-1.3-2*\dy) {Do the three axes meet the seven criteria, and does any subset fail?};
 \node[box, fill=axisOf, draw=axisO] (s3) at (2*\dx,-1.3-2*\dy) {\textbf{Axis O}\\RETFound $+$ CORAL\\$+$ entropy abstention};
-\node[box, fill=okf, draw=okgreen] (e3) at (3*\dx,-1.3-2*\dy) {\textbf{H3a / H3b}\\$7/7$ at point estimate\\$6/6$ subsets fail};
+\node[box, fill=okf, draw=okgreen] (e3) at (3*\dx,-1.3-2*\dy) {\textbf{H3a / H3b}\\$7/7$ at point estimate\\$6/6$ subsets fail (scoped)};
 
 \foreach \a/\b in {l1/q1, q1/s1, s1/e1, l2/q2, q2/s2, s2/e2, l3/q3, q3/s3, s3/e3}
   \draw[arr] (\a) -- (\b);
@@ -36,11 +36,12 @@
 \node[draw=okgreen, fill=okf, rounded corners=2pt, inner sep=5pt, font=\footnotesize,
       minimum width=15.75cm, align=center] at (1.5*\dx,-1.3-3*\dy+0.35)
   {\textbf{DOTS (all three axes):}\enspace QWK $=0.951$\enspace$\cdot$\enspace Sev-NR $=1.9\%$ $[1.4,\,2.4]$\enspace$\cdot$\enspace AUC $=0.988$\enspace$\cdot$\enspace $0\%$ CORAL violations\\
-   H3b: every proper subset misses the $2\%$ safety rule; only the full system passes at the point estimate.};
+   H3b (investigated family): every proper subset misses the $2\%$ target; only the full system reaches it, at the point estimate only.};
 \end{tikzpicture}}
 \caption[Map of the thesis argument: limitations, components and results]{Map of
 the argument. Each row links one structural limitation (L1--L3) to its research
 question, the DOTS component that addresses it, and the result of the pre-specified
-test. The bottom bar gives the full three-axis system.}
+test. The bottom bar gives the full three-axis system. All results are retrospective; the
+Sev-NR interval extends above the $2\%$ target.}
 \label{fig:map}
 \end{figure}

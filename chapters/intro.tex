@@ -23,11 +23,24 @@ research has raised the agreement between algorithms and experts from a quadrati
 weighted kappa (QWK) of $0.840$ (EfficientNet-B3, 2019~\cite{tan2019efficientnet}) to
 $0.920$ (RETFound, 2023~\cite{zhou2023retfound}).
 
+\paragraph{Scope of the term ``disease progression''.}
+In this thesis, the term ``disease progression'' used in the title is operationalised
+through the prediction of diabetic retinopathy severity and ordinal grading from medical
+images: each fundus image is assigned a grade on the five-level ICDR scale, whose levels
+correspond to successive stages of the disease. The present work is therefore primarily
+cross-sectional: every patient contributes a single visit, and the thesis does not
+predict the future trajectory of an individual patient. Longitudinal modelling of disease
+progression, which requires repeated observations of the same patients over time, is
+considered a future extension (see the General Conclusion).
+
 \section*{Problem Statement}
 
-Despite this progress, no system reviewed in this thesis can be used, as it stands, in a
-national screening programme. The reason is not a lack of data or of computing power; it
-is architectural. Three limitations recur in every published system:
+Despite this progress, none of the representative systems reviewed here simultaneously
+addresses the three architectural requirements defined in this thesis within a single
+evaluated framework. Some systems have been validated prospectively and deployed
+(\cref{ch:sota}); the point made here is architectural, not a statement about the whole
+literature. Three limitations recur across the representative systems reviewed in this
+thesis:
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
 \item \textbf{L1 -- no relational context.} Each fundus image is graded in isolation, so
 patients who look alike, and who often share a grade, never inform one another.
@@ -37,12 +50,13 @@ components and loops), which changes as the disease progresses.
 \item \textbf{L3 -- no right to abstain.} Every image receives a grade, even when it is
 ambiguous. The most difficult cases, at the boundary between moderate and severe disease,
 are forced through, and the rate of severe cases that are not referred (Sev-NR) stays
-above the $2\%$ safety threshold used in this thesis.
+above the $2\%$ evaluation target adopted in this thesis.
 \end{itemize}
-These limitations are coupled: a graph needs topological information to be useful,
-topology alone gives only a partial gain, and abstention only reaches the safety threshold
-if the underlying predictions are accurate enough. They must therefore be addressed
-together, in a single architecture. \Cref{fig:map} summarises how each limitation leads to
+In the experiments of this thesis these limitations interact: the graph brings a
+significant gain only when its similarity includes topological information, topology
+alone gives only a partial gain, and abstention reaches the Sev-NR target only when the
+underlying predictions are accurate enough. This motivates addressing them together, in a
+single architecture. \Cref{fig:map} summarises how each limitation leads to
 a research question, to a component of the proposed system and to the result obtained in
 this thesis.
 
@@ -50,8 +64,8 @@ this thesis.
 
 \section*{Objectives and Value of the Work}
 
-This thesis aims to design, validate and engineer a DR grading system that resolves the
-three limitations at once. More precisely, it aims to:
+This thesis aims to design, retrospectively evaluate and engineer a DR grading system that
+addresses the three limitations within a single architecture. More precisely, it aims to:
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
 \item build an inductive population graph that lets similar patients share information,
 while grading a new patient in constant time;
@@ -59,35 +73,55 @@ while grading a new patient in constant time;
 both as patient features and inside the similarity that builds the graph;
 \item add ordinal prediction with guaranteed rank consistency and a calibrated abstention
 mechanism, so that ambiguous cases are sent to a human grader;
-\item validate each step with statistical tests fixed before the experiments, and engineer
-the result as medical-device software compatible with current regulations.
+\item evaluate each step with statistical tests fixed before the experiments, and design the
+software according to regulatory-oriented principles relevant to medical-device software.
 \end{itemize}
 
 The work thus pursues a double ambition. On the scientific side, it shows that the three
-limitations can be resolved together and that, within the family of architectures studied,
-none of the three components can be removed without losing the safety criterion. On the
-practical side, it delivers a system that is accurate (QWK $=0.951$), safe at the point
-estimate (Sev-NR $=1.9\%$), fast enough for national screening ($31.4$~ms per image), and
-designed from the start to meet the requirements of the IEC~62304 and ISO~14971 standards
-and of the EU AI Act. For a screening programme of $500{,}000$ patients a year, the
-reduction of the non-referral rate corresponds to about $600$ fewer missed
-sight-threatening cases under the assumptions of \cref{sec:impact}.
+limitations can be addressed together and that, within the investigated architectural
+family and experimental specification, the complete relational--structural--ordinal
+configuration is the only evaluated configuration whose Sev-NR point estimate falls below
+the $2\%$ target while satisfying the complete set of predefined criteria. On the
+practical side, it delivers a research system that reaches QWK $=0.951$ and a Sev-NR point
+estimate of $1.9\%$ (95\% CI $[1.4\%,\,2.4\%]$) on retrospective public benchmarks, with a
+measured latency of $31.4$~ms per image under the laboratory configuration of
+\cref{app:repro}, and whose architecture was designed according to regulatory-oriented
+principles relevant to IEC~62304, ISO~14971 and the EU AI Act. For an illustrative
+programme of $500{,}000$ patients a year, the lower non-referral rate corresponds to a
+\emph{projected} reduction of about $600$ potentially non-referred severe cases under the
+explicit prevalence assumptions of \cref{sec:impact}; this is a projection, not an observed
+clinical outcome.
+
+The central claim of the thesis is deliberately bounded. The thesis does not claim that
+DOTS is clinically validated or regulatory-ready; it demonstrates that, within the
+investigated architectural family, relational, structural/topological and ordinal-safety
+mechanisms can be integrated into a single system that achieves favourable
+safety-oriented performance on retrospective public benchmarks.
 
 \section*{Research Methodology}
 
 The work follows a hypothesis-driven methodology. Three research hypotheses structure the
-thesis: \textbf{H1}, a population graph adds information that a per-image classifier cannot
-recover; \textbf{H2}, persistent-homology features of the vessel network are associated with
-disease severity; and \textbf{H3}, the combination of the three axes is sufficient (H3a) and,
-within the architectures studied, necessary (H3b) to meet seven predefined clinical
-criteria. For each hypothesis, the statistical test, the decision threshold and the
+thesis: \textbf{H1}, a population graph adds information beyond that captured by a per-image
+classifier; \textbf{H2}, persistent-homology features of the vessel network are
+statistically associated with disease severity; and \textbf{H3}, the combination of the
+three axes meets seven predefined clinical-oriented criteria (H3a) and, within the
+investigated architectural family, no proper subset of the axes does (H3b). For each hypothesis, the statistical test, the decision threshold and the
 effect-size measure were fixed before the corresponding experiment was run, so that a
 negative result could not be explained away afterwards; the falsification criteria are
-listed in \cref{tab:falsif}. The components were introduced progressively, from a generic
+listed in \cref{tab:falsif}. Because the inferential unit of H1 is the cross-validation
+fold, its paired $t$-test has only four degrees of freedom; bootstrap and exact permutation
+analyses are therefore reported as complementary robustness checks rather than as
+independent replications. No held-out test set was used to choose the backbone, the graph
+parameters, the class weights, the abstention threshold, the final architecture or any
+other hyperparameter; each test set was consulted once, after these choices were frozen
+(\cref{sec:protocol}). The components were introduced progressively, from a generic
 graph template validated outside medicine, to TOPORET, and finally to DOTS, so that the
 contribution of each component can be measured separately. All experiments use public
 datasets, fixed random seeds and released code (\cref{app:repro}), so that they can be
-reproduced independently.
+reproduced independently. Sample sizes are reported in retinal images: the $108{,}301$
+images of the five benchmarks (\cref{tab:datasets}) are not necessarily independent
+patients, so the results are image-level and patient-level generalisation is interpreted
+with caution.
 
 \Cref{fig:pipe} gives an overview of the system obtained at the end of this process. Each
 fundus image goes through six typed stages, and each stage belongs to one of the three
@@ -109,15 +143,18 @@ heterogeneous graph benchmarks outside medicine
 structural features of the retina carry information that deep visual features miss,
 including SAMF-GB, a CPU model more accurate than a GPU EfficientNet-B3 at about $1/13$ of
 its cost \cite{belhadj2026hybrid,mezghich2026lnaitopo,belhadj2026icpram,belhadj2026samfgb}.
-\item[C3.] TOPORET, the first inductive dual-similarity population graph for DR grading,
-with statistical confirmation of the value of the graph (H1) and of the topological
-features (H2) \cite{belhadj2025plos,belhadj2026enase,belhadj2026miua}.
-\item[C4.] DOTS, to the best of our knowledge the first DR grading system that meets seven
-predefined clinical-oriented criteria simultaneously on retrospective data (H3a), together
-with an exhaustive proof that no reduced version of it does (H3b)
+\item[C3.] TOPORET, an inductive dual-similarity population graph for DR grading
+introduced in this thesis, with pre-specified tests supporting the contribution of the
+graph (H1) and the association of the topological features with severity (H2) \cite{belhadj2025plos,belhadj2026enase,belhadj2026miua}.
+\item[C4.] DOTS, a three-axis DR grading architecture combining relational,
+structural/topological and ordinal-safety mechanisms. On the evaluated retrospective
+benchmarks, DOTS reaches the predefined seven-criterion target at the point-estimate level
+(H3a), while exhaustive evaluation of the six proper subsets shows that none reaches the
+complete criterion set within the investigated architectural family (H3b)
 \cite{belhadj2026dots}.
-\item[C5.] A software architecture and a regulatory mapping that make DOTS verifiable,
-traceable and explainable by construction.
+\item[C5.] A software architecture with typed, unit-tested stages, an audit trail and
+attention-derived explanatory signals, together with a regulatory-oriented mapping of its
+design to IEC~62304, ISO~14971 and the EU AI Act (not a conformity assessment).
 \end{description}
 
 \Cref{tab:pubmap} shows which publications support each chapter of the thesis.
@@ -135,8 +172,8 @@ Ch. & Content & Contribution & Publications \\
 2 & Graphs, topology, ordinal prediction, metrics & Methodological background & -- \\
 3 & Graph template outside medicine; structural evidence on DR & C1, C2 & P1--P4, B1, B2, J2 \\
 4 & TOPORET population graph; tests of H1 and H2 & C3 & P5, P6, P7 \\
-5 & DOTS system; sufficiency (H3a) and necessity (H3b) & C4 & J1 \\
-6 & Software architecture and regulatory mapping & C5 & P6 \\
+5 & DOTS system; seven criteria (H3a) and scoped necessity (H3b) & C4 & J1 \\
+6 & Software architecture and regulatory-oriented design & C5 & P6 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -161,11 +198,13 @@ that structural features help DR grading.
 \item \textbf{Topology-Aware Population Graph for Diabetic Retinopathy Grading}
 (\cref{ch:toporet}): TOPORET, the dual-similarity population graph, and the tests of H1
 and H2.
-\item \textbf{Safe Ordinal Grading of Diabetic Retinopathy with Abstention} (\cref{ch:dots}): DOTS, the complete
-system, its sufficiency (H3a) and necessity (H3b), its clinical impact and its comparison with the
-literature.
-\item \textbf{Software Architecture and Regulatory Compliance} (\cref{ch:reg}): how DOTS
-is engineered as medical-device software.
+\item \textbf{Safety-Oriented Ordinal Grading of Diabetic Retinopathy with Abstention}
+(\cref{ch:dots}): DOTS, the complete system, the seven-criterion evaluation (H3a), the
+scoped necessity analysis (H3b), a projection of its clinical impact and its comparison
+with the literature.
+\item \textbf{Software Architecture and Regulatory-Oriented Design} (\cref{ch:reg}): how
+the design of DOTS was shaped by regulatory-oriented principles for medical-device
+software, and what this mapping does not establish.
 \end{enumerate}
 
 Readers with different backgrounds may follow different paths through the document.

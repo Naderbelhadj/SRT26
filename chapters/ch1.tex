@@ -265,7 +265,8 @@ often the grade assigned to an image is correct, and is usually reported as the 
 weighted kappa (QWK) with the reference grader. Safety measures how often a patient who
 needs urgent care is sent home, and is reported as the Severe-DR Non-Referral Rate
 (Sev-NR). National programmes typically require a very low non-referral rate for
-sight-threatening disease; this thesis adopts a threshold of $2\%$ throughout. The two axes
+sight-threatening disease; this thesis adopts a target of $2\%$ throughout, used as a
+predefined evaluation target rather than as a regulatory acceptance criterion. The two axes
 do not move together: a system can gain several points of QWK while its Sev-NR stays above
 the threshold, as the next section shows. The metrics are defined formally in
 \cref{sec:metrics}.
@@ -300,9 +301,11 @@ IDRiD~\cite{porwal2018idrid} & 516 & 40.9 & 5.0 & 32.0 & 8.5 & 13.6 & India, sin
 Messidor-2~\cite{decenciere2014messidor} & 1{,}748 & 53.5 & 15.0 & 23.0 & 5.0 & 3.5 & France \\
 DDR~\cite{li2019ddr} & 13{,}673 & 46.0 & 12.6 & 29.3 & 5.0 & 7.1 & China, multi-site \\
 \midrule
-Total & 108{,}301 & & & & & & \\
+Total (images) & 108{,}301 & & & & & & \\
 \bottomrule
 \end{tabular}
+\tabnote{$N$ counts retinal images, not independent patients: some benchmarks contain
+several images of the same patient (for example both eyes in Kaggle EyePACS).}
 \end{table}
 
 The five benchmarks differ in ways relevant to the cross-dataset results of
@@ -311,7 +314,8 @@ clinical sites and camera models; it is the most heterogeneous benchmark and the
 training and validation source for the twelve experiments of \cref{app:results}. APTOS
 2019 and IDRiD come from Indian screening programmes but differ in scale ($3{,}662$
 versus $516$ images) and in multi-site versus single-site acquisition; the small size of
-IDRiD is the likely explanation of its performance gap (\cref{sec:limits-gc}).
+IDRiD, and the correspondingly smaller population graph, is a plausible but not
+demonstrated explanation of its performance gap (\cref{sec:bench}).
 Messidor-2 (France) and DDR (China) extend the geographic range of the evaluation,
 although no dataset provides per-image demographic annotations, so geographic diversity
 is only a proxy for population diversity. Grades~3 and~4 are the smallest classes in
@@ -406,9 +410,9 @@ AI~\cite{kelly2019challenges,liu2019comparison,rajpurkar2022ai}.
 
 \Cref{tab:sota} summarises the systems most relevant to this thesis, from 2016 to 2026.
 Despite a $+8.0$~pp QWK gain from EfficientNet-B3 (2019, QWK $=0.840$) to RETFound (2023,
-QWK $=0.920$), none of them resolves the three structural limitations defined in the next
-section. This is not a coincidence: L1, L2 and L3 are properties of the function class, not
-of specific learned weights.
+QWK $=0.920$), none of them addresses the three structural limitations defined in the next
+section. Within the representative systems reviewed in this thesis, these three
+requirements are not addressed simultaneously by a single evaluated architecture.
 
 \begin{table}[H]
 \centering
@@ -443,9 +447,10 @@ Three patterns emerge from \cref{tab:sota}.
 
 \paragraph{Pattern 1: accuracy gains do not resolve structural limitations.}
 Between 2019 and 2023 QWK improved by $+8.0$~pp (EfficientNet-B3 $\to$ RETFound), yet
-L1, L2 and L3 remain unresolved in every system. This is not a failure of engineering
-effort: L1, L2 and L3 are properties of the architecture class, not of hyperparameters
-or dataset size.
+L1, L2 and L3 remain unaddressed in each of the reviewed systems. This suggests that the
+limitations relate to architectural choices rather than to hyperparameters or dataset
+size, although indirect mechanisms (for example global attention in transformers) may
+capture part of the missing information.
 
 \paragraph{Pattern 2: domain-matched pre-training is more productive than architectural
 refinement.}
@@ -457,7 +462,7 @@ initialisation rather than the architecture.
 The best system without abstention (RETFound, QWK $=0.920$) still has Sev-NR
 $\approx 3.1\%$, $1.1$~pp above the $2\%$ threshold. The further $+3.1$~pp QWK from
 RETFound to DOTS reduces Sev-NR by $38.7\%$ in relative terms: the remaining performance
-gap is concentrated in the safety-critical regime. Closing this gap therefore calls for changes to the architecture itself, rather than for larger networks or more training data.
+gap is concentrated in the safety-critical regime. The experiments of this thesis suggest that closing this gap benefits from changes to the architecture itself, rather than only from larger networks or more training data.
 
 \section{Challenges and Limits of Current Systems}
 \label{sec:challenges}
@@ -467,8 +472,8 @@ practical: models trained on one population lose accuracy on images from other c
 other countries; public datasets are small for the severe grades; and a model that always
 answers, even when the image is ambiguous, is hard to accept in a clinical workflow. This
 thesis focuses on three limitations that are not practical but \emph{architectural}: they
-are shared by every system reviewed above and cannot be removed by more data or larger
-networks.
+recur across the representative systems reviewed above and are unlikely to be removed by
+more data or larger networks alone.
 
 \subsection{Three Structural Limitations}
 \label{sec:limits}
@@ -478,8 +483,8 @@ depend on the volume of training data, on network depth or on computational budg
 
 \paragraph{Definition 1.1 (L1 -- No Relational Context).}
 A system satisfies L1 if and only if $P(Y_i \mid I_i, \mathcal{C}) = P(Y_i \mid I_i)$,
-where $\mathcal{C}$ denotes the patient cohort. Every system published at the time of
-writing satisfies this condition.
+where $\mathcal{C}$ denotes the patient cohort. All the per-image systems of
+\cref{tab:sota} satisfy this condition.
 
 \paragraph{Definition 1.2 (L2 -- No Vascular Topology).}
 A system satisfies L2 if and only if its feature map $\varphi : I \to \mathbb{R}^d$ uses
@@ -494,7 +499,8 @@ mechanism for deferring genuinely ambiguous cases to a human grader.
 \label{sec:coupled}
 
 A natural question is whether each limitation could be resolved by adding one component
-to an existing state-of-the-art system. The answer is no, and the reason is structural.
+to an existing state-of-the-art system. Within the systems evaluated in this thesis, the
+answer was no.
 
 Resolving \textbf{L1 alone} (adding a population graph) requires a similarity metric for
 edge construction. A visual-only metric produces a graph that is not significantly better
@@ -513,20 +519,20 @@ underlying predictions are not accurate enough for a coverage-preserving abstent
 threshold to bring the error below the line.
 
 \looseness=-1
-This interdependence is the motivating rationale for
-the joint three-axis architecture validated in \cref{ch:toporet,ch:dots}, and it is
-tested formally by H3b in \cref{ch:dots}.
+This interdependence, observed in the experiments of this thesis, is the motivating
+rationale for the joint three-axis architecture evaluated in \cref{ch:toporet,ch:dots},
+and it is tested, within the investigated family, by H3b in \cref{ch:dots}.
 
 \subsection{Positioning of This Thesis}
 \label{sec:position}
 
-\Cref{tab:sota} makes the gap concrete: over seven years and $+8.0$~pp of QWK from
-architectural scaling alone, no system resolves even one structural limitation. This is
-consistent with the diagnosis of \cref{sec:limits}: independent per-image CNN or ViT
-classifiers, whatever their scale or training volume, cannot represent inter-patient
-relations, cannot compute global topological invariants, and have no mechanism for
-declining to answer. Closing each gap therefore requires an architectural addition, not
-further scaling.
+\Cref{tab:sota} makes the gap concrete: over seven years and $+8.0$~pp of QWK, none of
+the representative systems reviewed resolves all three structural limitations, and only
+graph-based systems address L1 even partially. This is consistent with the diagnosis of
+\cref{sec:limits}: independent per-image CNN or ViT classifiers do not represent
+inter-patient relations explicitly, do not compute global topological invariants, and have
+no built-in mechanism for declining to answer. This thesis therefore investigates
+architectural additions rather than further scaling.
 
 \Cref{tab:limits} summarises the three limitations, their clinical consequence and the
 component of this thesis that addresses each of them.
@@ -552,8 +558,8 @@ L3 -- no right to abstain & Ambiguous severe cases are sent home & CORAL ordinal
 
 \looseness=-1
 This chapter presented the clinical problem addressed in this thesis. Despite a rise in
-grading accuracy from a QWK of $0.840$ to $0.920$ in four years, every published system still
-grades each image in isolation (L1), ignores the topology of the vascular tree (L2) and must
-answer even when the image is ambiguous (L3). Addressing these coupled limitations requires
+grading accuracy from a QWK of $0.840$ to $0.920$ in four years, the representative systems
+reviewed here still grade each image in isolation (L1), ignore the topology of the
+vascular tree (L2) and must answer even when the image is ambiguous (L3). Addressing these coupled limitations requires
 learning on graphs, topological data analysis and ordinal prediction with abstention,
 which the next chapter introduces together with the evaluation metrics of the thesis.

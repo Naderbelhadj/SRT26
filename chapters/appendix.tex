@@ -24,10 +24,12 @@
 8 & H1 graph-contribution test & P5~\cite{belhadj2025plos} & $t_4=3.82$, $p=0.009$, $d_z=1.71$ & 88{,}702 \\
 9 & H2 topological ANOVA & P5~\cite{belhadj2025plos} & $F=1308.9$, $\eta^2=0.51$, $p<0.001$ & 5{,}000 \\
 10 & DOTS in distribution & J1~\cite{belhadj2026dots} & QWK $=0.951$ & 88{,}702 \\
-11 & DOTS H3a seven-criterion evaluation & J1~\cite{belhadj2026dots} & $7/7$ criteria met & 10{,}000 \\
-12 & H3b necessity enumeration & J1~\cite{belhadj2026dots} & $6/6$ proper subsets fail & 10{,}000 \\
+11 & DOTS H3a seven-criterion evaluation & J1~\cite{belhadj2026dots} & $7/7$ criteria met at the point estimate & 10{,}000 \\
+12 & H3b necessity enumeration (investigated family) & J1~\cite{belhadj2026dots} & $6/6$ proper subsets fail & 10{,}000 \\
 \bottomrule
 \end{tabular}
+\tabnote{$N$ is a number of images (or of graph nodes for experiments 1--2), not
+necessarily of independent patients.}
 \end{table}
 
 \paragraph{Reading the sequence.}
@@ -114,7 +116,7 @@ Claim & Falsified if & Observed & Margin \\
 H1 -- graph QWK gain & $t_4 < 2.78$ & $t_4=3.82$, $p=0.009$ & $\times1.37$ critical \\
 H2 -- topology linked to severity & $F(4,4995) < 3.72$ & $F=1308.9$, $p<0.001$ & $\times352$ critical \\
 H3a -- all seven criteria & any criterion violated & $7/7$ met at the point estimate (\cref{tab:h3a}) & Sev-NR CI $[1.4\%,2.4\%]$ crosses $2\%$ \\
-H3b -- necessity & any proper subset has Sev-NR $<2\%$ & $6/6$ proper subsets fail & constructive \\
+H3b -- necessity (investigated family) & any proper subset has Sev-NR $<2\%$ & $6/6$ proper subsets fail & constructive, scoped \\
 CORAL violations & any violation at test time & $0.0\%$ & algebraic identity \\
 Sev-NR point estimate & $\geq 2.0\%$ & $1.9\%$ $[1.4\%,\,2.4\%]$ & $0.1$~pp \\
 \bottomrule
@@ -138,7 +140,10 @@ H_a &: \mu_{\Delta\mathrm{QWK}} > 0 \quad \text{(the graph gives a positive impr
 t &= \frac{\bar d}{s_d/\sqrt{n}}, \qquad \mathrm{df}=n-1=4,
 \end{align}
 where $\bar d$ is the mean of the five per-fold QWK differences (TOPORET minus
-EfficientNet-B3) and $s_d$ their standard deviation. The one-tailed critical value at
+EfficientNet-B3) and $s_d$ their standard deviation. Because the inferential unit is the
+cross-validation fold, the test has four degrees of freedom; the bootstrap and exact
+permutation analyses of \cref{sec:testimpl} are complementary robustness checks on the
+same five differences, not independent replications. The one-tailed critical value at
 $\alpha=0.05$ is $t_{0.05,4}=2.132$. The more conservative $t_{0.025,4}=2.776$ (that is,
 $\alpha=0.05$ two-tailed) was adopted as the decision threshold to guard against
 directional mis-specification. Observed: $t_4=3.82$, one-tailed $p=0.009$, above both
@@ -167,9 +172,11 @@ Phase~2 success criterion requires the interval).
 \section{H3b: Constructive Enumeration}
 No inferential test applies to H3b. The claim is established by constructing and
 evaluating all six proper subsets against the same seven-criterion specification
-(\cref{sec:h3b}). Necessity claims of the form ``no member of this finite, fully
-enumerable set satisfies property $P$'' are established more rigorously by exhaustive
-verification than by sampling, since the entire population of interest is evaluated. The price of this rigour is computational: every proper subset must be trained and evaluated on all benchmarks (\cref{tab:compute}).
+(\cref{sec:h3b}). Claims of the form ``no member of this finite, fully enumerable set
+satisfies property $P$'' are best established by exhaustive verification, since the whole
+set is evaluated. The set, however, is the six subsets \emph{as implemented} in the
+investigated family; the result does not extend to every conceivable architecture lacking
+one of the axes, and each subset's Sev-NR is itself an estimate with sampling uncertainty. The price of this rigour is computational: every proper subset must be trained and evaluated on all benchmarks (\cref{tab:compute}).
 
 \section{Effect-Size Formulae}
 \begin{align}
@@ -216,7 +223,8 @@ are reported as supporting evidence and do not change the decision. Second, when
 tests address the same hypothesis, as for the topological features of H2, the significance
 level is corrected with the Bonferroni method and lowered further for conservatism. Third,
 the necessity claim H3b does not rely on a statistical test at all, since the six proper
-subsets form the complete set of alternatives and are all evaluated.
+subsets form the complete set of alternatives within the investigated family and are all
+evaluated.
 
 % ===========================================================================
 \chapter{Reproducibility and Software Environment}
@@ -282,7 +290,10 @@ resampling. The stability analysis of \cref{sec:numrepro} repeats the main exper
 additional seeds (123 and 7).
 Five-fold splits are stratified by ICDR grade, computed once per experiment and held fixed
 across all ablation variants (\cref{tab:ablate,tab:ablation3}), so that differences
-between configurations are not confounded by different splits.
+between configurations are not confounded by different splits. The unit of every split and
+of every reported sample size is the retinal image. Some benchmarks contain several images
+of the same patient (for example both eyes in Kaggle EyePACS), so the reported results are
+image-level estimates and patient-level generalisation is interpreted cautiously.
 
 \section{Reproducibility Tolerance}
 \label{sec:tolerance}
