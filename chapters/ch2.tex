@@ -151,7 +151,9 @@ and robustness to drift (under a controlled linear drift, adaptive bounds kept t
 alarm rate below $8\%$, against $41\%$ for a static threshold), not accuracy. The
 extension explicitly revises the conference result, and this thesis adopts the revised
 conclusion. The same study also notes that its evaluation is transductive: the test
-nodes were present when the $k$-NN graph was built.
+nodes were present when the $k$-NN graph was built. The same invariants were also
+incorporated into cybersecurity knowledge graphs combined with large language
+models~\cite{belhadj2025ijcnn}, a direction outside the scope of this thesis.
 
 \subsection{What Is Carried Over to Retinal Grading}
 \label{sec:transfer}
@@ -163,8 +165,9 @@ augmentation of learned features with a small vector of interpretable descriptor
 local invariants $I(v)$ become the topological feature vector $x_i^{\mathrm{TDA}}$ of
 \cref{eq:tda}, so that $z_i=[\,x_i^{\mathrm{CNN}}\Vert x_i^{\mathrm{TDA}}\,]$. Third,
 recall-prioritised detection of rare events, which becomes class-balanced training for the
-rare severe grades. The graph model itself follows GNN-MSOrchest (GraphSAGE, $L=2$, $d_h=256$, $S=25$), but every
-hyperparameter used on retinal data was re-examined on DR data (\cref{tab:hparam}).
+rare severe grades. The graph model itself follows GNN-MSOrchest (GraphSAGE, $L=2$, $d_h=256$); TOPORET
+aggregates all neighbours rather than a sample of $S=25$, and every hyperparameter used on
+retinal data was re-examined on DR data (\cref{tab:hparam}).
 
 \paragraph{From distributed systems to retinal grading.}
 The correspondence between the objects of the two domains is set out in
@@ -529,16 +532,11 @@ Only items~1, 2 and~4 concern topology specifically; item~3 concerns vascular st
 more broadly.
 
 \paragraph{Why four methodologies, not one.}
-Four methodologies were used because each has its own characteristic failure mode, and
-agreement across methods with different failure modes is harder to explain away than one
-large effect. A deep-learning ablation (\cref{tab:hybrid}) can be confounded by
-optimisation idiosyncrasies and by a single data split; a SHAP attribution
-(\cref{tab:shap}) by correlated features inflating or deflating attributions; a
-family-level ablation (\cref{tab:lgbm-abl}) by interactions between the removed and
-retained families. The four studies also use different datasets, so their agreement is
-qualitative. The same principle -- breadth of independent evidence rather than depth
-within one experimental paradigm -- guides the evaluation of TOPORET, DGTS and DOTS in
-the next chapters.
+Each methodology has its own failure mode: a deep-learning ablation (\cref{tab:hybrid})
+can be confounded by optimisation and a single split, a SHAP attribution
+(\cref{tab:shap}) by correlated features, a family-level ablation (\cref{tab:lgbm-abl}) by
+interactions between families. Agreement across such methods is harder to explain away
+than one large effect; as the datasets differ, it is qualitative.
 
 \section{Synthesis of the First Contributions}
 \label{sec:ch3-synthesis}
@@ -556,17 +554,17 @@ way the two signals are combined matters: since they already interact favourably
 simply concatenated, the next system goes further and fuses topology into the similarity
 that builds a graph between patients.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption{Summary of the first contributions.}
 \label{tab:ch3summary}
-\small
-\begin{tabular}{@{}P{3.3cm} P{3.4cm} P{5.5cm} c@{}}
+\footnotesize
+\begin{tabular}{@{}P{2.4cm} P{4.3cm} P{5.9cm} c@{}}
 \toprule
 Study & Data & Main result & Publication \\
 \midrule
 GNN-MSOrchest & 48-service microservice simulation & Cascade containment $81\%$ vs.\ $34\%$ & P1 \\
-Local invariants & Synthetic microservices; KDD99, CICIDS2017, UNSW-NB15 & F1 $94.4$--$97.0\%$ (single run); no significant F1 gain from invariants over ten runs, benefit in interpretability & P2, B1 \\
+Local invariants & Synthetic microservices; KDD99, CICIDS2017, UNSW-NB15 & F1 $94.4$--$97.0\%$ (single run); no significant F1 gain over ten runs; interpretability & P2, B1 \\
 Hybrid CNN--GNN & APTOS 2019 (binary) & $95.1\%$ accuracy ($+7.0$~pp), AUC $0.970$ & P3, B2 \\
 SAMF-GB & Kaggle EyePACS & QWK $0.882$ vs.\ $0.840$; CPU classifier ($2.1$~ms) & J2 \\
 LightGBM-HC & Messidor-2 & QWK $0.858$; 210-D hand-crafted, no topology & P4 \\

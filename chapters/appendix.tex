@@ -19,9 +19,9 @@
 3 & Hybrid CNN--GNN $+$ geometric and topological invariants & P3, B2~\cite{belhadj2026hybrid,mezghich2026lnaitopo} & $95.1\%$ binary accuracy ($+7.0$~pp) & 3{,}662 \\
 4 & LightGBM-HC (hand-crafted, Messidor-2) & P4~\cite{belhadj2026icpram} & QWK $=0.858$, $1.6$~ms CPU classifier & 1{,}748 \\
 5 & SAMF-GB & J2~\cite{belhadj2026samfgb} & QWK $=0.882$, $2.1$~ms CPU & 88{,}702 \\
-6 & TOPORET on Kaggle DR & J3~\cite{belhadj2025plos} & QWK $=0.88$, accuracy $95.5\%$ & 88{,}702 \\
+6 & TOPORET on Kaggle DR & J3~\cite{belhadj2025plos} & QWK $=0.88$, accuracy $95.5\%$ & 35{,}126 \\
 7 & TOPORET on Messidor-2 and APTOS 2019 & J3~\cite{belhadj2025plos} & QWK $=0.90$ and $0.86$ & 1{,}748; 3{,}662 \\
-8 & H1 graph-contribution test & J3~\cite{belhadj2025plos} & $t_4=3.82$, $p=0.019$, $d_z=1.71$ & 88{,}702 \\
+8 & H1 graph-contribution test & J3~\cite{belhadj2025plos} & $t_4=3.82$, $p=0.019$, $d_z=1.71$ & 35{,}126 \\
 9 & H2 topological ANOVA & J3~\cite{belhadj2025plos} & $F=84.3$, $p<0.001$ & Kaggle DR \\
 10 & DGTS, cross-validation and ablation & J4~\cite{belhadj2026dgts} & QWK $=0.941$; graph $+0.018$, PH $+0.030$ & 5{,}859 \\
 11 & DGTS zero-shot on EyePACS & J4~\cite{belhadj2026dgts} & QWK $=0.925$; Sev-NR $\approx2.1\%$ & 35{,}126 \\
@@ -101,10 +101,10 @@ Refinement & -- & -- & FRE, FFN $256\to512\to256$ \\
 Head and loss & Softmax, class-weighted CE & Softmax, focal loss ($\gamma=2$) & CORAL \\
 Imbalance & Class weights $N/(C\,N_c)$ & Weighted sampler & Weighted sampler \\
 Optimiser & Adam, $10^{-3}\to10^{-5}$ & AdamW, $10^{-4}$, wd $10^{-4}$ & AdamW, $2\times10^{-4}$, wd $10^{-4}$ \\
-Epochs, batch & $\leq200$ (early stop), 64 & 25, 16 & 12 (ablation 10), 16 \\
+Epochs, batch & $\leq200$ (early stop), full graph & 25, 16 & 12 (ablation 10), 16 \\
 Test-time augmentation & -- & $\times5$ (external runs) & $\times5$ \\
 Calibration & -- & Temperature, $T=1.38$--$1.47$ & Temperature, $T=1.42$ \\
-Data splits & 5 patient-aware $70/10/20$ & 5-fold stratified, seed 42 & 5-fold stratified, seed 42 \\
+Data splits & 5-fold, image level, seed 42 & 5-fold stratified, seed 42 & 5-fold stratified, seed 42 \\
 Hardware & 1 NVIDIA A100 (40~GB) & 1 NVIDIA T4 (16~GB) & 1 NVIDIA T4 (16~GB) \\
 \bottomrule
 \end{tabular}
@@ -112,11 +112,10 @@ Hardware & 1 NVIDIA A100 (40~GB) & 1 NVIDIA T4 (16~GB) & 1 NVIDIA T4 (16~GB) \\
 
 \paragraph{Reading the comparison.}
 The three systems were developed under different protocols and on different data:
-TOPORET on each benchmark separately with patient-aware splits, DGTS and DOTS on the fused
+TOPORET on each benchmark separately, transductively, DGTS and DOTS on the fused
 APTOS~2019 $+$ KaggleDR-F1 corpus with stratified folds. Their numbers are therefore
-comparable only within a system. The TOPORET hyperparameters were selected on validation
-data (\cref{tab:hparam}); those of DGTS were examined in the sensitivity analysis of
-\cref{sec:dgts}.
+comparable only within a system; how their parameters were selected is recorded in
+\cref{sec:paramrecord}.
 
 % ===========================================================================
 \chapter{Statistical Test Reference}
@@ -138,7 +137,7 @@ the observed result and the margin by which the claim survived.
 \toprule
 Claim & Falsified if & Observed & Margin \\
 \midrule
-H1 -- graph QWK gain & $|t_4| < 2.78$ & $t_4=3.82$, $p=0.019$ & $\times1.37$ critical \\
+H1 -- graph QWK gain & $|t_4| < 2.78$ & $t_4=3.82$, $p=0.019$ & $\times1.37$ critical; fold-overlap correction: $p=0.015$ combined, not per benchmark \\
 H2 -- topology linked to severity & $F < 3.72$ & $F=84.3$, $p<0.001$ & $\times23$ critical \\
 H3a -- safety criteria (DOTS) & any criterion violated internally or on Messidor-2 & All met at the point estimate (\cref{tab:h3a}) & internal Sev-NR CI $[0.2\%,2.8\%]$ crosses $2\%$ \\
 H3b -- reduced variants & any variant has Sev-NR $\leq2\%$ on Messidor-2 & $4/4$ variants fail ($2.9$--$5.8\%$) & scoped to the ablation \\
@@ -165,14 +164,19 @@ H_0 &: \mu_{\Delta\mathrm{QWK}} = 0 \quad \text{(the graph gives no QWK change)}
 H_a &: \mu_{\Delta\mathrm{QWK}} \neq 0 \quad \text{(the graph changes the QWK)}, \\
 t &= \frac{\bar d}{s_d/\sqrt{n}}, \qquad \mathrm{df}=n-1=4,
 \end{align}
-where $\bar d$ is the mean of the five per-split QWK differences (TOPORET minus the CNN
-baseline, over five patient-aware $70/10/20$ splits) and $s_d$ their standard deviation. Because the inferential unit is the
-data split, the test has four degrees of freedom; the bootstrap and exact
+where $\bar d$ is the mean of the five per-fold QWK differences (TOPORET minus the CNN
+baseline, over the five folds of a stratified cross-validation, $70/10/20$ per fold) and $s_d$
+their standard deviation. Because the inferential unit is the fold, the test has four
+degrees of freedom; the bootstrap and exact
 permutation analyses of \cref{sec:testimpl} are complementary robustness checks on the
 same five differences, not independent replications. The test is two-tailed, with
 critical value $t_{0.025,4}=2.776$ at $\alpha=0.05$. Observed: $t_4=3.82$, two-tailed
 $p=0.019$, on Kaggle DR; $t_4=4.1$ ($p=0.015$) on Messidor-2 and
-$t_4=3.5$ ($p=0.025$) on APTOS~2019~\cite{belhadj2025plos}.
+$t_4=3.5$ ($p=0.025$) on APTOS~2019~\cite{belhadj2025plos}. With the variance correction of
+Nadeau and Bengio~\cite{nadeau2003inference} for overlapping training sets, which multiplies
+$s_d^2/n$ by $1+n\,n_{\mathrm{test}}/n_{\mathrm{train}}=1+5\times0.2/0.7$, the statistics become
+$2.45$, $2.63$ and $2.25$ ($p=0.070$, $0.058$ and $0.088$); Fisher's combination of these three
+independent $p$-values, $-2\sum\ln p_b\sim\chi^2_6$, gives $p=0.015$.
 
 \section{H2: One-Way ANOVA}
 \label{sec:app-h2}
@@ -257,19 +261,19 @@ design choice.
 \Cref{tab:checklist} lists items commonly requested by reporting guidelines for medical
 imaging AI and where each is addressed in this thesis.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption[Reporting checklist]{Reporting checklist: where each item is addressed.}
 \label{tab:checklist}
-\small
-\begin{tabular}{@{}P{5.2cm} P{8.8cm}@{}}
+\footnotesize
+\begin{tabular}{@{}P{6.0cm} P{8.0cm}@{}}
 \toprule
 Item & Where it is addressed \\
 \midrule
 Data sources, size and grade distribution & \Cref{tab:datasets,tab:corpus} \\
 Unit of analysis (image or patient) & \Cref{sec:ch4-protocol}; \cref{app:repro} \\
 Reference standard and label noise & \Cref{sec:grading} \\
-Data splits and leakage control & \Cref{tab:hyper}; \cref{sec:ch4-protocol} \\
+Data splits and leakage control & \Cref{tab:hyper}; \cref{sec:ch4-protocol}; image-level folds of TOPORET (\cref{sec:ch3-validity}) \\
 Model description and hyperparameters & \Cref{tab:stages,tab:hyper} \\
 Primary metrics and their definitions & \Cref{sec:metrics}; \cref{eq:nr} \\
 Uncertainty of estimates & Exact and bootstrap intervals (\cref{tab:h3a}) \\
@@ -325,8 +329,8 @@ inference times of \cref{tab:latency} were measured on the same GPU.
 \section{Randomness and Seeding}
 The five-fold splits of DGTS and DOTS use scikit-learn's stratified split with random state
 $42$; DGTS uses per-fold seeds $\{42,\ldots,46\}$, and its five zero-shot runs on EyePACS use
-test-time-augmentation seeds $\{42,\ldots,46\}$. TOPORET uses five patient-aware
-$70/10/20$ splits~\cite{belhadj2025plos}. The unit of every split and of every reported
+test-time-augmentation seeds $\{42,\ldots,46\}$. TOPORET uses a stratified five-fold
+cross-validation with seed $42$ and a $70/10/20$ partition per fold~\cite{belhadj2025plos}. The unit of every split and of every reported
 sample size is the retinal image, so the reported results are image-level estimates.
 
 \section{Reproducibility Tolerance}
@@ -352,7 +356,7 @@ results (mean $\pm$ SD over five folds or runs).}
 \toprule
 Experiment & Protocol & QWK \\
 \midrule
-TOPORET (Kaggle DR) & 5 patient-aware splits & $0.88\pm0.01$ (\cref{tab:crossdata}) \\
+TOPORET (Kaggle DR) & 5 folds, seed 42 & $0.88\pm0.01$ (\cref{tab:crossdata}) \\
 DGTS (fused corpus) & 5 folds, seed 42 & $0.941\pm0.008$ \\
 DGTS (EyePACS, zero-shot) & 5 TTA runs, seeds 42--46 & $0.925\pm0.008$ \\
 DOTS (fused corpus) & 5 folds, seed 42 & $0.9527\pm0.0063$ \\
@@ -361,6 +365,7 @@ DOTS (fused corpus) & 5 folds, seed 42 & $0.9527\pm0.0063$ \\
 \end{table}
 
 \section{Parameter Selection Record}
+\label{sec:paramrecord}
 All parameters were selected on training and validation data only:
 \begin{enumerate}
 \item \textbf{TOPORET graph ($\alpha=0.6$, $\tau=0.65$)}: validation grid search
@@ -377,10 +382,10 @@ training.
 \begin{itemize}
 \item \textbf{H1 $t$-test:} paired, two-tailed, df $=4$; threshold $|t_4|>2.776$; passed
 ($t_4=3.82$).
-\item \textbf{H1 bootstrap:} $10{,}000$ resamples with replacement of the five split
+\item \textbf{H1 bootstrap:} $10{,}000$ resamples with replacement of the five fold
 differences; 95\% CI from the 2.5th and 97.5th percentiles.
 \item \textbf{H1 permutation:} exact enumeration of the $2^5=32$ sign assignments of the
-five split differences; the one-sided $p$-value is the fraction of assignments whose mean
+five fold differences; the one-sided $p$-value is the fraction of assignments whose mean
 difference is at least the observed one. With all five differences positive, $p=1/32$.
 \item \textbf{H2 ANOVA:} one-way ANOVA of $\Pi_{H_1}$ across the five grades on Kaggle DR,
 level $0.005$, Tukey HSD post-hoc~\cite{belhadj2025plos}.
@@ -399,8 +404,8 @@ system and the public datasets of \cref{app:datasets}.
 Messidor-2 from their original distributors, and check that no image of the external
 sets appears in the training corpus.
 \item \textbf{Build the folds.} Create the five-fold stratified split of the fused corpus
-with random state $42$ (DGTS and DOTS), or the five patient-aware $70/10/20$ splits of
-TOPORET.
+with random state $42$ (DGTS and DOTS), or that of each TOPORET benchmark, also with
+seed $42$, using the released code~\cite{belhadj2025plos}.
 \item \textbf{Train.} Train each system with the hyperparameters of \cref{tab:hyper} on one
 GPU; DOTS takes about $45$~minutes per fold and DGTS about four hours per fold on a T4.
 \item \textbf{Evaluate internally.} Compute QWK, accuracy, macro-F1, ECE and the

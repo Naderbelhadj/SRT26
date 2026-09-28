@@ -246,7 +246,10 @@ The topology used here is that of the learned feature space, not of the retinal 
 its loops cannot be interpreted as vascular loops or neovascularisation. DGTS therefore
 tests whether a topological signal helps a population graph when vessel segmentation is
 not available; it does not replace the vascular analysis of \cref{ch:toporet}, and the
-anatomical interpretation of H2 applies only to TOPORET.
+anatomical interpretation of H2 applies only to TOPORET. Unlike the
+evaluation of TOPORET, which is transductive, DGTS is evaluated inductively: its graph is
+built from the training fold only, and validation and external images are graded by
+retrieving their neighbours among the training images, without entering the graph.
 
 \paragraph{Training.}
 AdamW~\cite{kingma2015adam} (learning rate $10^{-4}$, weight decay $10^{-4}$), cosine

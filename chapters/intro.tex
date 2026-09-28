@@ -112,10 +112,10 @@ dataset (H3b). For H1 and H2 the statistical test, the decision threshold and th
 effect-size measure were fixed before the corresponding experiment was run, so that a
 negative result could not be explained away afterwards; the H3 criteria are evaluation
 targets informed by screening practice, not regulatory thresholds. The falsification criteria are listed in
-\cref{tab:falsif}. Because the inferential unit of H1 is the data split, its paired
-$t$-test has only four degrees of freedom; bootstrap and exact permutation analyses are
-therefore reported as complementary robustness checks rather than as independent
-replications. External datasets were used only for evaluation, after the models were
+\cref{tab:falsif}. Because the inferential unit of H1 is the cross-validation fold, its
+paired $t$-test has only four degrees of freedom; bootstrap, permutation and a correction
+for the overlap of the folds are therefore reported with it, and the correction is
+stated wherever it weakens the conclusion. External datasets were used only for evaluation, after the models were
 trained (\cref{sec:protocol}). The components were introduced progressively, from a generic
 graph template evaluated outside medicine, to TOPORET, and finally to DGTS and DOTS, so
 that the contribution of each component can be measured separately. All experiments use
@@ -145,7 +145,7 @@ interpretability and robustness to drift rather than a significant accuracy gain
 structural features of the retina carry information that deep visual features miss,
 including SAMF-GB, a CPU model more accurate than a GPU EfficientNet-B3, whose
 classifier is about $13$ times cheaper to run \cite{belhadj2026hybrid,mezghich2026lnaitopo,belhadj2026icpram,belhadj2026samfgb}.
-\item[C3.] TOPORET, an inductive dual-similarity population graph for DR grading
+\item[C3.] TOPORET, a dual-similarity population graph for DR grading
 introduced in this thesis, with pre-specified tests supporting the contribution of the
 graph (H1) and the association of the topological features with severity (H2) \cite{belhadj2025plos,belhadj2026enase,belhadj2026miua}.
 \item[C4.] Two systems trained on a fused multi-source corpus: DGTS, a population graph
@@ -161,7 +161,7 @@ the EU AI Act (not a conformity assessment).
 
 \Cref{tab:pubmap} shows which publications support each chapter of the thesis.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption{Publications supporting each chapter.}
 \label{tab:pubmap}

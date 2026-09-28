@@ -285,23 +285,24 @@ have been central to the development of vessel segmentation methods.
 
 \begin{table}[!htbp]
 \centering
-\caption[Grade distribution (\%) of the public datasets used in this thesis]{Grade distribution (\%) of the public datasets used in this thesis.}
+\caption[Grade distribution (\%) of the public datasets used in this thesis]{Grade distribution (\%) of the public datasets used in this thesis. Kaggle
+EyePACS, APTOS~2019 and Messidor-2: counts distributed with the code of~\cite{belhadj2025plos}.}
 \label{tab:datasets}
 \small
 \begin{tabular}{@{}lrccccc l@{}}
 \toprule
 Dataset & $N$ & G0 & G1 & G2 & G3 & G4 & Origin \\
 \midrule
-Kaggle EyePACS~\cite{kaggle2015eyepacs} & 88{,}702 & 74.2 & 6.8 & 15.1 & 2.5 & 1.4 & USA, multi-site \\
+Kaggle EyePACS~\cite{kaggle2015eyepacs} & 35{,}126 & 73.5 & 7.0 & 15.1 & 2.5 & 2.0 & USA, multi-site \\
 APTOS 2019~\cite{aptos2019} & 3{,}662 & 49.3 & 10.1 & 27.3 & 5.3 & 8.1 & India \\
-Messidor-2~\cite{decenciere2014messidor} & 1{,}748 & 53.5 & 15.0 & 23.0 & 5.0 & 3.5 & France \\
+Messidor-2~\cite{decenciere2014messidor} & 1{,}748 & 52.5 & 15.4 & 19.9 & 8.2 & 3.9 & France \\
 KaggleDR-F1 & 2{,}197 & 49.3 & 10.1 & 27.3 & 5.3 & 8.1 & Kaggle collection \\
 \bottomrule
 \end{tabular}
 \tabnote{$N$ counts retinal images, not independent patients: Kaggle EyePACS contains
-both eyes of each patient. The full Kaggle EyePACS release has $88{,}702$ images, of which the
-$35{,}126$ training images are used for the external validation of \cref{ch:dots}; $1{,}744$
-of the $1{,}748$ Messidor-2 images are gradable.}
+both eyes of each patient. The full Kaggle EyePACS release has $88{,}702$ images; the
+$35{,}126$ images with public labels are used in this thesis (TOPORET benchmark and external
+validation of DGTS); $1{,}744$ of the $1{,}748$ Messidor-2 images are gradable.}
 \end{table}
 
 The datasets differ in ways relevant to the results of this thesis. Kaggle EyePACS, by
@@ -313,7 +314,7 @@ KaggleDR-F1 has exactly $60\%$ of the APTOS~2019 count in every grade, so its di
 is identical to that of APTOS~2019; whether the two collections share images has not been
 verified, a point discussed in \cref{ch:dots}. No dataset provides per-image demographic
 annotations, so geographic diversity is only a proxy for population diversity. Grades~3
-and~4 together are a minority in every dataset (from $3.9\%$ to $13.4\%$ combined), which
+and~4 together are a minority in every dataset (from $4.5\%$ to $13.4\%$ combined), which
 motivates class-balanced training: a system trained without correcting this imbalance would
 under-predict exactly the two safety-critical grades on which Sev-NR and PDR-NR are
 measured.
@@ -492,10 +493,10 @@ fall on the safe side of the referral decision.
 A natural question is whether each limitation could be resolved by adding one component
 to an existing system. The experiments of this thesis suggest that the answers interact.
 
-Resolving \textbf{L1 alone} (adding a population graph built from visual similarity only)
-improves QWK by $0.03$ (\cref{tab:ablation3}), but leaves the topology of the vessels
-unused; a dual metric that includes the Wasserstein distance between persistence diagrams
-requires the topological pipeline of L2 to be already in place.
+Resolving \textbf{L1 alone} (adding a population graph built from visual similarity only,
+as in DGTS) improves QWK by $0.018$ (\cref{tab:dgts-abl}), but leaves the topology of the
+vessels unused; a dual metric that includes a topological distance requires the
+topological pipeline of L2 to be already in place.
 
 Resolving \textbf{L2 alone} (adding topological features without the graph) yields $+0.02$
 QWK (\cref{tab:ablation3}) -- useful, but partial. The largest gain ($+0.04$ QWK) is
@@ -536,7 +537,7 @@ component of this thesis that addresses each of them.
 \toprule
 Limitation & Clinical consequence & Component of this thesis & Ch. \\
 \midrule
-L1 -- no relational context & Similar patients never inform each other's grade & Inductive population graphs (TOPORET, DGTS) & 3--5 \\
+L1 -- no relational context & Similar patients never inform each other's grade & Population graphs (TOPORET; inductive in DGTS) & 3--5 \\
 L2 -- no vascular topology & Loss of vessel loops and rarefaction is not measured & Persistent homology of the vessel skeleton (TOPORET); topological regulariser (DGTS) & 3--5 \\
 L3 -- no safety-oriented grading & Severe cases may be graded as No DR or Mild, unmeasured & CORAL ordinal head and safety evaluation with external validation (DOTS) & 5 \\
 \bottomrule

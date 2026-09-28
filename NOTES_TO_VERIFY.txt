@@ -432,3 +432,15 @@ v14 (publications verified online, author confirmed ICAART papers are published)
 - P4 (ICPRAM 2026) not found online: kept "to appear". DOIs of P2/P3 not retrieved (SCITEPRESS blocked from this environment).
 
 v15: ENASE 2026 (P5) and ICPRAM 2026 (P4) marked published (author confirmation for ENASE; both listed on dblp). Volume/pages not retrieved (dblp/SCITEPRESS/Crossref blocked from this environment) -> author to add. Note: dblp also lists an IJCNN 2025 paper (distributed invariants, cybersecurity knowledge graphs, GNN + LLM) not cited in the thesis.
+
+v16 - thesis aligned with the public TOPORET code (github.com/Nader-BelHadj/plosene), author's decision:
+- Protocol: stratified 5-fold CV at image level, seed 42 (70/10/20 per fold) - no longer "patient-aware independent splits".
+- Evaluation is transductive (graph over all images, test nodes unlabelled); inductive setting evaluated by DGTS (graph from training fold only) - stated in Ch.4 and Ch.5.
+- Topological term of Eq. 4.2 = Euclidean distance between l2-normalised 6-D descriptors (code's "surrogate for W2"), not a diagram Wasserstein distance.
+- Kaggle DR = 35,126 labelled images; Table 1.2 now uses the counts distributed with the J3 code (Kaggle 73.5/7.0/15.1/2.5/2.0; Messidor-2 52.5/15.4/19.9/8.2/3.9); removed 62,091 / 16,576 / 186 and the "four hours" graph-construction figure.
+- Baseline = two-layer MLP (not random forest); GraphSAGE full-batch, all neighbours, batch norm.
+- Ablation (C) = graph with TDA in edges, CNN-only node features (no visual-only graph in TOPORET); visual-only relational effect taken from DGTS (+0.018).
+- H1: Nadeau-Bengio corrected resampled t-test added: t = 2.45/2.63/2.25 (p = 0.070/0.058/0.088); Fisher combination across the 3 independent benchmarks p = 0.015. Stated in Ch.4, Appendix C, Table C.1, GC.1, abstract, resume, conclusion.
+- Fellow-eye (image-level split) threat added; APTOS (one image per patient) noted as unaffected.
+- Added IJCNN 2025 paper as [O1] (other publication) and cited in Ch.3 Part A.
+NOTE: README of the repo lists R. Ghayoula at Universite de Moncton; the thesis says Laval University - author to check.

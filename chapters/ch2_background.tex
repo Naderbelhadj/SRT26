@@ -242,9 +242,10 @@ in the filtering function,
 d_B(D_f, D_g) \;\leq\; \lVert f-g\rVert_\infty ,
 \label{eq:stability}
 \end{equation}
-where $d_B$ is the bottleneck distance. TOPORET compares diagrams with the closely related
-Wasserstein distance $W_2$ (\cref{eq:dualsim}). This robustness makes the topological term of the
-similarity less sensitive to small segmentation errors than a pixel-level comparison.
+where $d_B$ is the bottleneck distance. The summary statistics that TOPORET derives from
+the diagrams (\cref{eq:tda-toporet}) inherit part of this robustness, which makes the
+topological term of its similarity (\cref{eq:dualsim}) less sensitive to small
+segmentation errors than a pixel-level comparison.
 
 Persistence is what makes the method robust. A single threshold $\varepsilon$ would give
 counts of components and loops that depend strongly on its value and on small errors of

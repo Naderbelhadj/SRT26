@@ -23,8 +23,7 @@ and network-security graphs, where a ten-run re-evaluation showed that appended 
 bring interpretability rather than a significant accuracy gain. We also gathered first
 evidence, with three independent methods, that vascular and topological features of the
 retina carry information complementary to deep visual features. These results led to
-TOPORET, an inductive population graph whose edges combine visual and topological
-similarity. Two systems trained on a fused multi-source corpus then extended this work:
+TOPORET, a population graph whose edges combine visual and topological similarity. Two systems trained on a fused multi-source corpus then extended this work:
 DGTS, a population graph regularised by persistent homology of feature-space
 neighbourhoods, and DOTS, an ordinal pipeline evaluated against screening safety criteria.
 Finally, the software of these pipelines was designed according to regulatory-oriented
@@ -34,9 +33,11 @@ The experiments provide three principal findings. First, the pre-specified analy
 supports the contribution of the population graph to grading performance (H1:
 $t_4=3.82$, $p=0.019$ two-tailed, $+0.04$ QWK, reproduced on three benchmarks), and the
 same direction of effect is observed on a second corpus with DGTS ($+0.018$ QWK for the
-graph). Because the inferential unit of H1 is the data split, its test has four degrees of
-freedom; the bootstrap and exact permutation analyses are complementary robustness checks,
-not independent replications. Second, persistent-homology descriptors extracted from
+graph). Because the inferential unit of H1 is the cross-validation fold, its test has four
+degrees of freedom; corrected for the overlap of the folds, it is no longer significant on
+any single benchmark ($p=0.06$--$0.09$) but remains so for the three benchmarks combined
+($p=0.015$). The TOPORET results were obtained transductively with image-level folds,
+whereas the DGTS result is inductive. Second, persistent-homology descriptors extracted from
 retinal vascular structures show a statistically significant association with ICDR
 severity (H2: $F=84.3$, $p<0.001$); this is an association, not evidence of a causal or
 biological mechanism. A topological signal also helps on the feature-space neighbourhoods
@@ -57,7 +58,7 @@ thesis. All evidence is retrospective (Level~1).}
 \toprule
 Hypothesis & Test and data & Result & Verdict \\
 \midrule
-H1 -- the population graph adds information & Paired two-tailed $t$-test, five patient-aware splits, three benchmarks (\cref{ch:toporet}) & $t_4=3.82$, $p=0.019$, $+0.04$ QWK; DGTS: $+0.018$ QWK on a second corpus & Supported \\
+H1 -- the population graph adds information & Paired two-tailed $t$-test over five folds, three benchmarks; fold-overlap correction (\cref{ch:toporet}) & $t_4=3.82$, $p=0.019$, $+0.04$ QWK; corrected $p=0.015$ combined; DGTS: $+0.018$ QWK, inductive & Supported (combined evidence) \\
 H2 -- vessel topology is associated with severity & One-way ANOVA of $\Pi_{H_1}$ on Kaggle DR (\cref{ch:toporet}) & $F=84.3$, $p<0.001$, monotone increase with grade & Supported (association) \\
 H3a -- DOTS meets the safety criteria & Criteria of \cref{tab:criteria}, internally and on Messidor-2 (\cref{ch:dots}) & Sev-NR $0.97\%$ internal, $1.4\%$ external; QWK $0.953$ and $0.931$ & Supported at the point estimate \\
 H3b -- no reduced variant suffices & Four ablation variants on Messidor-2 (\cref{ch:dots}) & Sev-NR $2.9$--$5.8\%$ for all variants & Supported within the ablation \\
@@ -77,8 +78,8 @@ EyePACS is about $2.1\%$.
 The three research questions of the thesis can therefore be answered as follows. Does
 the relational context between patients carry information beyond that of a per-image
 classifier? In our experiments, yes, on two corpora: a graph built from visual similarity
-alone already improves the QWK, and the largest gain is obtained when topology enters both
-the similarity and the node features. Is the global topology of the vascular network
+alone already improves the QWK in DGTS, inductively, and in TOPORET the largest gain is
+obtained when topology enters both the similarity and the node features. Is the global topology of the vascular network
 related to the severity of the disease? It is significantly associated with it: total $H_1$
 persistence, which reflects vascular loops and plausibly neovascularisation, increases
 monotonically with severity. Can an ordinal pipeline meet screening safety criteria, and
