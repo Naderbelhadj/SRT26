@@ -309,3 +309,17 @@ totals of the thesis. No red value remains.
 Before submission, make sure that (i) t = 0.60 is the exact value of the evaluation code
 (a later message gave it as "approximately 0.50-0.65"), and (ii) the released
 test_manifest.csv reproduces Table 5.3 exactly.
+
+=== Pass: ENASE 2026 #156 and SNCS-D-26-05765 ===
+* ENASE (belhadj2026enase) differs from PLOS ONE (J3): alpha=0.7 vs 0.6; ANOVA F=47.3 vs 84.3;
+  ablation 94.7/94.9 vs 94.6/95.0; stratified 5-fold CV vs 5 patient-aware splits.
+  -> Ch.4 now states explicitly that it follows J3 and that the ENASE figures come from an
+     earlier configuration. Check that the camera-ready is consistent with this sentence.
+* SNCS-D-26-05765 ("DOTS ... Multi-Source ... CORAL ... External Clinical Validation") describes
+  a DIFFERENT system than thesis Ch.5 / J1: EfficientNet-B3 + Transformer encoder + CORAL + TTA,
+  no RETFound, no entropy abstention, 5,859 images (APTOS + KaggleDR-F1), internal 5-fold CV,
+  QWK 0.9527, Sev-NR 0.97% internal / 1.4% Messidor-2, NR defined as "predicted No-DR or Mild".
+  NOT added to the thesis. Author decision needed: (a) keep it out of the thesis, or
+  (b) list it as a separate journal paper with an explicit sentence saying it is an earlier
+  multi-source variant of DOTS. Same name "DOTS" for two different systems is a jury risk.
+  Also: SN Computer Science is listed for J2 SAMF-GB; confirm that both are submitted there.
