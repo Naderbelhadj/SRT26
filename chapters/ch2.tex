@@ -359,7 +359,8 @@ fusing both signals at graph-construction time.
 
 SAMF-GB~\cite{belhadj2026samfgb} shows that seven families of hand-crafted structural
 features, combined with LightGBM gradient boosting~\cite{ke2017lightgbm}, outperform a
-GPU EfficientNet-B3 at about $1/13$ of the computational cost. The 256-dimensional
+GPU EfficientNet-B3, with a classifier about $13$ times cheaper to run (feature extraction
+excluded, \cref{tab:samf}). The 256-dimensional
 feature vector is composed as follows:
 \begin{itemize}
 \item \textbf{vascular morphology} (48-D): vessel calibre reduction and tortuosity;

@@ -44,7 +44,8 @@ x_{l+1} = x_l + \mathcal{F}(x_l;\,W_l),
 so that each block of \cref{eq:resnet} only learns a correction $\mathcal{F}$ to its input. DenseNet connected
 every layer to all previous ones~\cite{huang2017densenet}, and EfficientNet scaled depth,
 width and resolution together with a single coefficient~\cite{tan2019efficientnet}.
-EfficientNet-B3 is the convolutional baseline used throughout this thesis. In medical
+EfficientNet-B3 is the convolutional baseline of this thesis and the backbone of TOPORET
+and DOTS; DGTS uses the larger EfficientNet-B4. In medical
 imaging, the same architectures, sometimes combined with segmentation networks such as
 U-Net~\cite{ronneberger2015unet}, now dominate most tasks~\cite{litjens2017survey}, with
 results that match specialists in dermatology~\cite{esteva2017dermatologist} and
@@ -268,7 +269,7 @@ network~\cite{hofer2017topological,carriere2020perslay}, and simple summary stat
 as total persistence, number of features or the longest bar. Efficient software makes these
 computations practical on large datasets~\cite{otter2017roadmap,maria2014gudhi,
 tauzin2021giotto}. This thesis uses a small vector of interpretable summary statistics
-(\cref{eq:tda}), which can be related directly to vascular pathology.
+(\cref{eq:tda,eq:tda-toporet}), which can be related directly to vascular pathology.
 
 \section{Ordinal Prediction}
 \label{sec:coral}

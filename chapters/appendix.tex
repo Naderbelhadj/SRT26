@@ -103,7 +103,7 @@ Imbalance & Class weights $N/(C\,N_c)$ & Weighted sampler & Weighted sampler \\
 Optimiser & Adam, $10^{-3}\to10^{-5}$ & AdamW, $10^{-4}$, wd $10^{-4}$ & AdamW, $2\times10^{-4}$, wd $10^{-4}$ \\
 Epochs, batch & $\leq200$ (early stop), 64 & 25, 16 & 12 (ablation 10), 16 \\
 Test-time augmentation & -- & $\times5$ (external runs) & $\times5$ \\
-Calibration & -- & Temperature, $T=1.42$ (fold 0) & Temperature, $T=1.42$ \\
+Calibration & -- & Temperature, $T=1.38$--$1.47$ & Temperature, $T=1.42$ \\
 Data splits & 5 patient-aware $70/10/20$ & 5-fold stratified, seed 42 & 5-fold stratified, seed 42 \\
 Hardware & 1 NVIDIA A100 (40~GB) & 1 NVIDIA T4 (16~GB) & 1 NVIDIA T4 (16~GB) \\
 \bottomrule
@@ -146,9 +146,9 @@ Grade $0\leftrightarrow4$ confusions & any such confusion & $0$ of $5{,}859$ & -
 External Sev-NR (DOTS) & $>2.0\%$ & $1.4\%$ & $0.6$~pp \\
 \bottomrule
 \end{tabular}
-\tabnote{The critical values are $t_{0.025,4}=2.78$ (the conservative threshold adopted
-for H1) and $F_{0.005;\,4,\,\infty}\approx3.72$ (conservative level used for H2); see
-\cref{app:stats}.}
+\tabnote{The critical values are $t_{0.025,4}=2.78$ (two-tailed $\alpha=0.05$, for H1) and
+$F_{0.005;\,4,\,\infty}\approx3.72$ (conservative level $\alpha=0.005$, for H2); the tests
+are stated in \cref{sec:app-h1,sec:app-h2}.}
 \end{table}
 
 \paragraph{Notation convention.}
@@ -159,6 +159,7 @@ using $H_0$ and $H_1$ features as independent variables.
 
 
 \section{H1: Paired \texorpdfstring{$t$}{t}-Test}
+\label{sec:app-h1}
 \begin{align}
 H_0 &: \mu_{\Delta\mathrm{QWK}} = 0 \quad \text{(the graph gives no QWK change)}, \\
 H_a &: \mu_{\Delta\mathrm{QWK}} \neq 0 \quad \text{(the graph changes the QWK)}, \\
@@ -174,6 +175,7 @@ $p=0.019$, on Kaggle DR; $t_4=4.1$ ($p=0.015$) on Messidor-2 and
 $t_4=3.5$ ($p=0.025$) on APTOS~2019~\cite{belhadj2025plos}.
 
 \section{H2: One-Way ANOVA}
+\label{sec:app-h2}
 \begin{align}
 H_0 &: \mu_{G_0}=\mu_{G_1}=\cdots=\mu_{G_4} \quad \text{for total $H_1$ persistence } \Pi_{H_1}, \\
 H_a &: \text{at least one } \mu_{G_k} \text{ differs}, \\
@@ -244,9 +246,9 @@ Testing many hypotheses on the same data increases the chance of a false positiv
 measures limit this risk in the thesis. First, each research hypothesis has a single
 pre-specified primary test and a single primary metric, fixed before the experiment
 (\cref{tab:falsif}); secondary analyses, such as the bootstrap and permutation tests of H1,
-are reported as supporting evidence and do not change the decision. Second, when several
-tests address the same hypothesis, as for the topological features of H2, the significance
-level is corrected with the Bonferroni method and lowered further for conservatism. Third,
+are reported as supporting evidence and do not change the decision. Second, H2 is decided
+on a single primary feature, $\Pi_{H_1}$, at the conservative level $\alpha=0.005$; the other
+topological features are descriptive and do not add tests on which the decision rests. Third,
 the claims of \cref{ch:dots} are decided on external data, which were not used for any
 design choice.
 
@@ -331,7 +333,7 @@ sample size is the retinal image, so the reported results are image-level estima
 \label{sec:tolerance}
 Because some GPU kernels are not bit-exact across hardware generations even with fixed
 seeds, results within $2\sigma$ of the reported values -- with $\sigma$ the five-fold
-standard deviation reported with each primary metric (for example \cref{tab:h1}) -- are
+standard deviation reported with each primary metric (for example \cref{tab:dots-cv}) -- are
 considered a successful reproduction. Bit-level reproduction is neither claimed nor
 expected.
 
@@ -350,7 +352,7 @@ results (mean $\pm$ SD over five folds or runs).}
 \toprule
 Experiment & Protocol & QWK \\
 \midrule
-TOPORET (Kaggle DR) & 5 patient-aware splits & $0.88$ (\cref{tab:h1}) \\
+TOPORET (Kaggle DR) & 5 patient-aware splits & $0.88\pm0.01$ (\cref{tab:crossdata}) \\
 DGTS (fused corpus) & 5 folds, seed 42 & $0.941\pm0.008$ \\
 DGTS (EyePACS, zero-shot) & 5 TTA runs, seeds 42--46 & $0.925\pm0.008$ \\
 DOTS (fused corpus) & 5 folds, seed 42 & $0.9527\pm0.0063$ \\

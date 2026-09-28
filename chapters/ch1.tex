@@ -152,9 +152,10 @@ resolution, illumination, compression and patient factors such as pupil size or 
 opacities all change the appearance of the image. A non-negligible fraction of screening
 images is ungradable. These variations are a major source of the performance drop observed
 when a model trained in one population is applied to another, and they motivate two
-design choices of this thesis: contrast normalisation with Contrast-Limited Adaptive Histogram Equalisation (CLAHE)
-before any analysis, and
-evaluation on five datasets acquired in four countries.
+design choices of this thesis: contrast normalisation with Contrast-Limited Adaptive
+Histogram Equalisation (CLAHE) before any analysis, and evaluation on public datasets
+acquired in three countries (United States, India and France), including external
+datasets never seen during training.
 
 \section{Severity Grading Scales}
 \label{sec:grading}
@@ -167,17 +168,14 @@ screening. The International Clinical Diabetic Retinopathy (ICDR) scale was prop
 2003 to simplify it into five levels that can be graded from standard
 photographs and that map directly onto clinical decisions~\cite{wilkinson2003icdr}.
 
-\Cref{tab:icdr} summarises the International Clinical Diabetic Retinopathy (ICDR)
-scale~\cite{wilkinson2003icdr} used to grade every image in this thesis. Grades~3 and~4
-require urgent referral; missing them is the error counted by the Severe-DR Non-Referral
-Rate (Sev-NR).
+\Cref{tab:icdr} summarises the ICDR scale used to grade every image in this thesis.
+Grades~3 and~4 require urgent referral; missing them, that is, predicting No~DR or Mild
+for such an image, is the error counted by the Severe-DR Non-Referral Rate (Sev-NR) for
+Grade~3 and by the PDR Non-Referral Rate (PDR-NR) for Grade~4.
 
 Grading the colour fundus photographs of \cref{sec:imaging} is a visual task:
 the grader counts and locates microaneurysms, haemorrhages, exudates, venous beading and
-new vessels, and maps them to a grade. Even among experts, agreement is only moderate at
-the boundaries between neighbouring grades, which is why screening programmes use double
-grading and arbitration for difficult cases. An automated system inherits this ambiguity:
-the reference labels themselves are uncertain near the grade boundaries.
+new vessels, and maps them to a grade using the rules of \cref{tab:icdr}.
 
 \begin{table}[!htbp]
 \centering
@@ -238,7 +236,7 @@ system can give is often to indicate which images deserve this second look. In t
 \section{Screening Programmes and Patient Safety}
 \label{sec:screening}
 
-Population-scale screening is therefore a public-health imperative, and automated
+Population-scale screening is a public-health imperative, and automated
 grading is widely seen as a way to make it more affordable at national
 scale~\cite{ting2017jama,abramoff2018pivotal}. The safety of such a programme is measured by how many
 sight-threatening cases it fails to refer. At a Severe-DR Non-Referral Rate of
@@ -295,7 +293,7 @@ have been central to the development of vessel segmentation methods.
 Dataset & $N$ & G0 & G1 & G2 & G3 & G4 & Origin \\
 \midrule
 Kaggle EyePACS~\cite{kaggle2015eyepacs} & 88{,}702 & 74.2 & 6.8 & 15.1 & 2.5 & 1.4 & USA, multi-site \\
-APTOS 2019~\cite{aptos2019} & 3{,}662 & 49.3 & 10.1 & 27.3 & 5.3 & 8.0 & India \\
+APTOS 2019~\cite{aptos2019} & 3{,}662 & 49.3 & 10.1 & 27.3 & 5.3 & 8.1 & India \\
 Messidor-2~\cite{decenciere2014messidor} & 1{,}748 & 53.5 & 15.0 & 23.0 & 5.0 & 3.5 & France \\
 KaggleDR-F1 & 2{,}197 & 49.3 & 10.1 & 27.3 & 5.3 & 8.1 & Kaggle collection \\
 \bottomrule

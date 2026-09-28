@@ -408,3 +408,14 @@ v10 (final layout pass):
 - Ch.6: bridging sentences after Table 6.1 and after the severity definitions; conclusion tightened.
 
 v11: Résumé FR: French guillemets, Sev-NR defined at first use, wording of the H3b sentence.
+
+v12 (examiner-level content review):
+- Ch.1: "five datasets in four countries" -> public datasets from three countries (USA, India, France); APTOS G4 8.0 -> 8.1 (295/3662); Sev-NR/PDR-NR defined precisely; duplicated grader-agreement paragraph removed.
+- Ch.2: EfficientNet-B3 is baseline of TOPORET/DOTS, DGTS uses B4; TDA vector reference now Eqs 3.3 and 4.1.
+- Ch.4: pre-specification claim made precise (fixed before the experiments of the chapter, since a conference version existed); SAMF-GB vs TOPORET paragraph.
+- Ch.3/Intro: SAMF-GB "1/13 of cost" qualified as classifier cost, feature extraction excluded.
+- Ch.5: one-sample t-test in DOTS ablation qualified; points to McNemar test.
+- Ch.6: EU AI Act basis corrected: Art. 6(1) + Annex I (MDR 2017/745, Rule 11 Class IIa+), not Annex III; wrong cross-ref "Section 6.10" for fairness fixed; Phase 2 criterion tightened.
+- Conclusion: ordinal-head sentence clarified.
+- Appendix: DGTS T = 1.38-1.47 (was 1.42, contradicted Ch.5); Bonferroni sentence contradicted single-feature H2 -> corrected; t threshold described as alpha=0.05 (not "conservative"); tolerance/table refs fixed.
+TO VERIFY BY AUTHOR: Kaggle EyePACS G4 = 1.4% in Table 1.2 (public train labels give ~2.0%); Kaggle test split 16,576 vs 20% of 88,702 = 17,740; ICAART 2025/2026 papers still "Accepted, to appear".

@@ -172,12 +172,16 @@ The three critical hazards are those whose effect reaches the patient directly; 
 them (hazards~1 and~5) are mitigated inside the pipeline, whereas hazard~6 depends on the
 integration of the pipeline into the hospital information system.
 
-\section{EU AI Act Annex III: High-Risk Classification}
+\section{EU AI Act: High-Risk Classification}
 \label{sec:aiact}
 
-Annex~III of the EU AI Act classifies AI systems used as safety components of medical
-devices as high-risk, which triggers the requirements of Articles~9--15 before CE
-marking. The design includes mechanisms relevant to each of them; whether they are
+Under Article~6(1) of the EU AI Act, an AI system that is itself a medical device, or a
+safety component of one, is high-risk when the device requires a third-party conformity
+assessment under the Medical Device Regulation (EU)~2017/745, listed in Annex~I of the
+Act; a DR grading system that informs referral decisions falls in this case, since
+Rule~11 of the Regulation places such software in Class~IIa or higher. This
+triggers the requirements of Articles~9--15, assessed together with the CE marking of the
+device. The design includes mechanisms relevant to each of them; whether they are
 sufficient would be decided only by a formal conformity assessment.
 \begin{description}[style=nextline,leftmargin=1.2em]
 \item[Art.~9 (risk management)] The FMEA of \cref{tab:fmea}, with explicit failure
@@ -377,7 +381,7 @@ Three ethical considerations go beyond formal regulatory requirements.
 The datasets used in this thesis come from several countries, which gives some
 geographic and probably some ethnic diversity. None of them, however, provides per-image
 demographic metadata (age, sex, ethnicity), which prevents a formal subgroup fairness
-analysis. This is stated as a limitation (\cref{sec:limits-gc}) rather than elided.
+analysis. This is stated as a limitation in the General Conclusion rather than elided.
 
 \paragraph{Deskilling risk.}
 Reliance on automated screening may, over time, erode human grading skill. Showing the
@@ -426,8 +430,8 @@ thesis provides Level~1 evidence only.
 Phase~2 is the critical next step. It would combine the three axes in one model with an
 automatic deferral of uncertain images, and evaluate it in a pre-registered, multi-site
 reader study in which ophthalmologists grade images with and without the system. Its
-primary success criterion would be a Sev-NR below $2\%$ with the upper bound of its 95\%
-confidence interval also below $2\%$, which would close the main statistical limitation of
+primary success criterion would be an upper bound of the 95\% confidence interval of
+Sev-NR below $2\%$, which would close the main statistical limitation of
 the present results. Because Sev-NR concerns rare severe cases, the sample size would have
 to be set by a power calculation on the number of severe cases, and is likely to be large.
 The dates of Phases~2--4 are indicative.

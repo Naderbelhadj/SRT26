@@ -420,8 +420,11 @@ Total gain & $+4.5$~pp & & $+0.040$ \\
 \end{tabular}
 \end{table}
 
-For each configuration, a one-sample $t$-test over the five folds ($df=4$) shows that the
-mean QWK exceeds the baseline value $0.903$ ($p<0.01$ for every row). The population graph
+For each configuration above the baseline, a one-sample $t$-test over the five folds
+($df=4$) shows that the mean QWK exceeds the baseline value $0.903$ ($p<0.01$ for every
+row). This test treats the baseline mean as fixed and ignores its fold-to-fold variance,
+so it is lenient; the paired comparison of the complete pipeline with the baseline is the
+McNemar test of \cref{sec:dots-calib}. The population graph
 helps here too ($+0.010$), which is consistent with H1, but the FRE outperforms it
 ($+0.009$ more) at a lower inference cost, and it replaces the graph in the final
 pipeline. CORAL adds the smallest QWK gain but the largest accuracy gain per QWK point
@@ -483,6 +486,7 @@ Macro & 0.827 & 0.816 & 0.818 & 5{,}859 \\
 \end{table}
 
 \subsection{Calibration and Significance}
+\label{sec:dots-calib}
 
 For the referral decision (Grade~$\geq2$ referable), the ECE is $0.041\pm0.006$, the Brier
 score $0.072\pm0.004$ and the AUC $0.971$ $[0.963,\,0.979]$. For the five grades, the ECE

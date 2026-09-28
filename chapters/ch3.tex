@@ -54,8 +54,8 @@ information in a population graph before this work.
 Let $\{(I_j,y_j)\}$ be a set of fundus images with ICDR grades $y_j\in\{0,\ldots,4\}$. The
 task is to predict the grade $\hat y_i$ of a new image $I_i$ that was not seen during
 training, using both its own content and the content of similar patients. The chapter tests
-two pre-specified hypotheses; their decision thresholds were fixed before any data were
-analysed.
+two pre-specified hypotheses; their tests and decision thresholds were fixed before the
+experiments of this chapter were run.
 
 \paragraph{H1 -- The Relational Hypothesis.}
 An inductive population graph connecting patients through a dual-similarity metric
@@ -566,6 +566,14 @@ TOPORET uses a frozen ImageNet EfficientNet-B3 backbone by design: it was built 
 and H2 at a controlled backbone quality, not to maximise QWK. Its contribution is not the
 highest QWK but the joint treatment of L1 and L2 in a single framework; stronger
 backbones, such as retinal foundation models, are left to future work.
+
+SAMF-GB (\cref{sec:samfgb}) reports a similar QWK ($0.882$) on Kaggle EyePACS, but under
+its own protocol, with $256$ hand-crafted features and a gradient-boosting classifier, so
+the two values are not compared directly. The two systems answer different questions:
+SAMF-GB shows how much a rich hand-crafted description of the vessels achieves on its
+own, whereas TOPORET isolates, on identical frozen features and splits, what relations
+between patients add (H1). Using such structural descriptors as node features of the
+population graph is a natural combination that was not evaluated in this thesis.
 
 \section{Discussion}
 \label{sec:ch3-discussion}
