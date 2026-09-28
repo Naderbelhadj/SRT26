@@ -8,7 +8,7 @@ This thesis addressed the automated grading of diabetic retinopathy in a context
 screening needs grow much faster than the number of human graders, and where an automated
 system is only acceptable if it is both accurate and safety-oriented. Starting from a
 review of a decade of deep-learning methods, we argued that three architectural
-limitations recur across the representative systems reviewed in this thesis: they grade
+limitations recur across the representative systems reviewed in this thesis. They grade
 each image in isolation, they do not use the global topology of the vascular network, and
 they are rarely trained or evaluated with the referral of severe cases in mind. Throughout,
 ``disease progression'' was operationalised as the prediction of DR severity on the
@@ -19,10 +19,10 @@ relational, topological and ordinal-safety mechanisms for diabetic retinopathy g
 The study began with the clinical context of the disease and the methodological tools
 needed for the three axes: graph neural networks, persistent homology, ordinal regression
 and calibration. We then evaluated the graph template outside medicine, on microservice
-and network-security graphs -- where a ten-run re-evaluation showed that appended
-invariants bring interpretability rather than a significant accuracy gain -- and gathered
-first evidence, with three independent methods, that vascular and topological features of
-the retina carry information complementary to deep visual features. These results led to
+and network-security graphs, where a ten-run re-evaluation showed that appended invariants
+bring interpretability rather than a significant accuracy gain. We also gathered first
+evidence, with three independent methods, that vascular and topological features of the
+retina carry information complementary to deep visual features. These results led to
 TOPORET, an inductive population graph whose edges combine visual and topological
 similarity. Two systems trained on a fused multi-source corpus then extended this work:
 DGTS, a population graph regularised by persistent homology of feature-space
@@ -181,9 +181,9 @@ safety target, such as age-related macular degeneration or glaucoma; this remain
 tested.
 
 In summary, the thesis does not claim that its systems are clinically validated or
-regulatory-ready; it demonstrates, on retrospective public data with external validation,
+regulatory-ready. It demonstrates, on retrospective public data with external validation,
 that relational, structural/topological and ordinal-safety mechanisms each improve DR
-grading in a measurable way, and it identifies clearly the remaining steps -- a unified
-model, a deferral mechanism and prospective evaluation -- towards clinical use. The
+grading in a measurable way. It also identifies the remaining steps towards clinical use:
+a unified model, a deferral mechanism and prospective evaluation. The
 prevention of blindness at the scale of a population will depend on the ability to carry
 such systems from computational evaluation to prospectively validated clinical practice.

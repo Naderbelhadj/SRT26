@@ -40,10 +40,10 @@ produce a per-prediction explanation, a separate post-hoc module (Grad-CAM, SHAP
 LIME~\cite{selvaraju2017gradcam,lundberg2017shap,ribeiro2016lime}) has to be added, and
 its explanations may not faithfully represent the model's decision. The pipelines of this
 thesis instead expose, at inference time, quantities that can be shown to a clinician
-without a separate model: the topological descriptors of the vessel network (TOPORET), the
-most similar training cases with their verified grades and the persistence diagram of
-their neighbourhood (DGTS)~\cite{belhadj2026dgts}, and calibrated grade probabilities
-(DOTS)~\cite{belhadj2026dots}. These quantities are explanatory signals, not demonstrated
+without a separate model. TOPORET provides the topological descriptors of the vessel
+network; DGTS provides the most similar training cases with their verified grades and the
+persistence diagram of their neighbourhood~\cite{belhadj2026dgts}; DOTS provides
+calibrated grade probabilities~\cite{belhadj2026dots}. These quantities are explanatory signals, not demonstrated
 faithful explanations; their usefulness to clinicians has not been evaluated.
 
 \section{Mapping Regulatory Standards to Architectural Mechanisms}

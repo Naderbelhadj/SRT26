@@ -427,14 +427,13 @@ $\hat P(Y\geq k)$ are not decreasing in $k$.
 
 \subsection{Statistical Tests}
 
-Each hypothesis of the thesis is tested with a statistical procedure fixed before the
-experiment. A paired $t$-test compares two systems evaluated on the same cross-validation
-folds; a one-way analysis of variance (ANOVA), followed by Tukey's post-hoc
-test~\cite{tukey1949}, tests whether a feature differs across the five grades; Wilcoxon
-and McNemar tests compare paired folds or paired predictions; bootstrap
-resampling~\cite{efron1993bootstrap} gives confidence intervals for QWK; and exact
-Clopper--Pearson intervals are used for the non-referral rates, which are proportions of
-small counts. Effect sizes are reported with Cohen's $d$ and $\eta^2$~\cite{cohen1988}. The
+Each hypothesis of the thesis is tested with an explicit statistical procedure. A paired
+$t$-test compares two systems evaluated on the same cross-validation folds. A one-way
+analysis of variance (ANOVA), followed by Tukey's post-hoc test~\cite{tukey1949}, tests
+whether a feature differs across the five grades. Wilcoxon and McNemar tests compare paired
+folds or paired predictions. Bootstrap resampling~\cite{efron1993bootstrap} gives
+confidence intervals for QWK, and exact Clopper--Pearson intervals are used for the
+non-referral rates, which are proportions of small counts. Effect sizes are reported with Cohen's $d$ and $\eta^2$~\cite{cohen1988}. The
 formal statements are collected in \cref{app:stats}.
 
 \section{Summary of the Methods}

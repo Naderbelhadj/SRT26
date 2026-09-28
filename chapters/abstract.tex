@@ -9,24 +9,24 @@ preventable blindness. None of the representative systems reviewed here addresse
 requirements: L1 (relational context between patients), L2 (global vascular topology),
 and L3 (safety-oriented grading: grade order and missed referrals of severe cases are
 rarely modelled or measured). ``Disease progression'' is operationalised as
-cross-sectional prediction of ordinal ICDR severity from a single fundus image, not as
+cross-sectional prediction of severity on the ordinal International Clinical DR (ICDR)
+scale from a single fundus image, not as
 longitudinal prediction.
 
 \paragraph{Methods.}
 Twelve publications support this thesis. Three hypotheses structure it: H1, an inductive
 population graph adds information beyond that captured by a per-image classifier; H2,
 $H_0/H_1$ persistent homology of the retinal vasculature is associated with severity; H3,
-an ordinal pipeline meets screening safety criteria (QWK $\geq0.80$, severe and
-proliferative non-referral rates $\leq2\%$, no Grade~$0\leftrightarrow4$ confusion)
-internally and on external data (H3a), while none of its reduced variants does (H3b). A
-graph template first evaluated on distributed systems is carried over to hybrid models, to
-the TOPORET population graph, and to two systems trained on a fused corpus of $5{,}859$
-images: DGTS (population graph regularised by persistent homology) and DOTS (EfficientNet-B3,
-feature refinement encoder, CORAL ordinal head, test-time augmentation).
+an ordinal pipeline meets screening safety criteria (quadratic weighted kappa, QWK,
+$\geq0.80$; severe and proliferative non-referral rates $\leq2\%$; no
+Grade~$0\leftrightarrow4$ confusion)
+internally and on external data (H3a), while none of its reduced variants does (H3b). The
+systems are TOPORET, a topology-aware population graph, and two models trained on $5{,}859$
+fused images: DGTS (graph regularised by persistent homology) and DOTS (CORAL ordinal head).
 
 \paragraph{Results.}
 H1 is supported ($t_4=3.82$, two-tailed $p=0.019$ over five patient-aware splits;
-$+0.04$ quadratic weighted kappa, QWK). H2 is supported as a statistical association
+$+0.04$ QWK). H2 is supported as a statistical association
 ($F=84.3$, $p<0.001$). DGTS reaches QWK $=0.941$ in five-fold cross-validation and $0.925$
 without retraining on $35{,}126$ EyePACS images. DOTS reaches QWK $=0.953$ with severe
 non-referral (Sev-NR) $0.97\%$ internally, and QWK $=0.931$ with Sev-NR $1.4\%$ on the

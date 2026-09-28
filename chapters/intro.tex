@@ -81,10 +81,11 @@ The work thus pursues a double ambition. On the scientific side, it shows that r
 and topological information improve DR grading on two different corpora, and that
 ordinal supervision combined with multi-source training and test-time augmentation meets
 screening safety thresholds where none of its reduced variants does. On the practical
-side, it delivers two research systems trained on $5{,}859$ public images: DGTS, which
-reaches a QWK of $0.925$ without retraining on $35{,}126$ EyePACS images, and DOTS, which
-reaches a QWK of $0.931$ and a Sev-NR of $1.4\%$ on the independent Messidor-2 dataset,
-with an inference time of about $75$~ms per image on a single T4 GPU. For an illustrative
+side, it delivers two research systems trained on $5{,}859$ public images. DGTS (Deep Graph
+Topological System) reaches a quadratic weighted kappa (QWK) of $0.925$ without retraining on
+$35{,}126$ EyePACS images. DOTS (Deep Ordinal Training System) reaches a QWK of $0.931$
+and a Sev-NR of $1.4\%$ on the independent Messidor-2 dataset, with an inference time of
+about $75$~ms per image on a single T4 GPU. For an illustrative
 programme of $500{,}000$ patients a year, the lower non-referral rate of DOTS corresponds
 to a \emph{projected} reduction of about $1{,}100$ non-referred severe cases compared with a
 CNN baseline, under the explicit prevalence assumptions of \cref{sec:impact}; this is a
