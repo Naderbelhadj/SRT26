@@ -76,10 +76,6 @@ FDA SaMD guidance & Software as a Medical Device & Locked algorithm; possible 51
 \end{tabular}
 \end{table}
 
-Each row links a requirement to a mechanism that already exists in the code; the
-standards themselves are discussed in turn below, from the software life cycle to the
-classification under the AI Act.
-
 \subsection{IEC 62304: Software Life Cycle and Unit Verification}
 \label{sec:iec62304}
 
@@ -237,8 +233,9 @@ DOTS inference (TTA $\times5$) & per image & $\approx75$~ms \\
 \end{tabular}
 \end{table}
 
-Persistent homology is the main cost of the TOPORET framework; it is independent for each
-image and parallelises across CPU cores, and in DGTS it scales almost linearly with the
+Persistent homology is the main cost of the TOPORET framework; these batch times come
+from the framework of~\cite{belhadj2026enase}, not from the faster TOPORET implementation
+(\cref{sec:toporet-cost}). It is independent for each image and parallelises across CPU cores, and in DGTS it scales almost linearly with the
 number of workers~\cite{belhadj2026dgts}. At $75$~ms per image, DOTS processes about
 $48{,}000$ images per hour on one T4 GPU, while a programme screening $500{,}000$ patients a
 year needs about $1{,}370$ per day. These measurements indicate computational feasibility
@@ -283,7 +280,7 @@ confirmed during conformity assessment. This property is relevant to the ``locke
 versus ``continuously learning'' distinction discussed by the
 FDA~\cite{fda2017samd,fda2019aiml}.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption[Three-tier deployment architecture (proposed)]{Proposed three-tier deployment architecture for a screening programme.}
 \label{tab:tiers}

@@ -419,3 +419,8 @@ v12 (examiner-level content review):
 - Conclusion: ordinal-head sentence clarified.
 - Appendix: DGTS T = 1.38-1.47 (was 1.42, contradicted Ch.5); Bonferroni sentence contradicted single-feature H2 -> corrected; t threshold described as alpha=0.05 (not "conservative"); tolerance/table refs fixed.
 TO VERIFY BY AUTHOR: Kaggle EyePACS G4 = 1.4% in Table 1.2 (public train labels give ~2.0%); Kaggle test split 16,576 vs 20% of 88,702 = 17,740; ICAART 2025/2026 papers still "Accepted, to appear".
+
+v13 (second examiner-level pass):
+- Ch.4: stability claim now matches Table 4.2 grid (93.9-95.5%, neighbours within 1.1 pt); "73% Grade 0" -> 74.2% as in Table 1.2; unverifiable sentence on settings outside range removed.
+- Ch.6: note that Table 6.4 batch times come from the ENASE framework, not the faster TOPORET implementation (18 ms); Table 6.5 kept in its section.
+- Publications: P3 no longer shows "vol. 5, pp. 4635-4642" (contradicted bib "to appear"; implausible pages) -> author to add real pages/DOI when published; Mezghich role "co-advising" consistent with title page.

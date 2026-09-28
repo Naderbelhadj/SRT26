@@ -194,14 +194,15 @@ S_{ij} = \alpha\cdot\cos\bigl(x_i^{\mathrm{CNN}},\, x_j^{\mathrm{CNN}}\bigr)
 \end{equation}
 where $W_2$ is the $2$-Wasserstein distance between persistence diagrams. An edge
 $(v_i,v_j)$ is added when $S_{ij}>\tau$. The two parameters were selected on the validation
-data by a grid search (\cref{tab:hparam}): $\alpha=0.6$ and $\tau=0.65$. Validation accuracy
-is stable within $\alpha\in[0.5,\,0.7]$ and $\tau\in[0.60,\,0.70]$, so the results are not a
-knife-edge consequence of one setting. A lower $\alpha$ gives more weight to topology in the
+data by a grid search (\cref{tab:hparam}): $\alpha=0.6$ and $\tau=0.65$. Across the grid,
+validation accuracy ranges from $93.9\%$ to $95.5\%$, and every setting adjacent to the
+selected one stays within $1.1$ points of it, so the results are not a knife-edge
+consequence of one setting. A lower $\alpha$ gives more weight to topology in the
 similarity, and a higher $\tau$ keeps only the most similar pairs. The selected setting
 gives an average degree of about $12$ (\cref{tab:graphstruct}): large enough for information
-to propagate between patients, and small enough to avoid connecting dissimilar ones. Settings
-outside this range either isolate many patients or merge images of different grades into
-the same neighbourhood.
+to propagate between patients, and small enough to keep the graph sparse; a lower
+threshold admits more edges between less similar patients, which the sensitivity grid
+penalises.
 
 \begin{table}[H]
 \centering
@@ -225,8 +226,8 @@ $\alpha$ & $\tau=0.55$ & $\tau=0.65$ & $\tau=0.75$ \\
 
 A two-layer GraphSAGE~\cite{hamilton2017graphsage} with mean aggregation over $S=10$ sampled
 neighbours per layer, hidden dimension $256$, ReLU activations and dropout $0.3$ refines the
-node representations; a softmax layer gives the five grade probabilities. Because $73\%$ of
-the Kaggle DR images are Grade~0, the model is trained with a class-weighted cross-entropy,
+node representations; a softmax layer gives the five grade probabilities. Because about three
+quarters of the Kaggle DR images are Grade~0 ($74.2\%$, \cref{tab:datasets}), the model is trained with a class-weighted cross-entropy,
 $w_c=N/(C\,N_c)$ for grade $c$. Optimisation uses Adam~\cite{kingma2015adam} with a
 learning rate of $10^{-3}$ and cosine annealing to $10^{-5}$, batches of $64$, at most $200$
 epochs and early stopping on the validation loss (patience~$20$). The loss is nominal, not
