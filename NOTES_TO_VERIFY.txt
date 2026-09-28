@@ -510,3 +510,5 @@ v26 (defensibility pass, no new experiments):
 - Checks: 0 errors, 0 undefined, 0 overfull, 71 floats OK (GC flags = running-header false positives), 0 stacked, resume/abstract one page each.
 
 v27: List of Publications intro sentence: PLOS ONE (J3) stated as under revision, three journals under review (entries and bib already said so).
+
+v28 (verification pass): duplicate page.i destination fixed (title page numbered Alph); GC.2 row no longer attributes the DGTS-vs-baseline Wilcoxon test to the regulariser; "second corpus/two corpora" replaced by "inductive protocol/two systems and two protocols" (DGTS ablation is on APTOS, also a TOPORET benchmark); spell check (British spelling consistent), cross-references, float audit with running headers excluded (71/71 OK), page-number overlap check.

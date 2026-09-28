@@ -301,7 +301,7 @@ alone by $+0.034$ and the regulariser alone by $+0.022$, so the two signals are
 complementary. Fusion adds $+0.011$ (A5$\to$A6). A fold-level one-sided Wilcoxon test of
 DGTS against the CNN-only baseline gives $p=0.031$, the smallest value attainable with five
 paired folds. The same direction of effect as H1 and H2 -- relational and topological
-information both help -- is thus observed on a second corpus and with a different form of
+information both help -- is thus observed with a second system, an inductive protocol and a different form of
 topology. Replacing focal loss by an ordinal Earth Mover's Distance loss (A7) lowers QWK by
 $0.020$, which indicates that ordinal supervision is not beneficial in every architecture;
 DOTS examines it with CORAL.
@@ -619,7 +619,7 @@ Inference (T4 GPU) & $18.3$~ms & $\approx75$~ms (TTA $\times5$) \\
 \end{tabular}
 \end{table}
 
-DGTS supports, on a second corpus and with a different form of topology, the value of the
+DGTS supports, with an inductive protocol and a different form of topology, the value of the
 relational and topological axes; it generalises well in QWK but misses the Sev-NR
 threshold on EyePACS. The observed performance of DOTS satisfies the safety criteria at the point estimate, but
 DOTS does not use the population graph
@@ -741,7 +741,7 @@ QWK $\geq0.80$, Sev-NR $\leq2\%$, PDR-NR $\leq2\%$ and zero Grade~$0\leftrightar
 confusion -- internally and on Messidor-2, which supports H3a; the interval of
 \cref{sec:notestablished} shows that safety is not demonstrated. Within the ablation, no
 reduced variant meets the Sev-NR criterion on Messidor-2, which supports H3b. DGTS
-provides complementary evidence, on a second corpus, that relational and topological
+provides complementary evidence, under an inductive protocol, that relational and topological
 information improve grading, while showing that good
 generalisation in QWK does not by itself guarantee the safety criterion.
 

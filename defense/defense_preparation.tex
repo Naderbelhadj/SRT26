@@ -66,7 +66,7 @@ TOPORET ablation (Kaggle DR) & TDA features $+0.02$; graph with TDA in edges $+0
 TOPORET settings & $\alpha=0.6$, $\tau=0.65$, five-fold, seed $42$, image-level, transductive \\
 Fused corpus & $5{,}859$ images (APTOS~2019 $3{,}662$ $+$ KaggleDR-F1 $2{,}197$); $309$ Severe, $472$ PDR \\
 DGTS & CV QWK $0.941\pm0.008$; EyePACS zero-shot $0.925\pm0.008$ ($35{,}126$ images); Sev-NR on EyePACS $\approx2.1\%$; $18.3$~ms/image \\
-DGTS ablation (APTOS) & graph $+0.018$ (A2$\to$A3); PH regulariser $+0.030$ (A2$\to$A4); Wilcoxon $p=0.031$ \\
+DGTS ablation (APTOS) & graph $+0.018$ (A2$\to$A3); PH regulariser $+0.030$ (A2$\to$A4); DGTS vs CNN baseline: Wilcoxon $p=0.031$ \\
 DOTS internal & QWK $0.9527\pm0.0063$; Sev-NR $0.97\%$ ($3/309$) $[0.2,\,2.8]\%$; PDR-NR $1.27\%$ ($6/472$) $[0.5,\,2.7]\%$; McNemar $p=0.013$ \\
 DOTS Messidor-2 & $1{,}744$ images; QWK $0.931$; Sev-NR $1.4\%$; PDR-NR $1.9\%$; no $0\leftrightarrow4$ confusion \\
 H3b variants (Messidor-2) & Sev-NR: baseline $5.8\%$, $+$GraphSAGE $4.1\%$, $+$CORAL $3.7\%$, $+$TTA $2.9\%$ \\

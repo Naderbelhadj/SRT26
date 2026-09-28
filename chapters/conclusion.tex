@@ -37,7 +37,7 @@ The experiments provide three principal findings. First, the pre-specified analy
 provides evidence supporting the contribution of the population graph to grading
 performance (H1: $t_4=3.82$, $p=0.019$ two-tailed, $+0.04$ QWK, reproduced on three
 benchmarks), and the
-same direction of effect is observed on a second corpus with DGTS ($+0.018$ QWK for the
+same direction of effect is observed inductively with DGTS ($+0.018$ QWK for the
 graph). Because the inferential unit of H1 is the cross-validation fold, its test has four
 degrees of freedom; corrected for the overlap of the folds, it is no longer significant on
 any single benchmark ($p=0.06$--$0.09$) but remains so for the three benchmarks combined
@@ -82,7 +82,7 @@ EyePACS is about $2.1\%$.
 
 The three research questions of the thesis can therefore be answered as follows. Does
 the relational context between patients carry information beyond that of a per-image
-classifier? In our experiments, yes, on two corpora: a graph built from visual similarity
+classifier? In our experiments, yes, with two systems and two protocols: a graph built from visual similarity
 alone already improves the QWK in DGTS, inductively, and in TOPORET the largest gain is
 obtained when topology enters both the similarity and the node features. Is the global topology of the vascular network
 related to the severity of the disease? It is statistically associated with it: total
@@ -122,7 +122,7 @@ Claim & Evidence & Level & Main limitation \\
 \midrule
 Relational information improves grading & H1 (TOPORET, transductive); DGTS ablation, $+0.018$ QWK, inductive & Moderate & Five folds; corrected $p$ significant only combined \\
 Topological descriptors are associated with severity & H2: $F=84.3$, $p<0.001$ & Moderate & Small effect ($\eta^2\approx0.01$); association only; Kaggle DR only \\
-Topological regularisation helps (DGTS) & Ablation, $+0.030$ QWK; Wilcoxon $p=0.031$ & Moderate & Feature-space, not vascular, topology \\
+Topological regularisation helps (DGTS) & Ablation on APTOS~2019, $+0.030$ QWK (A2$\to$A4) & Moderate & Feature-space, not vascular, topology; five folds \\
 DGTS keeps its QWK on external data & EyePACS zero-shot, QWK $0.925$ & Moderate--strong & Sev-NR about $2.1\%$, above the target \\
 DOTS satisfies the screening targets (H3a) & Point estimates, internal and Messidor-2 & Moderate & Internal interval $[0.2\%,\,2.8\%]$ crosses $2\%$ \\
 No reduced variant suffices (H3b) & Four variants fail Sev-NR on Messidor-2 & Moderate & One ablation specification \\
