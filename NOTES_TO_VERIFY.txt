@@ -300,3 +300,12 @@ test values reproduced from the saved predictions.
 STILL RED (12 cells): Table 5.3, test composition by source dataset and grade. The
 author gave only "APTOS = 2,xxx, EyePACS = 7,xxx"; exact counts per grade are needed
 (output of tools/verify_h3a.py, or chapters/h3a_values.tex written by it).
+
+Ninth pass: test-set composition
+================================
+Table 5.3 filled from the author: APTOS 2,000 (1,150 / 210 / 490 / 95 / 55) and EyePACS
+8,000 (4,084 / 811 / 1,999 / 517 / 589); row and column sums checked against the grade
+totals of the thesis. No red value remains.
+Before submission, make sure that (i) t = 0.60 is the exact value of the evaluation code
+(a later message gave it as "approximately 0.50-0.65"), and (ii) the released
+test_manifest.csv reproduces Table 5.3 exactly.
