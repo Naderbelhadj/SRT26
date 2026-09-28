@@ -104,22 +104,18 @@ illustrative programme of $500{,}000$ patients; this is a projection, not an obs
 outcome. A CPU model developed along the way (SAMF-GB) also offers a low-cost alternative for
 settings without GPUs.
 
-Beyond its results, the research programme taught several methodological lessons that may
-be useful to other work on medical AI. First, accuracy and safety must be measured
-separately: DGTS generalises well in QWK yet misses the Sev-NR threshold externally, and
-optimising the former does not guarantee the latter. Second, evaluating an architectural
-idea outside medicine, where data are plentiful and labels unambiguous, made the medical
-experiments easier to design and to interpret, although the transfer remains an analogy; it
-also showed, through a negative result, that appending interpretable descriptors does not by
-itself guarantee an accuracy gain, which is why the value of topology on retinal data was
-tested separately. Third, fixing hypotheses and tests before running the experiments made
-the negative result of the invariant study and the modest, additive gains of the
-topological features informative findings rather than results to be explained away.
-Fourth, external validation is indispensable: only the external evaluations of this thesis
-are free of the uncertainty about the independence of the two training sources. Finally,
-the component that most improves safety is not necessarily the one that most improves
-accuracy: in DOTS, the ordinal head adds the smallest QWK gain, yet only the complete
-pipeline, with the ordinal head, reaches the Sev-NR threshold externally.
+Beyond its results, the programme taught five methodological lessons. First, accuracy and
+safety must be measured separately: DGTS generalises well in QWK yet misses the Sev-NR
+threshold externally. Second, evaluating an architectural idea outside medicine made the
+medical experiments easier to design, and its negative result showed that appended
+descriptors do not by themselves guarantee an accuracy gain. Third, fixing hypotheses and
+tests in advance turned modest or negative results into findings rather than results to
+be explained away. Fourth, external data and released code are part of the evidence: only
+the external evaluations are free of the uncertainty about the two training sources, and
+only the code settles which protocol produced a result. Finally, the component that most
+improves safety is not necessarily the one that most improves accuracy: the ordinal head of
+DOTS adds the smallest QWK gain, yet only the complete pipeline reaches the Sev-NR threshold
+externally.
 
 \phantomsection\label{sec:limits-gc}
 \paragraph{Limitations.}
@@ -129,6 +125,13 @@ These results must be read within clear limits.
 public datasets. The internal Sev-NR interval of DOTS extends to $2.8\%$, above the $2\%$
 threshold, so statistical compliance with the safety criterion is not established, and no
 claim of prospective clinical safety or effectiveness is made.
+\item \textbf{A transductive, image-level evaluation of TOPORET.} Following its released
+code, TOPORET was evaluated with image-level folds and a graph that contains the test
+images as unlabelled nodes, and its topological similarity compares six summary
+statistics rather than full persistence diagrams. Part of its gain on Kaggle DR and
+Messidor-2 may come from the fellow eye of the same patient; the inductive evidence for
+the relational axis comes from DGTS, and the fold-overlap correction leaves H1 significant
+only for the three benchmarks combined.
 \item \textbf{A small multi-source corpus of uncertain independence.} DGTS and DOTS are
 trained on $5{,}859$ images; KaggleDR-F1 has exactly $60\%$ of the APTOS~2019 count in
 every grade, and the absence of shared images between the two sources has not been
@@ -157,8 +160,11 @@ topology used by DGTS is that of the feature space, not of the vessels; and the 
 block of the DOTS feature refinement encoder is inactive on sequences of length one, so that
 no attention-based benefit is claimed.
 
-These limits open several directions for future work. The most immediate is to combine the
-three axes in one model -- a population graph with vascular topology and a CORAL ordinal
+These limits open several directions for future work. The most immediate, and the least
+costly, is to re-evaluate TOPORET with patient-level folds and a graph built from the
+training images only, so that H1 is tested under the same inductive conditions as DGTS;
+the released code needs only a grouped split and a per-fold graph. The next is to combine
+the three axes in one model -- a population graph with vascular topology and a CORAL ordinal
 head -- and to add a deferral mechanism built on the calibrated probabilities of DOTS, so
 that the most uncertain images are sent to a human grader. Such a model should then be
 evaluated in a prospective, multi-site reader study, pre-registered and powered on the
@@ -181,10 +187,9 @@ other graded diseases with an ordinal severity scale, a structural anatomical pr
 safety target, such as age-related macular degeneration or glaucoma; this remains to be
 tested.
 
-In summary, the thesis does not claim that its systems are clinically validated or
-regulatory-ready. It demonstrates, on retrospective public data with external validation,
-that relational, structural/topological and ordinal-safety mechanisms each improve DR
-grading in a measurable way. It also identifies the remaining steps towards clinical use:
-a unified model, a deferral mechanism and prospective evaluation. The
-prevention of blindness at the scale of a population will depend on the ability to carry
-such systems from computational evaluation to prospectively validated clinical practice.
+In summary, the thesis does not claim clinically validated or regulatory-ready systems. It
+shows, on retrospective public data with external validation, that relational, topological
+and ordinal-safety mechanisms each improve DR grading measurably, and it identifies the
+steps that remain: a unified model, a deferral mechanism and prospective evaluation.
+Preventing blindness at population scale will depend on carrying such systems from
+computational evaluation to prospectively validated clinical practice.

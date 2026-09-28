@@ -301,8 +301,8 @@ KaggleDR-F1 & 2{,}197 & 49.3 & 10.1 & 27.3 & 5.3 & 8.1 & Kaggle collection \\
 \end{tabular}
 \tabnote{$N$ counts retinal images, not independent patients: Kaggle EyePACS contains
 both eyes of each patient. The full Kaggle EyePACS release has $88{,}702$ images; the
-$35{,}126$ images with public labels are used in this thesis (TOPORET benchmark and external
-validation of DGTS); $1{,}744$ of the $1{,}748$ Messidor-2 images are gradable.}
+$35{,}126$ images with public labels are used in this thesis, as the TOPORET benchmark
+(\enquote{Kaggle DR}) and as the external set of DGTS (\enquote{EyePACS}); $1{,}744$ of the $1{,}748$ Messidor-2 images are gradable.}
 \end{table}
 
 The datasets differ in ways relevant to the results of this thesis. Kaggle EyePACS, by
@@ -431,7 +431,7 @@ DOTS~\cite{belhadj2026dots}$^{\star}$ & 2026 & EfficientNet-B3 $+$ FRE $+$ CORAL
 \end{tabular}
 \tabnote{$^{\dagger}$Not reported in a form comparable to five-grade QWK (for example,
 Gulshan et al.\ report AUC $=0.991$ for referable DR). $^{\star}$This thesis; QWK on the
-dataset and protocol of the corresponding chapter (TOPORET: Kaggle DR; DGTS and DOTS:
+dataset and protocol of the corresponding chapter (TOPORET: Kaggle DR, transductive five-fold cross-validation; DGTS and DOTS:
 five-fold cross-validation on the fused APTOS~2019 $+$ KaggleDR-F1 corpus), not directly
 comparable across rows. ``Partial'': DGTS uses feature-space rather than vascular topology,
 and reports but does not meet the safety criterion on external data.}

@@ -446,3 +446,7 @@ v16 - thesis aligned with the public TOPORET code (github.com/Nader-BelHadj/plos
 NOTE: README of the repo lists R. Ghayoula at Universite de Moncton; the thesis says Laval University - author to check.
 
 v17: rigorous float audit (68 floats: mentioned, after mention, no heading between) - Algorithm 4.1 pinned after its introducing paragraph; training-loop paragraph added in 4.3.4 (from released code). Ghayoula affiliation confirmed Laval (no change).
+
+v18 (from v17):
+- Form: spell-check of the whole body (no real typo; only hyphenation artefacts and names); xurl loaded so long URLs break cleanly in the bibliography (APTOS entry was badly stretched); orphan lines forbidden (clubpenalty 10000, widows already forbidden); all 68 floats re-audited OK.
+- Content: General Conclusion - new limitation (transductive, image-level TOPORET evaluation; descriptor surrogate; fellow-eye; H1 combined only) and first perspective (re-run TOPORET with patient-level folds and per-fold graph); lessons paragraph tightened, with a lesson on released code as evidence; Table 1.3 note (TOPORET transductive CV); Table 1.2 note defines "Kaggle DR" vs "EyePACS" (same 35,126 labelled images); Abstract/Resume state TOPORET was evaluated transductively.
