@@ -253,8 +253,9 @@ measures limit this risk in the thesis. First, each research hypothesis has a si
 pre-specified primary test and a single primary metric, fixed before the experiment
 (\cref{tab:falsif}); secondary analyses, such as the bootstrap and permutation tests of H1,
 are reported as supporting evidence and do not change the decision. Second, H2 is decided
-on a single primary feature, $\Pi_{H_1}$, at the conservative level $\alpha=0.005$; the other
-topological features are descriptive and do not add tests on which the decision rests. Third,
+on a single primary feature, $\Pi_{H_1}$, at the level $\alpha=0.005$, which is below the
+Bonferroni level $0.05/6\approx0.008$ of the six descriptors tested by the released code; the
+other descriptors are descriptive and do not add tests on which the decision rests. Third,
 the claims of \cref{ch:dots} are decided on external data, which were not used for any
 design choice.
 
@@ -298,8 +299,11 @@ Code availability & \Cref{app:repro} \\
 The code of each system is released with the corresponding article. The DGTS pipeline is
 available at \url{https://github.com/nader-belhadj/DGTS} (to reviewers on request, public
 upon acceptance)~\cite{belhadj2026dgts}; the DOTS code will be released upon acceptance of
-the DOTS article~\cite{belhadj2026dots}. All datasets are public and must be obtained from
-their original distributors (\cref{app:datasets}).
+the DOTS article~\cite{belhadj2026dots}. The TOPORET code is public at
+\url{https://github.com/Nader-BelHadj/plosene}~\cite{belhadj2025plos}; it covers the
+pipeline, the folds, the metrics and the six ANOVAs; the tests of H1 and the Tukey
+comparisons are computed from its fold-level outputs (\cref{sec:testimpl}). All datasets are public and must be obtained from their original
+distributors (\cref{app:datasets}).
 
 \section{Software Environment}
 \Cref{tab:software} lists the main software components; exact versions are pinned in the
@@ -389,8 +393,8 @@ differences; 95\% CI from the 2.5th and 97.5th percentiles.
 \item \textbf{H1 permutation:} exact enumeration of the $2^5=32$ sign assignments of the
 five fold differences; the one-sided $p$-value is the fraction of assignments whose mean
 difference is at least the observed one. With all five differences positive, $p=1/32$.
-\item \textbf{H2 ANOVA:} one-way ANOVA of $\Pi_{H_1}$ across the five grades on Kaggle DR,
-level $0.005$, Tukey HSD post-hoc~\cite{belhadj2025plos}.
+\item \textbf{H2 ANOVA:} one-way ANOVA of each of the six descriptors across the five grades
+(released code); decision on $\Pi_{H_1}$ at level $0.005$; Tukey HSD post-hoc~\cite{belhadj2025plos}.
 \item \textbf{DGTS Wilcoxon:} one-sided signed-rank test over the five fold-level QWK values
 of DGTS and the CNN baseline; with five pairs the smallest attainable $p$ is $1/32=0.031$.
 \item \textbf{DOTS McNemar:} paired binary predictions of DOTS and the CNN baseline over the
@@ -399,20 +403,17 @@ five folds, $p=0.013$.
 \end{itemize}
 
 \section{Reproducing the Main Results}
-The main results can be reproduced in five steps, using the released code of each
-system and the public datasets of \cref{app:datasets}.
-\begin{enumerate}[itemsep=2pt]
-\item \textbf{Obtain the data.} Download Kaggle EyePACS, APTOS~2019, KaggleDR-F1 and
-Messidor-2 from their original distributors, and check that no image of the external
-sets appears in the training corpus.
-\item \textbf{Build the folds.} Create the five-fold stratified split of the fused corpus
-with random state $42$ (DGTS and DOTS), or that of each TOPORET benchmark, also with
-seed $42$, using the released code~\cite{belhadj2025plos}.
-\item \textbf{Train.} Train each system with the hyperparameters of \cref{tab:hyper} on one
-GPU; DOTS takes about $45$~minutes per fold and DGTS about four hours per fold on a T4.
-\item \textbf{Evaluate internally.} Compute QWK, accuracy, macro-F1, ECE and the
-non-referral rates of \cref{eq:nr} on the out-of-fold predictions, and compare them with
-\cref{tab:dgts-abl,tab:dots-cv,tab:h3a} within the tolerance of \cref{sec:tolerance}.
-\item \textbf{Evaluate externally.} Apply the trained models without retraining to
-EyePACS (DGTS) and Messidor-2 (DOTS), and compare with \cref{tab:dgts-grade,tab:h3b}.
+The main results can be reproduced in five steps with the released code of each system:
+\begin{enumerate}[leftmargin=1.6em,itemsep=1pt]
+\item \textbf{Data.} Obtain the public datasets of \cref{app:datasets} and check that no
+external image appears in the training corpus.
+\item \textbf{Folds.} Build the stratified five-fold splits with random state $42$, on the
+fused corpus (DGTS, DOTS) or on each TOPORET benchmark~\cite{belhadj2025plos}.
+\item \textbf{Training.} Use the hyperparameters of \cref{tab:hyper} on one T4 GPU (about
+$45$ minutes per fold for DOTS and four hours for DGTS).
+\item \textbf{Internal evaluation.} Score the out-of-fold predictions (QWK, accuracy,
+macro-F1, ECE, \cref{eq:nr}) against \cref{tab:dgts-abl,tab:dots-cv,tab:h3a}, within the
+tolerance of \cref{sec:tolerance}.
+\item \textbf{External evaluation.} Apply the models without retraining to EyePACS and
+Messidor-2 and compare with \cref{tab:dgts-grade,tab:h3b}.
 \end{enumerate}

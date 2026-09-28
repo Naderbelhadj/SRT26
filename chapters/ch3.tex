@@ -71,7 +71,9 @@ associated with ICDR severity grade.
 \emph{Pre-specified test:} one-way ANOVA of the primary feature, total $H_1$ persistence
 $\Pi_{H_1}$, across the five grades on Kaggle DR, with Tukey HSD post-hoc comparisons;
 conservative significance level $\alpha=0.005$, critical value $F_{0.005;\,4,\,\infty}
-\approx 3.72$.
+\approx 3.72$. The released code computes the same ANOVA for all six descriptors of
+\cref{eq:tda-toporet}; $\alpha=0.005$ is below the Bonferroni level for these six tests,
+$0.05/6\approx0.008$, so the decision on $\Pi_{H_1}$ holds even if all six are counted.
 
 The two hypotheses are complementary: H1 asks whether relations between patients improve
 the grade, and H2 whether the vascular topology that enters these relations is itself
@@ -165,7 +167,10 @@ GUDHI~\cite{maria2014gudhi}, giving the persistence diagram of \cref{fig:skeleto
 From each persistence diagram $D_i^{H_0}$ and $D_i^{H_1}$, three statistics are computed:
 the total persistence $\Pi=\sum_f (d_f-b_f)$, the persistence entropy
 $E=-\sum_f p_f\log p_f$ with $p_f=(d_f-b_f)/\Pi$, and the number $n_\ell$ of long-lived
-features, whose lifetime exceeds $5\%$ of the diameter of $P_i$. This gives the
+features, whose lifetime exceeds $5\%$ of the longest bar of the same diagram. The complex
+is built up to dimension~$2$ with a maximum edge length of $100$ pixels, only finite bars are
+counted, and an image with fewer than five branch points uses all its skeleton pixels.
+This gives the
 six-dimensional vector
 \begin{equation}
 x_i^{\mathrm{TDA}} = \bigl(\Pi_{H_0},\, E_{H_0},\, n_\ell^{H_0},\, \Pi_{H_1},\, E_{H_1},\,

@@ -471,3 +471,10 @@ v21 (clarity pass):
 - Abstract rewritten in short sentences (same content + eta^2 of H2), still one page; Resume: H2 "faible mais robuste, eta^2 ~ 0,01".
 - 12 abbreviations added (CAM, CICIDS, CV, DRIVE, GELU, GUDHI, KDD, LIME, STARE, UID, UNSW-NB15, VGG); list sorted.
 - Checks: 0 errors, 0 undefined refs, 0 overfull > 2pt, 68/68 floats OK, 0 stacked floats, no duplicated sentence.
+
+v22 (coherence with the public TOPORET code, file by file; other research repos are private/not public):
+- Long-lived features: > 5% of the longest bar (code), not of the point-cloud diameter; Rips up to dim 2, max edge 100 px, finite bars only; fallback to all skeleton pixels if < 5 branch points.
+- ANOVA: code tests all six descriptors; alpha = 0.005 < Bonferroni 0.05/6 = 0.008 -> H2 decision valid (Ch.4, App. C.6, D.7).
+- App. D.1: TOPORET repo URL + what the code covers (tests of H1 and Tukey computed from fold outputs).
+- Ch.6: S5 check "no test image in the training graph" = deployment setting; holds for DGTS, not for transductive TOPORET experiments.
+- Table 6.6 placed right after its first mention; App. D.8 condensed.
