@@ -260,3 +260,19 @@ Problems inside P5 a reviewer may notice:
 - Tukey: "significant ... except No DR vs Mild (p = 0.04)" -- 0.04 < 0.05, so the
   exception is contradictory. The thesis reports "weakest pair (p = 0.04)".
 - 20% of 88,702 is 17,740, but the test split is reported as 16,576 images.
+
+Sixth pass (coherence)
+======================
+Fixed: DOTS graph described as GraphSAGE in the argument map and H3b axis table (it is a
+dynamic GAT); "k = 15 graphs of this thesis" (TOPORET uses a threshold graph); "same seed
+as TOPORET" (P5 gives no seed); {R,S} labelled as the ordinal variant; alpha selection
+described identically in Ch.5 and Appendix D; P5 author name harmonised ("N. Belhadj", as
+in the manuscript); unused abbreviations removed (IRB, MPNN, OOD, RCT), missing ones added
+(PE, RAG, ROC).
+Please check:
+- P5 is listed under "Accepted or Published" (PLOS ONE, 2026), but the file provided is
+  a submission manuscript (PONE-D-26-12851). If it is not yet accepted, move it to
+  "Under Review".
+- Dedication and acknowledgements say "Prof. Jaouher Fattahi"; P5 says "Dr. Jaouher
+  Fattahi (Laval University)". Use his actual title.
+- Title page: jury names and defence date are still blank (chapters/title.tex).

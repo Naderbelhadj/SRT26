@@ -334,7 +334,7 @@ $H_i \leftarrow -\sum_c p_{i,c}\log p_{i,c}$\tcp*{\cref{eq:ent}}
 Training uses the settings of \cref{app:hyper}: the Adam optimiser with a learning rate of
 $10^{-3}$, mini-batches of $32$ target
 nodes, $100$ epochs and five folds stratified by grade, with the
-same random seed as TOPORET. The RETFound and topological features are computed once and
+fixed random seed of \cref{app:repro}. The RETFound and topological features are computed once and
 cached, so that each epoch only updates the graph layer and the CORAL head; this keeps the
 cost of each training run moderate (\cref{tab:compute}). At inference time, the cost
 of grading a new patient does not depend on the size of the cohort: the features of the new
@@ -442,7 +442,7 @@ Potential confound & Control implemented \\
 Graph construction leakage & Population graph built from training-fold embeddings only; test nodes are inductive. \\
 Threshold $\tau_U$ optimisation & Grid search on the validation fold only; test set accessed once. \\
 Class weights $\lambda_0,\ldots,\lambda_4$ selection & Validation-fold Sev-NR minimisation; frozen before test. \\
-$\alpha=0.65$ (dual metric) & 5-fold CV on training data only. \\
+$\alpha=0.65$ (dual metric) & Validation-fold QWK; frozen before test. \\
 $k=15$ (neighbours) & Validation-fold QWK maximisation. \\
 Multi-seed stability & Three seeds; standard deviation between $0.003$ and $0.005$ QWK across benchmarks (\cref{tab:seeds}). \\
 Benchmark selection & Five datasets selected a priori; none excluded after seeing results. \\
@@ -699,11 +699,11 @@ the right to abstain).
 \caption[The three axes of DOTS tested by H3b]{The three axes of DOTS tested by H3b.}
 \label{tab:axes5}
 \small
-\begin{tabular}{@{}c l l@{}}
+\begin{tabular}{@{}c l P{8.6cm}@{}}
 \toprule
 Axis & Plain name & What it does \\
 \midrule
-R & Relational graph & similar patients share information (dual-similarity GraphSAGE) \\
+R & Relational graph & similar patients share information (dual-similarity graph, dynamic GAT) \\
 S & Vascular topology & $H_0/H_1$ persistence of the vessel skeleton (7-D vector) \\
 O & Ordinal $+$ safety & RETFound, CORAL ranking and entropy abstention \\
 \bottomrule
@@ -774,7 +774,7 @@ configuration~(B) in \cref{tab:ablation3}).
 1 & $\{R\}$ & 4.1\% & Fail \\
 2 & $\{S\}$ & 4.0\% & Fail \\
 3 & $\{O\}$ & 3.6\% & Fail \\
-4 & $\{R,S\}$ (TOPORET) & 3.4\% & Fail \\
+4 & $\{R,S\}$ (TOPORET, ord.\ var.) & 3.4\% & Fail \\
 5 & $\{R,O\}$ & 2.2\% & Fail (closest) \\
 6 & $\{S,O\}$ & 2.4\% & Fail \\
 \midrule

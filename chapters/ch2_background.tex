@@ -149,7 +149,7 @@ h^{(l)}_v &= \sigma\bigl(W^{(l)}\cdot\bigl[\,h^{(l-1)}_v \,\Vert\, h^{(l)}_{\mat
 \end{align}
 With $S=25$ samples per layer and $L=2$ layers, each prediction aggregates $S^L=625$
 neighbour embeddings at $O(S^L)$ cost, independent of the size of the cohort. In the
-$k$-nearest-neighbour graphs of this thesis ($k=15$), a node usually has fewer than $S$
+$k$-nearest-neighbour graph of DOTS ($k=15$), a node usually has fewer than $S$
 neighbours, in which case all of them are used; $625$ is therefore an upper bound. This
 inductiveness is a prerequisite for a screening service: the graph stage of a new
 patient's prediction takes $1.2$~ms (\cref{tab:latency}) without retraining the graph. GCN
