@@ -1,0 +1,179 @@
+\chapter*{General Introduction}
+\addcontentsline{toc}{chapter}{General Introduction}
+\markboth{General Introduction}{}
+\label{ch:intro}
+\lofgroup{General Introduction}
+
+\section*{Context}
+
+Diabetes is one of the fastest-growing chronic diseases in the world: it affects an
+estimated 537 million adults, and this number is expected to reach 783 million by
+2045~\cite{idf2021atlas}. Its most frequent complication in the eye, diabetic retinopathy
+(DR), affects about 103 million people and is a leading cause of preventable blindness in
+adults of working age~\cite{teo2021global,cheung2010dr}. The tragedy of DR is that it is
+silent: vision is usually preserved until the disease is advanced, whereas treatment is
+most effective in the early stages. Regular screening of the retina of every diabetic
+patient is therefore the only way to prevent blindness at the scale of a population.
+
+Screening relies on fundus photographs graded by trained experts on the five-level
+International Clinical Diabetic Retinopathy (ICDR) scale~\cite{wilkinson2003icdr}. The number of images to grade now far
+exceeds the number of available graders, especially in countries where ophthalmologists
+are scarce. Automated grading by deep learning has become the natural answer, and in recent years
+research has raised the agreement between algorithms and experts from a quadratic
+weighted kappa (QWK) of $0.840$ (EfficientNet-B3, 2019~\cite{tan2019efficientnet}) to
+$0.920$ (RETFound, 2023~\cite{zhou2023retfound}).
+
+\section*{Problem Statement}
+
+Despite this progress, no system reviewed in this thesis can be used, as it stands, in a
+national screening programme. The reason is not a lack of data or of computing power; it
+is architectural. Three limitations recur in every published system:
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+\item \textbf{L1 -- no relational context.} Each fundus image is graded in isolation, so
+patients who look alike, and who often share a grade, never inform one another.
+\item \textbf{L2 -- no vascular topology.} Convolutional and transformer networks see local
+texture; they cannot measure the global structure of the vascular tree (its connected
+components and loops), which changes as the disease progresses.
+\item \textbf{L3 -- no right to abstain.} Every image receives a grade, even when it is
+ambiguous. The most difficult cases, at the boundary between moderate and severe disease,
+are forced through, and the rate of severe cases that are not referred (Sev-NR) stays
+above the $2\%$ safety threshold used in this thesis.
+\end{itemize}
+These limitations are coupled: a graph needs topological information to be useful,
+topology alone gives only a partial gain, and abstention only reaches the safety threshold
+if the underlying predictions are accurate enough. They must therefore be addressed
+together, in a single architecture. \Cref{fig:map} summarises how each limitation leads to
+a research question, to a component of the proposed system and to the result obtained in
+this thesis.
+
+\input{figures/fig_map}
+
+\section*{Objectives and Value of the Work}
+
+This thesis aims to design, validate and engineer a DR grading system that resolves the
+three limitations at once. More precisely, it aims to:
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+\item build an inductive population graph that lets similar patients share information,
+while grading a new patient in constant time;
+\item describe the retinal vascular network with persistent-homology features and use them
+both as patient features and inside the similarity that builds the graph;
+\item add ordinal prediction with guaranteed rank consistency and a calibrated abstention
+mechanism, so that ambiguous cases are sent to a human grader;
+\item validate each step with statistical tests fixed before the experiments, and engineer
+the result as medical-device software compatible with current regulations.
+\end{itemize}
+
+The work thus pursues a double ambition. On the scientific side, it shows that the three
+limitations can be resolved together and that, within the family of architectures studied,
+none of the three components can be removed without losing the safety criterion. On the
+practical side, it delivers a system that is accurate (QWK $=0.951$), safe at the point
+estimate (Sev-NR $=1.9\%$), fast enough for national screening ($31.4$~ms per image), and
+designed from the start to meet the requirements of the IEC~62304 and ISO~14971 standards
+and of the EU AI Act. For a screening programme of $500{,}000$ patients a year, the
+reduction of the non-referral rate corresponds to about $600$ fewer missed
+sight-threatening cases under the assumptions of \cref{sec:impact}.
+
+\section*{Research Methodology}
+
+The work follows a hypothesis-driven methodology. Three research hypotheses structure the
+thesis: \textbf{H1}, a population graph adds information that a per-image classifier cannot
+recover; \textbf{H2}, persistent-homology features of the vessel network are associated with
+disease severity; and \textbf{H3}, the combination of the three axes is sufficient (H3a) and,
+within the architectures studied, necessary (H3b) to meet seven predefined clinical
+criteria. For each hypothesis, the statistical test, the decision threshold and the
+effect-size measure were fixed before the corresponding experiment was run, so that a
+negative result could not be explained away afterwards; the falsification criteria are
+listed in \cref{tab:falsif}. The components were introduced progressively, from a generic
+graph template validated outside medicine, to TOPORET, and finally to DOTS, so that the
+contribution of each component can be measured separately. All experiments use public
+datasets, fixed random seeds and released code (\cref{app:repro}), so that they can be
+reproduced independently.
+
+\Cref{fig:pipe} gives an overview of the system obtained at the end of this process. Each
+fundus image goes through six typed stages, and each stage belongs to one of the three
+axes that address the limitations L1--L3.
+
+\input{figures/fig_pipeline}
+
+The typed interfaces between stages make each stage testable on its own, a property that is exploited for software verification in \cref{ch:reg}.
+
+\section*{Contributions}
+
+The main contributions of this thesis, supported by eleven publications (see the List of
+Publications), are the following.
+\begin{description}[leftmargin=2.2em,style=sameline,itemsep=3pt]
+\item[C1.] A GraphSAGE template with structural descriptors, validated on six
+heterogeneous graph benchmarks outside medicine
+\cite{belhadj2025icaart,belhadj2026invariants,belhadj2026lnaiinv}.
+\item[C2.] Evidence, obtained with three independent methods, that topological and
+structural features of the retina carry information that deep visual features miss,
+including SAMF-GB, a CPU model more accurate than a GPU EfficientNet-B3 at about $1/13$ of
+its cost \cite{belhadj2026hybrid,mezghich2026lnaitopo,belhadj2026icpram,belhadj2026samfgb}.
+\item[C3.] TOPORET, the first inductive dual-similarity population graph for DR grading,
+with statistical confirmation of the value of the graph (H1) and of the topological
+features (H2) \cite{belhadj2025plos,belhadj2026enase,belhadj2026miua}.
+\item[C4.] DOTS, to the best of our knowledge the first DR grading system that meets seven
+predefined clinical-oriented criteria simultaneously on retrospective data (H3a), together
+with an exhaustive proof that no reduced version of it does (H3b)
+\cite{belhadj2026dots}.
+\item[C5.] A software architecture and a regulatory mapping that make DOTS verifiable,
+traceable and explainable by construction.
+\end{description}
+
+\Cref{tab:pubmap} shows which publications support each chapter of the thesis.
+
+\begin{table}[H]
+\centering
+\caption{Publications supporting each chapter.}
+\label{tab:pubmap}
+\small
+\begin{tabular}{@{}c P{6.4cm} P{4.2cm} l@{}}
+\toprule
+Ch. & Content & Contribution & Publications \\
+\midrule
+1 & Clinical problem, state of the art, limitations L1--L3 & Problem statement & -- \\
+2 & Graphs, topology, ordinal prediction, metrics & Methodological background & -- \\
+3 & Graph template outside medicine; structural evidence on DR & C1, C2 & P1--P4, B1, B2, J2 \\
+4 & TOPORET population graph; tests of H1 and H2 & C3 & P5, P6, P7 \\
+5 & DOTS system; sufficiency (H3a) and necessity (H3b) & C4 & J1 \\
+6 & Software architecture and regulatory mapping & C5 & P6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All eleven publications are listed, with the contribution of each author, after the Bibliography.
+
+\section*{Thesis Organisation}
+
+The thesis is organised in six chapters, followed by a General
+Conclusion that summarises the contributions, their limits and the perspectives they open:
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt]
+\item \textbf{Diabetic Retinopathy and Automated Grading} (\cref{ch:sota}): the disease,
+its grading scale, screening programmes, two decades of methods for automated grading, and the limits
+they share.
+\item \textbf{Learning on Graphs, Topology and Ordinal Prediction}
+(\cref{ch:background}): the methodological background -- graph neural networks,
+persistent homology, ordinal regression, calibration and abstention -- and the evaluation
+metrics.
+\item \textbf{Structural and Topological Priors for Retinal Image Grading}
+(\cref{ch:found}): validation of the graph template outside medicine, and first evidence
+that structural features help DR grading.
+\item \textbf{Topology-Aware Population Graph for Diabetic Retinopathy Grading}
+(\cref{ch:toporet}): TOPORET, the dual-similarity population graph, and the tests of H1
+and H2.
+\item \textbf{Safe Ordinal Grading of Diabetic Retinopathy with Abstention} (\cref{ch:dots}): DOTS, the complete
+system, its sufficiency (H3a) and necessity (H3b), its clinical impact and its comparison with the
+literature.
+\item \textbf{Software Architecture and Regulatory Compliance} (\cref{ch:reg}): how DOTS
+is engineered as medical-device software.
+\end{enumerate}
+
+Readers with different backgrounds may follow different paths through the document.
+Clinicians and regulatory readers will find a self-contained account in \cref{ch:sota},
+\cref{ch:dots} and \cref{ch:reg}, together with the General Conclusion. Machine-learning
+researchers will find the methodological background in \cref{ch:background} and the
+technical contributions, with their algorithms and experiments, in
+\cref{ch:found,ch:toporet,ch:dots}. Readers who wish to check the statistics or reproduce
+the experiments will find the formal tests in \cref{app:stats} and the software
+environment, seeds and computational cost in \cref{app:repro}.
+

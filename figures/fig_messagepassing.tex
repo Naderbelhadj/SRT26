@@ -1,0 +1,42 @@
+% Figure 2.1 --- one round of message passing on a population graph
+\begin{figure}[H]
+\centering
+\resizebox{0.92\linewidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize,
+  pt/.style={circle, draw=axisR, fill=axisRf, minimum size=7mm, inner sep=0},
+  tg/.style={circle, draw=axisO, fill=axisOf, very thick, minimum size=8mm, inner sep=0},
+  ed/.style={black!45, thick},
+  msg/.style={-{Latex[length=2mm]}, axisR, very thick}
+]
+\begin{scope}
+\node[tg] (v) at (0,0) {$v$};
+\node[pt] (a) at (-1.6,1.1) {$u_1$};
+\node[pt] (b) at (1.6,1.2) {$u_2$};
+\node[pt] (c) at (-1.4,-1.3) {$u_3$};
+\node[pt] (d) at (1.5,-1.2) {$u_4$};
+\node[pt] (e) at (-3.0,0.1) {};
+\node[pt] (g) at (3.0,0) {};
+\foreach \x in {a,b,c,d} \draw[ed] (v) -- (\x);
+\draw[ed] (a) -- (e); \draw[ed] (c) -- (e); \draw[ed] (b) -- (g); \draw[ed] (d) -- (g);
+\node[below=12mm of v, align=center] {(a) patient $v$ and its neighbours\\in the population graph};
+\end{scope}
+\begin{scope}[xshift=7.2cm]
+\node[tg] (v2) at (0,0) {$v$};
+\node[pt] (a2) at (-1.6,1.1) {$u_1$};
+\node[pt] (b2) at (1.6,1.2) {$u_2$};
+\node[pt] (c2) at (-1.4,-1.3) {$u_3$};
+\node[pt] (d2) at (1.5,-1.2) {$u_4$};
+\foreach \x in {a2,b2,c2,d2} \draw[msg] (\x) -- (v2);
+\node[draw=axisO, rounded corners=2pt, fill=white, align=center, font=\scriptsize] at (0,2.25)
+  {$h_v^{(l)}=\sigma\bigl(W^{(l)}[\,h_v^{(l-1)}\,\Vert\,\mathrm{AGG}\{h_u^{(l-1)}\}\,]\bigr)$};
+\node[below=12mm of v2, align=center] {(b) neighbours send their representations,\\which are aggregated and combined with $h_v$};
+\end{scope}
+\end{tikzpicture}}
+\caption[One round of message passing on a population graph]{One round of message passing.
+(a)~In a population graph, each node is a patient and edges connect similar patients.
+(b)~Each neighbour sends its current representation; the messages are aggregated (for
+example by a mean) and combined with the representation of $v$. After $L$ rounds, $h_v$
+summarises the $L$-hop neighbourhood of the patient.}
+\label{fig:mp}
+\end{figure}

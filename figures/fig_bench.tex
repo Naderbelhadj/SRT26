@@ -1,0 +1,27 @@
+% QWK per benchmark (data of Table tab:bench)
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[ybar, width=\linewidth, height=6.2cm, bar width=7pt,
+  ymin=0.80, ymax=0.97, ylabel={QWK},
+  symbolic x coords={EyePACS,APTOS,IDRiD,Messidor-2,DDR}, xtick=data,
+  enlarge x limits=0.14,
+  legend image code/.code={\draw[#1] (0cm,-0.1cm) rectangle (0.3cm,0.12cm);},
+  legend style={at={(0.5,1.02)}, anchor=south, legend columns=4, font=\footnotesize, draw=none},
+  tick label style={font=\footnotesize}, label style={font=\small},
+  ymajorgrids, grid style={black!10},
+  yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2}]
+\addplot[fill=black!25, draw=black!60] coordinates {(EyePACS,0.840) (APTOS,0.851) (IDRiD,0.832) (Messidor-2,0.847) (DDR,0.838)};
+\addplot[fill=fusionf, draw=fusion] coordinates {(EyePACS,0.920) (APTOS,0.928) (IDRiD,0.901) (Messidor-2,0.915) (DDR,0.912)};
+\addplot[fill=axisRf, draw=axisR] coordinates {(EyePACS,0.880) (APTOS,0.887) (IDRiD,0.878) (Messidor-2,0.900) (DDR,0.871)};
+\addplot[fill=axisOf, draw=axisO] coordinates {(EyePACS,0.951) (APTOS,0.953) (IDRiD,0.878) (Messidor-2,0.948) (DDR,0.951)};
+\legend{EfficientNet-B3, RETFound, TOPORET, DOTS}
+\draw[axisR, densely dashed] (axis cs:EyePACS,0.90) -- (axis cs:DDR,0.90);
+\end{axis}
+\end{tikzpicture}
+\caption[QWK of the four systems on the five public benchmarks]{QWK of the four systems on
+the five public benchmarks (values of \cref{tab:bench}); the dashed line is the
+$0.90$ criterion. DOTS is the best system on four benchmarks; on IDRiD, the smallest
+dataset, RETFound remains ahead.}
+\label{fig:bench}
+\end{figure}

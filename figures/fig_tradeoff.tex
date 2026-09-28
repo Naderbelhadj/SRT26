@@ -1,0 +1,31 @@
+% Coverage--safety trade-off of the abstention threshold (data of Table tab:tau)
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.78\linewidth, height=6.2cm,
+  xlabel={Coverage (\% of images graded automatically)}, ylabel={Sev-NR (\%)},
+  xmin=75, xmax=101, ymin=0.5, ymax=4.3,
+  tick label style={font=\footnotesize}, label style={font=\small},
+  grid=major, grid style={black!10}]
+  \fill[okf, opacity=0.8] (axis cs:90,0.5) rectangle (axis cs:101,2.0);
+  \node[font=\scriptsize, text=okgreen, anchor=south east] at (axis cs:100.8,0.55) {both criteria met};
+  \draw[failred, densely dashed, thick] (axis cs:75,2.0) -- (axis cs:101,2.0)
+     node[pos=0.03, anchor=south west, font=\scriptsize] {Sev-NR $=2\%$};
+  \draw[axisR, densely dashed, thick] (axis cs:90,0.5) -- (axis cs:90,4.3)
+     node[pos=0.97, anchor=north east, font=\scriptsize, align=right] {coverage\\$=90\%$};
+  \addplot[very thick, axisO, mark=*, mark options={fill=white}]
+    coordinates {(78.1,1.1) (86.4,1.5) (93.8,1.9) (97.2,2.6) (99.5,3.9)};
+  \node[font=\scriptsize, anchor=south east] at (axis cs:78.1,1.15) {$\tau_U{=}0.40$};
+  \node[font=\scriptsize, anchor=south east] at (axis cs:86.4,1.55) {$0.55$};
+  \node[font=\scriptsize\bfseries, anchor=north west] at (axis cs:93.8,1.85) {$0.73$ (selected)};
+  \node[font=\scriptsize, anchor=north west] at (axis cs:97.2,2.55) {$0.90$};
+  \node[font=\scriptsize, anchor=east] at (axis cs:99.2,3.9) {$1.10$};
+\end{axis}
+\end{tikzpicture}
+\caption[Coverage--safety trade-off of the abstention threshold]{Coverage--safety
+trade-off of the abstention threshold $\tau_U$ (values of \cref{tab:tau}). Raising the
+threshold grades more images automatically but lets more severe cases through; the green
+region contains the settings that satisfy both the coverage floor ($90\%$) and the safety
+threshold ($2\%$). Only $\tau_U=0.73$ lies inside it.}
+\label{fig:tradeoff}
+\end{figure}

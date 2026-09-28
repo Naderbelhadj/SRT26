@@ -1,0 +1,60 @@
+% ------------------------------------------------------------------
+%  Title page (ENSI format). Fill in the defence date and the jury.
+% ------------------------------------------------------------------
+\newcommand{\defencedate}{\rule{3.2cm}{0.4pt}}
+\newcommand{\juryrow}[3]{\textbf{#1} & #2 & #3 \\[2pt]}
+
+\begin{titlepage}
+\newgeometry{top=1.6cm,bottom=1.6cm,left=2.3cm,right=2.3cm}
+\centering
+{\small\bfseries REPUBLIC OF TUNISIA\\
+MINISTRY OF HIGHER EDUCATION AND SCIENTIFIC RESEARCH\\[4pt]}
+\begin{minipage}[c]{0.16\textwidth}\centering
+  \includegraphics[height=2.0cm]{logo_manouba}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.64\textwidth}\centering
+  {\large\bfseries UNIVERSITY OF MANOUBA}\\[3pt]
+  {\small\bfseries NATIONAL SCHOOL OF COMPUTER SCIENCES}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.16\textwidth}\centering
+  \includegraphics[height=2.0cm]{logo_ensi}
+\end{minipage}
+
+\vspace{0.9cm}
+{\LARGE\bfseries\color{navy} Doctoral Thesis}\\[6pt]
+{\normalsize Presented to obtain the degree of}\\[3pt]
+{\large\bfseries Doctor in Computer Science}\\[3pt]
+{\normalsize Speciality: Artificial Intelligence}
+
+\vspace{0.7cm}
+{\color{navy}\rule{\textwidth}{0.8pt}}\\[8pt]
+{\LARGE\bfseries\color{navy} Deep Learning-Based Prediction of Disease\\[3pt]
+Progression Using Medical Imaging:\\[3pt]
+An Application to Diabetology\par}
+\vspace{4pt}
+{\color{navy}\rule{\textwidth}{0.8pt}}
+
+\vspace{0.6cm}
+{\normalsize by}\\[4pt]
+{\Large\bfseries Nader BELHADJ}
+
+\vspace{0.5cm}
+{\normalsize Carried out at HANALab (Heterogeneous Advanced Networking \& Applications Laboratory)}
+
+\vspace{0.6cm}
+{\normalsize Defended on \defencedate{} before the jury composed of:}\\[8pt]
+{\small
+\begin{tabular}{@{}l l l@{}}
+\juryrow{President:}{\rule{4.4cm}{0.4pt}}{\rule{3.4cm}{0.4pt}}
+\juryrow{Reviewers:}{\rule{4.4cm}{0.4pt}}{\rule{3.4cm}{0.4pt}}
+\juryrow{}{\rule{4.4cm}{0.4pt}}{\rule{3.4cm}{0.4pt}}
+\juryrow{Examiner:}{\rule{4.4cm}{0.4pt}}{\rule{3.4cm}{0.4pt}}
+\juryrow{Thesis supervisor:}{Prof.\ Lassaad LATRACH}{Professor, ENSI}
+\juryrow{Co-supervisor:}{Prof.\ Ridha GHAYOULA}{Laval University, Canada}
+\juryrow{Co-advisor:}{Mohamed Amine MEZGHICH}{ENSI, HANALab}
+\end{tabular}}
+
+\vfill
+{\normalsize Academic year 2025--2026}
+\restoregeometry
+\end{titlepage}

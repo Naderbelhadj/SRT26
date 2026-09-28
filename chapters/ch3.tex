@@ -1,0 +1,601 @@
+\section*{Introduction}
+\phantomsection\addcontentsline{toc}{section}{Introduction}
+
+The previous chapter showed that global structural features carry useful information for
+DR grading, and that graph and topological signals should be fused rather than simply
+concatenated. This chapter turns these observations into a complete grading framework,
+TOPORET~\cite{belhadj2025plos}. TOPORET connects patients in an inductive population graph
+whose edges combine two similarities: how alike the fundus images look to a CNN, and how
+alike their vessel networks are topologically. It is, to the best of our knowledge, the
+first DR grading system to address the relational limitation (L1) and the structural
+limitation (L2) at the same time.
+
+We first review related work on population graphs and topological features in medical
+imaging. We then state the two hypotheses tested in this chapter, present the six-stage
+pipeline and the dual-similarity graph, and report the experiments: statistical tests of
+the hypotheses, analysis of the graph, ablation, cross-dataset evaluation and comparison
+with the literature. We close with a discussion of what the results do and do not imply.
+
+\section{Related Work}
+\label{sec:ch3-related}
+
+\paragraph{Population graphs in medical imaging.}
+Representing a cohort as a graph whose nodes are patients was popularised for disease
+prediction from brain imaging, where graph convolutional networks combine imaging features
+with phenotypic similarity between subjects~\cite{parisot2018disease}. The idea is that
+similar patients tend to share a diagnosis, so the graph can propagate information from
+labelled to unlabelled subjects. These approaches are usually transductive: the whole
+cohort, including the test patients, must be present when the model is trained, which is
+not compatible with a screening service where new patients arrive every day. In DR
+grading, graph-based approaches have used visual similarity only; we re-implement such a
+visual-only graph (GraphDR) as the control of this chapter.
+
+\paragraph{Topological features in medical imaging.}
+Persistent homology has been used to describe the shape of anatomical structures and to
+feed learning models with stable, interpretable descriptors~\cite{hofer2017topological,
+carriere2020perslay}. For the retina, the complexity of the vascular tree, often summarised
+by its fractal dimension~\cite{masters2004fractal}, is known to change with disease. To our
+knowledge, persistence descriptors of the vessel skeleton had not been used as edge
+information in a population graph before this work.
+
+\section{Problem Formulation and Hypotheses}
+\label{sec:ch3-problem}\label{sec:hyp}
+
+Let $\{(I_j,y_j)\}$ be a set of fundus images with ICDR grades $y_j\in\{0,\ldots,4\}$. The
+task is to predict the grade $\hat y_i$ of a new image $I_i$ that was not seen during
+training, using both its own content and the content of similar patients. The chapter tests
+two pre-specified hypotheses; their decision thresholds were fixed before any data were
+analysed.
+
+\paragraph{H1 -- The Relational Hypothesis.}
+An inductive population graph connecting patients through a dual-similarity metric
+(visual embedding similarity $+$ Wasserstein topological distance) provides a
+statistically significant QWK improvement over independent per-image classification.
+\emph{Pre-specified test:} paired $t$-test across five cross-validation folds, TOPORET
+versus EfficientNet-B3; null hypothesis $\mu_{\Delta\mathrm{QWK}} \leq 0$. The nominal
+one-tailed critical value is $t_{0.05,4}=2.132$; the more conservative $t_4 > 2.78$
+($t_{0.025,4}$) was adopted as the decision threshold.
+
+\paragraph{H2 -- The Structural Hypothesis.}
+$H_0$ and $H_1$ persistent-homology features of the retinal vascular skeleton are
+associated with ICDR severity grade.
+\emph{Pre-specified test:} one-way ANOVA across the five grades ($n=5{,}000$), Tukey HSD
+post-hoc, Bonferroni-corrected significance level $\alpha=0.005$; critical value
+$F_{0.005;\,4,4995}=3.72$.
+
+\section{Proposed Approach}
+\label{sec:ch3-approach}
+
+\subsection{Overview}
+\label{sec:ch3-overview}
+
+TOPORET~\cite{belhadj2025plos} addresses L1 with a population graph and L2 with
+persistent homology, in a single pipeline.
+\Cref{fig:toporet} shows its six stages, the typed interface between consecutive stages,
+and its headline results.
+
+Three design principles guide TOPORET. First, the graph is \emph{inductive}: a new patient
+is connected to the existing cohort at inference time, without retraining, which is what a
+screening service requires. Second, topology is used twice: as a feature of each patient
+and inside the similarity that decides which patients are neighbours, which extends the
+synergy observed in \cref{ch:found} from a single image to the whole population. Third, each
+stage has a typed input and output, so that it can be tested, replaced or audited on its
+own; this modularity is reused unchanged by DOTS in \cref{ch:dots}.
+
+\input{figures/fig_toporet}
+
+\subsection{Six-Stage Pipeline}
+\label{sec:stages}
+
+\Cref{tab:stages} gives the typed input/output contract of each stage. The contracts are
+what makes each stage unit-testable in isolation (\cref{sec:iec62304}).
+
+\begin{table}[H]
+\centering
+\caption[TOPORET six-stage modular pipeline]{TOPORET six-stage modular pipeline. Each stage has a typed interface contract
+that supports IEC~62304 unit verification.}
+\label{tab:stages}
+\small
+\begin{tabular}{@{}c l P{4.6cm} P{4.4cm}@{}}
+\toprule
+Stage & Name & Input $\to$ Output & Key operation \\
+\midrule
+S1 & Pre-processing & Fundus image $\to$ enhanced image $+$ skeleton & CLAHE $+$ Zhang--Suen thinning \\
+S2 & CNN extraction & Enhanced image $\to$ $x_i^{\mathrm{CNN}}\in\mathbb{R}^{1536}$ & EfficientNet-B3 (frozen) \\
+S3 & TDA persistence & Skeleton points $\to$ $x_i^{\mathrm{TDA}}\in\mathbb{R}^{7}$ & GUDHI Vietoris--Rips, \cref{eq:tda} \\
+S4 & Feature fusion & $x_i^{\mathrm{CNN}}, x_i^{\mathrm{TDA}} \to z_i\in\mathbb{R}^{1543}$ & Concatenation \\
+S5 & Graph construction & $\{z_i\}\to G=(V,E,S_{ij})$ & FAISS $k$-NN, dual similarity \\
+S6 & GNN inference & $G, z_i \to \hat y_i$ & GraphSAGE $+$ CORN ordinal head \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\Cref{fig:skeleton} follows stages S1--S3 on one fundus image. Panel~(a) is the segmented
+vessel network; panel~(b) its one-pixel skeleton $P_i$, obtained by Zhang--Suen
+thinning~\cite{zhang1984thinning}; panel~(c) the persistence diagram $D_i$ of the
+Vietoris--Rips filtration built on the skeleton points, in which filled dots are $H_0$
+components and open dots are $H_1$ loops. The 7-D vector of \cref{eq:tda} is computed
+from this diagram.
+
+\begin{figure}[!tb]
+\centering
+\includegraphics[width=0.86\textwidth]{vessel_skeleton_persistence}
+\caption[Vessel skeleton extraction and topological features (stages S1--S3)]{Vessel skeleton extraction and topological features (stages S1--S3):
+(a)~vessel network, (b)~Zhang--Suen skeleton $P_i$, (c)~Vietoris--Rips persistence
+diagram $D_i$ (filled: $H_0$ components; open: $H_1$ loops).}
+\label{fig:skeleton}
+\end{figure}
+
+\Cref{fig:clahe} shows the first operation of stage S1 on a Grade~2 image: the photograph
+as acquired and the same image after CLAHE~\cite{zuiderveld1994clahe} with clip limit
+$2.0$ and an $8\times 8$ tile grid. Local contrast enhancement sharpens the boundaries of
+microaneurysms and haemorrhages and separates the vessels from the background. This makes
+the vessel segmentation and skeleton extracted later in stage S1 more reliable, without
+saturating healthy tissue or shifting the global colour balance.
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.86\textwidth}
+\begin{subfigure}[t]{0.4\textwidth}\centering
+  \includegraphics[width=\linewidth,height=\linewidth,keepaspectratio]{clahe_original}
+  \caption{Original, as acquired}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.4\textwidth}\centering
+  \includegraphics[width=\linewidth,height=\linewidth,keepaspectratio]{clahe_enhanced}
+  \caption{After CLAHE (clip 2.0, $8\times8$)}
+\end{subfigure}
+\end{minipage}
+\caption[Effect of CLAHE pre-processing on a Grade~2 fundus image]{Effect of CLAHE pre-processing (stage S1) on a Grade~2 fundus image: (a)~original, (b)~after CLAHE with clip limit $2.0$ and an $8\times8$ tile grid.}
+\label{fig:clahe}
+\end{figure}
+
+\subsection{Dual-Similarity Population Graph}
+\label{sec:dualsim}
+
+The dual-similarity edge weight combines the cosine similarity of visual embeddings with
+a Wasserstein topological term:
+\begin{equation}
+S_{ij} = \alpha\cdot\cos\bigl(x_i^{\mathrm{CNN}},\, x_j^{\mathrm{CNN}}\bigr)
+       + (1-\alpha)\cdot\exp\bigl(-W_2(D_i, D_j)\bigr),
+\label{eq:dualsim}
+\end{equation}
+with $\alpha=0.65$ and $k=15$ neighbours, both selected by five-fold cross-validation.
+\Cref{tab:hparam} reports the QWK stability of each hyperparameter over its range: every
+hyperparameter moves QWK by at most $0.5$~pp inside the stable interval, so the results
+are not a knife-edge consequence of one setting.
+
+\begin{table}[H]
+\centering
+\caption[Hyperparameter sensitivity of TOPORET]{Hyperparameter sensitivity of TOPORET: QWK stability over the tested range.}
+\label{tab:hparam}
+\small
+\begin{tabular}{@{}lllc@{}}
+\toprule
+Hyperparameter & Range tested & QWK stability & Selected \\
+\midrule
+$\alpha$ (visual/topological balance) & $[0.3,\,0.9]$ & $\pm0.5$~pp over $[0.5,\,0.8]$ & 0.65 \\
+$k$ (neighbours) & $\{5,8,10,15,20\}$ & $\pm0.3$~pp over $[8,\,15]$ & 15 \\
+$d_h$ (hidden dimension) & $\{128,256,512\}$ & $\pm0.2$~pp & 256 \\
+$p$ (dropout) & $[0.1,\,0.5]$ & $\pm0.4$~pp over $[0.2,\,0.5]$ & 0.30 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\Cref{alg:toporet} summarises how TOPORET builds the population graph and grades a new
+patient. Training images are processed once; a new image only requires its own features,
+a $k$-nearest-neighbour query and one GraphSAGE forward pass.
+
+\begin{algorithm}[!htb]
+\caption{TOPORET: population-graph construction and inductive grading.}
+\label{alg:toporet}
+\DontPrintSemicolon
+\KwIn{training images $\{I_j\}$ with grades $\{y_j\}$; new image $I_i$; parameters $\alpha=0.65$, $k=15$}
+\KwOut{predicted grade $\hat y_i$}
+\BlankLine
+\ForEach{training image $I_j$}{
+  $\tilde I_j \leftarrow \mathrm{CLAHE}(I_j)$; $P_j \leftarrow \mathrm{Skeleton}(\tilde I_j)$\tcp*{stage S1}
+  $x_j^{\mathrm{CNN}} \leftarrow \mathrm{EfficientNetB3}(\tilde I_j)$\tcp*{stage S2}
+  $D_j \leftarrow \mathrm{RipsPersistence}(P_j)$; $x_j^{\mathrm{TDA}} \leftarrow \phi(D_j)$\tcp*{stage S3, \cref{eq:tda}}
+  $z_j \leftarrow [\,x_j^{\mathrm{CNN}} \Vert x_j^{\mathrm{TDA}}\,]$\tcp*{stage S4}
+}
+Build the graph $G$: connect each node to its $k$ most similar nodes under $S_{ij}$ (\cref{eq:dualsim})\tcp*{stage S5}
+Train GraphSAGE with a CORN ordinal head on $G$ (five-fold cross-validation)\tcp*{stage S6}
+\BlankLine
+Compute $z_i$ for the new image $I_i$ with stages S1--S4\;
+$\mathcal{N}(i) \leftarrow$ the $k$ training nodes with highest $S_{ij}$ (FAISS query)\;
+$h_i \leftarrow \mathrm{GraphSAGE}(z_i,\{z_j\}_{j\in\mathcal{N}(i)})$\tcp*{\cref{eq:sage-agg,eq:sage-upd}}
+\Return{$\hat y_i \leftarrow \mathrm{CORN}(h_i)$}
+\end{algorithm}
+
+\subsection{Design Choices}
+\label{sec:ch3-design}
+
+Several alternatives were possible at each stage of TOPORET. This subsection explains the
+choices made and the reasons behind them.
+
+\paragraph{Inductive rather than transductive learning.}
+Population-graph methods in medical imaging are often transductive: the test patients are
+part of the graph during training~\cite{parisot2018disease}. This is convenient for a
+research study but incompatible with a screening service, where new patients arrive every
+day and retraining the model for each of them is not possible. GraphSAGE was chosen
+because it learns an aggregation \emph{function} rather than node-specific embeddings, so
+that a new patient can be graded by connecting it to the existing graph and applying the
+learned function (\cref{sec:sage}).
+
+\paragraph{Topology computed on vessel branch points.}
+Persistent homology can be computed directly on the image intensities, using cubical
+complexes, or on a point cloud extracted from the image. The first option captures every
+bright or dark structure, including lesions, illumination gradients and noise. Computing
+the Vietoris--Rips filtration on the branch points of the vessel skeleton restricts the
+analysis to the object of interest, the vascular network, and produces features that can
+be interpreted in vascular terms (\cref{sec:tda-bio}). The price is a dependence on the
+quality of the segmentation and thinning, which is mitigated by CLAHE pre-processing and
+by the stability of persistence diagrams (\cref{eq:stability}).
+
+\paragraph{A small vector of summary statistics.}
+Richer representations of persistence diagrams exist, such as persistence landscapes or
+images, and learned layers can process diagrams directly (\cref{sec:ph}). A seven-dimensional
+vector of summary statistics was preferred for two reasons: each component has a direct
+clinical interpretation, which matters for transparency, and the small dimension keeps the
+topological signal from being drowned by the $1536$ dimensions of the CNN embedding when
+the two are concatenated.
+
+\paragraph{Similarity fused at graph-construction time.}
+The hybrid model of \cref{ch:found} concatenated graph and topological signals and found
+their gains synergistic. TOPORET goes further and uses topology inside the edge weights
+(\cref{eq:dualsim}), so that two patients are connected only if their images look alike
+\emph{and} their vessel networks have a similar shape. The Wasserstein distance was chosen
+to compare diagrams because it takes all points of the diagrams into account, not only the
+largest difference as the bottleneck distance does. The balance $\alpha$ between the two
+terms was selected by cross-validation rather than fixed a priori.
+
+\paragraph{Approximate nearest neighbours.}
+Connecting each patient to its $k$ most similar patients requires a nearest-neighbour
+search among tens of thousands of embeddings. An exact search would grow linearly with the
+cohort; the FAISS library~\cite{johnson2021faiss} provides approximate search with
+negligible loss of accuracy and a query time of about a millisecond, which keeps the
+per-patient cost of TOPORET independent of the cohort size. Together, these choices keep TOPORET simple enough to be verified stage by stage, which prepares the engineering work of \cref{ch:reg}.
+
+\section{Experimentation}
+\label{sec:ch3-exp}
+
+\subsection{Datasets and Protocol}
+
+All experiments use Kaggle EyePACS~\cite{kaggle2015eyepacs} ($N=88{,}702$) for training
+and in-distribution evaluation, with five folds stratified by ICDR grade and a fixed random
+seed. Out-of-distribution generalisation is measured on Messidor-2~\cite{decenciere2014messidor}
+and IDRiD~\cite{porwal2018idrid}, which come from other countries and cameras. The ANOVA of
+H2 uses a stratified sample of $5{,}000$ images ($1{,}000$ per grade). Three systems are
+compared throughout: EfficientNet-B3 alone, the visual-only graph (GraphDR) and TOPORET.
+The hyperparameters were selected on the training folds only (\cref{tab:hparam}).
+
+\subsection{Results: Topological Features and Severity (H2)}
+\label{sec:h2}
+
+\paragraph{Pre-specified test.}
+One-way ANOVA on each of the six TDA features of \cref{tab:anova} across the five ICDR
+grades ($n=5{,}000$, 1{,}000 images per grade, stratified from Kaggle EyePACS), with
+Tukey HSD post-hoc comparisons~\cite{tukey1949} and a Bonferroni-corrected significance
+level. The Bonferroni level for six features is $0.05/6\approx0.0083$; the more
+conservative $\alpha=0.005$ was pre-specified, with critical value
+$F_{0.005;\,4,4995}=3.72$.
+
+\begin{table}[H]
+\centering
+\caption[ANOVA of the topological features across ICDR grades]{One-way ANOVA of the topological features across the five ICDR grades
+($n=5{,}000$, Kaggle EyePACS). Values are mean $\pm$ SD.}
+\label{tab:anova}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Feature & G0 & G1 & G2 & G3 & G4 & $F(4,4995)$ & $\eta^2$ \\
+\midrule
+$\Pi_{H_0}$ & $24.3\pm3.1$ & $23.1\pm3.4$ & $21.6\pm3.7$ & $19.8\pm4.0$ & $18.7\pm4.2$ & $385.8^{***}$ & 0.24 \\
+$\Pi_{H_1}$ & $8.2\pm1.4$ & $9.4\pm1.8$ & $11.2\pm2.3$ & $13.5\pm3.1$ & $15.6\pm3.8$ & $1308.9^{***}$ & 0.51 \\
+$n_{H_0}$ & $142\pm18$ & $136\pm19$ & $127\pm21$ & $118\pm23$ & $109\pm25$ & $388.8^{***}$ & 0.24 \\
+$\beta_1$ & $1.8\pm0.6$ & $2.3\pm0.8$ & $3.1\pm1.0$ & $4.0\pm1.3$ & $4.8\pm1.5$ & $1258.4^{***}$ & 0.50 \\
+$D_f$ & $1.71\pm0.04$ & $1.68\pm0.05$ & $1.64\pm0.05$ & $1.60\pm0.06$ & $1.57\pm0.06$ & $1177.5^{***}$ & 0.49 \\
+$\Delta$ & $0.8\pm0.3$ & $1.1\pm0.4$ & $1.5\pm0.6$ & $2.2\pm0.9$ & $3.8\pm1.3$ & $2294.2^{***}$ & 0.65 \\
+\bottomrule
+\end{tabular}
+\tabnote{$^{***}p<0.001$. Critical value $F_{0.005;\,4,4995}=3.72$: every feature exceeds it
+by a factor of at least $100$.}
+\end{table}
+
+All six features exceed the critical value, with large to very large effect sizes
+($\eta^2\in[0.24,\,0.65]$; \cref{tab:anova}). Maximum $H_1$ persistence
+($\Delta$, $\eta^2=0.65$) shows the strongest association, followed by the pre-specified
+primary feature, total $H_1$ persistence ($\Pi_{H_1}$, $\eta^2=0.51$), the first Betti number
+($\beta_1$, $\eta^2=0.50$) and the fractal dimension ($D_f$, $\eta^2=0.49$), consistent with neovascularisation (Grade~4) as the
+hallmark of proliferative DR. In practical terms, an $\eta^2$ of $0.51$ means that the ICDR grade alone explains about half of the variance of the total $H_1$ persistence across images.
+
+\paragraph{H2 confirmed.}
+$F(4,4995)=1308.9$, $p<0.001$, $\eta^2=0.51$ (large effect) for the pre-specified primary
+feature $\Pi_{H_1}$. The null hypothesis is rejected with a margin of about $\times 352$
+over the Bonferroni-corrected critical value.
+
+\subsection{Results: Contribution of the Population Graph (H1)}
+\label{sec:h1}
+
+\paragraph{Pre-specified test.}
+Paired $t$-test across the five cross-validation folds, TOPORET versus EfficientNet-B3
+(independent per-image classification). Decision threshold $t_4>2.78$ (conservative;
+\cref{sec:hyp}). \Cref{tab:h1} reports the result for the three systems.
+
+\begin{table}[H]
+\centering
+\caption[H1 confirmatory test: graph versus independent classification]{H1 confirmatory test: QWK gain of a population graph over independent
+classification (Kaggle EyePACS, five folds).}
+\label{tab:h1}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+System & QWK (5-fold) & $t_4$ & $p$ (one-tailed) & Cohen's $d_z$ \\
+\midrule
+EfficientNet-B3 (no graph) & $0.840\pm0.012$ & -- & -- & -- \\
+GraphDR (visual graph) & $0.850\pm0.014$ & 1.71 & 0.08 (n.s.) & 0.76 \\
+TOPORET (dual sim.\ $+$ TDA) & $0.880\pm0.009$ & 3.82 & 0.009 & 1.71 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{H1 confirmed.}
+$t_4=3.82$, $p=0.009$, $d_z=1.71$ (very large effect). The population graph contributes
+$+4.0$~pp QWK beyond independent classification, with a margin of $\times1.37$ over the
+conservative critical value.
+
+\paragraph{Statistical robustness of H1.}
+Five folds are a small sample for a paired $t$-test, even though $N=88{,}702$ images are
+used for training and evaluation. Three supplementary analyses address this concern:
+(i)~a bootstrap CI on $\Delta$QWK ($10{,}000$ resamples of the fold differences) gives
+$\Delta\mathrm{QWK}=+4.0$~pp, 95\% CI $[+2.1,\,+5.9]$~pp, which excludes zero;
+(ii)~the gain is positive in every fold, with no fold showing a near-zero or negative
+difference; (iii)~an exact sign-flip permutation test over all $2^5=32$ sign assignments of
+the fold differences therefore gives $p_{\mathrm{perm}}=1/32\approx0.031$, the smallest value
+attainable with five folds, which agrees with the $t$-test.
+
+\paragraph{Where the gain comes from.}
+\Cref{fig:toporetcm} compares the normalised confusion matrices of the CNN baseline and of
+the topology-aware population graph on Kaggle DR~\cite{belhadj2025plos}. The diagonal is
+stronger for every grade, and the largest improvement is at the Mild--Moderate boundary,
+the most ambiguous one for human graders: Mild images predicted as Moderate drop from $6\%$
+to $4\%$, and Moderate images predicted as Mild from $6\%$ to $5\%$. No~DR reaches a
+per-class accuracy of $0.97$ and proliferative DR $0.95$. This is the behaviour expected
+from a population graph: a borderline image is connected to similar, confidently graded
+patients, whose labels help to resolve the ambiguity.
+
+\begin{figure}[!tb]
+\centering
+\includegraphics[width=\linewidth]{toporet_confusion}
+\caption[Confusion matrices of the CNN baseline and the population graph]{Normalised
+confusion matrices on Kaggle DR: CNN baseline (left) and topology-aware population graph
+(right). Correct predictions lie on the diagonal; the largest reduction of errors is at the
+Mild--Moderate boundary. Adapted from~\cite{belhadj2025plos}.}
+\label{fig:toporetcm}
+\end{figure}
+
+\subsection{Population Graph Structure Analysis}
+\label{sec:graphstruct}
+
+TOPORET reaches QWK $=0.880$ on Kaggle EyePACS (in distribution) and $0.900$ on
+Messidor-2 (out of distribution), a $+2.0$~pp cross-dataset gain consistent with the
+stability of persistence diagrams (\cref{eq:stability}). However, TOPORET fails the
+predefined safety threshold: Sev-NR $=3.4\%>2\%$. This residual gap is addressed in
+\cref{ch:dots}.
+
+\Cref{tab:graphstruct} compares the visual-only graph with the dual-similarity graph. The
+dual metric raises the fraction of same-grade edges from $63.2\%$ to $71.4\%$, and the
+Grade~3 neighbourhood purity -- at the highest-stakes boundary -- from $61.3\%$ to $68.7\%$.
+Every point of Grade~3 purity means fewer Severe-NPDR patients whose nearest neighbours
+carry a different, lower grade, which directly reduces the probability of a
+misclassification through the relational signal.
+
+\begin{table}[H]
+\centering
+\caption[Population-graph structure: visual-only versus dual similarity]{Population-graph structure: visual-only similarity (GraphDR) versus dual
+similarity (TOPORET).}
+\label{tab:graphstruct}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Property & Visual only (GraphDR) & Dual sim.\ (TOPORET) \\
+\midrule
+Same-grade edges & 63.2\% & 71.4\% ($+8.2$~pp) \\
+Adjacent-grade edges ($|\Delta|=1$) & 29.8\% & 23.1\% \\
+Cross-boundary edges ($|\Delta|\geq2$) & 7.0\% & 5.5\% \\
+Grade-3 neighbourhood purity & 61.3\% & 68.7\% ($+7.4$~pp) \\
+Grade-4 neighbourhood purity & 79.1\% & 82.3\% ($+3.2$~pp) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The gain in purity is largest at Grade~3, where visual similarity alone most often links
+severe cases to moderate ones; adding topology to the edge weights moves these patients
+closer to neighbours with the same grade.
+
+\subsection{Ablation Study}
+\label{sec:ablation3}
+
+\Cref{tab:ablation3} isolates the contribution of each component of TOPORET. The combined
+gain ($+0.040$) exceeds the sum of the individual contributions ($+0.016+0.010=+0.026$)
+by a factor of $1.54$: an interaction effect consistent with synergy between the dual
+graph and the TDA features. The Wasserstein component improves neighbourhood purity,
+which in turn amplifies the discriminative value of TDA through message passing.
+
+\begin{table}[H]
+\centering
+\caption[Sequential ablation of TOPORET]{Sequential ablation of TOPORET on Kaggle EyePACS (five-fold mean).}
+\label{tab:ablation3}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Configuration & QWK & $\Delta$ & Sev-NR \\
+\midrule
+EfficientNet-B3 alone (baseline) & 0.840 & -- & 4.3\% \\
+$+$ TDA features only (no graph) & 0.856 & $+0.016$ & 4.1\% \\
+$+$ Visual-only graph (no TDA) & 0.850 & $+0.010$ & 4.1\% \\
+$+$ Dual graph $+$ TDA (TOPORET) & 0.880 & $+0.040$ & 3.4\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This experiment differs from the Part~B ablation of \cref{ch:found}
+(\cref{tab:hybrid}), which used an intra-image graph and concatenated the topological
+descriptors as a separate channel. Here the graph links patients and the dual metric uses
+both sources jointly to define its edges, and the synergy between them is again observed.
+
+\subsection{Cross-Dataset Generalisation}
+\label{sec:crossdata}
+
+\Cref{tab:crossdata} gives the QWK of EfficientNet-B3 and TOPORET on three datasets
+acquired on different continents with different cameras~\cite{kaggle2015eyepacs,
+decenciere2014messidor,porwal2018idrid}. The gain of TOPORET is larger out of
+distribution ($+0.053$ and $+0.046$) than in distribution ($+0.040$), which is
+consistent with TDA features being more invariant than CNN embeddings to acquisition
+shifts. This is an important property for screening, where images come from many different camera models.
+
+\begin{table}[H]
+\centering
+\caption[TOPORET cross-dataset results]{TOPORET cross-dataset results (OOD: out of distribution).}
+\label{tab:crossdata}
+\small
+\begin{tabular}{@{}llrccc@{}}
+\toprule
+Dataset & Source & $N$ & EffNet-B3 & TOPORET & $\Delta$ \\
+\midrule
+EyePACS (in-dist.) & USA, multi-site & 88{,}702 & 0.840 & 0.880 & $+0.040$ \\
+Messidor-2 (OOD) & France, other camera & 1{,}748 & 0.847 & 0.900 & $+0.053$ \\
+IDRiD (OOD) & India, single site & 516 & 0.832 & 0.878 & $+0.046$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Comparison with the Literature}
+\label{sec:toporet-sota}
+
+\Cref{tab:toporet-sota} compares TOPORET with the closest systems on the same benchmark.
+Its QWK of $0.880$ is lower than that of RETFound ($0.920$); the difference is due to the
+backbone (RETFound uses a ViT-L/16 pre-trained on $1.6$ million retinal images, TOPORET an
+ImageNet EfficientNet-B3). This is by design: TOPORET was built to test H1 and H2 at
+controlled backbone quality before adding RETFound in DOTS. Its contribution is not the
+highest QWK but the first simultaneous resolution of L1 and L2.
+
+\begin{table}[H]
+\centering
+\caption[TOPORET versus state-of-the-art systems (Kaggle EyePACS)]{TOPORET versus state-of-the-art systems (Kaggle EyePACS).}
+\label{tab:toporet-sota}
+\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+System & QWK & Sev-NR & L1 & L2 & Ordinal guarantee \\
+\midrule
+EfficientNet-B3 & 0.840 & 4.3\% & \xmark & \xmark & \xmark \\
+RETFound & 0.920 & 3.1\% & \xmark & \xmark & \xmark \\
+SAMF-GB & 0.882 & 3.8\% & \xmark & partial & \xmark \\
+TOPORET & 0.880 & 3.4\% & \cmark & \cmark & \xmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discussion}
+\label{sec:ch3-discussion}
+
+\subsection{Why the Dual Metric Is Strictly Necessary for H1}
+\label{sec:dualnecessary}
+
+A critical finding of \cref{tab:h1} is that the visual-only graph (GraphDR) fails the
+pre-specified H1 threshold ($t_4=1.71$, $p=0.08$, n.s.), whereas the dual-metric graph
+passes it ($t_4=3.82$, $p=0.009$). This is not a marginal difference: it separates a
+non-significant gain from a very large confirmed effect. The Wasserstein topological
+component is therefore not a performance bonus but the component that makes H1
+confirmable; without it, the population graph provides no statistically significant
+benefit over per-image classification.
+
+\subsection{Biological Interpretation of the TDA Features}
+\label{sec:tda-bio}
+
+Each of the seven TDA features maps to a specific vascular pathology. $\Pi_{H_0}$ and
+$n_{H_0}$ encode vascular rarefaction (they decrease with severity); $\Pi_{H_1}$,
+$n_{H_1}$ and $\beta_1$ encode loop density from pathological anastomoses (they
+increase); $D_f$ encodes the self-similarity of the vessel tree ($1.71\to1.57$ across
+grades); and $\Delta$ (maximum $H_1$ persistence) captures neovascular fronds at Grade~4
+($\eta^2=0.65$, the strongest effect). These mappings are post-hoc plausibility arguments
+supporting H2; its statistical validity rests on the pre-specified ANOVA.
+
+\subsection{From Confirmed Hypotheses to a Deployable System}
+\label{sec:ch3-deploy}
+
+H1 and H2 jointly establish that the relational and structural axes contribute genuine,
+statistically independent information. The Sev-NR of $3.4\%$ is a reminder that
+statistical significance and clinical sufficiency are different standards. A $+4.0$~pp
+QWK gain and a large ANOVA effect size are exactly what a methods paper would report as a
+success; neither, alone or combined, certifies a system safe to triage real patients.
+
+TOPORET's residual gap is therefore not a failure of H1 or H2 -- both remain
+confirmed -- but a demonstration that confirming the relational and structural hypotheses
+leaves the safety hypothesis (H3) untested. \Cref{tab:graphstruct} makes the mechanism
+visible: even with the improved Grade-3 purity of $68.7\%$, roughly one in three of a
+Severe-NPDR patient's nearest neighbours carries a different grade. This is exactly the
+kind of residual ambiguity that an architecture without calibrated abstention cannot flag.
+\Cref{ch:dots} is organised around closing this gap, together with two further gaps
+(domain mismatch and ordinal rank violations) found by error analysis of the TOPORET
+predictions.
+
+\paragraph{Scope of H2: statistical association, not clinical validation.}
+The ANOVA establishes that $H_0/H_1$ features are statistically associated with ICDR
+grade with large effect sizes. Three caveats bound this claim.
+\begin{enumerate}
+\item \textbf{Association is not independent predictive value.} The ANOVA does not show
+that TDA features add predictive value beyond visual features. The ablation of
+\cref{tab:ablation3} provides this separately: TDA alone adds $+0.016$ QWK independently
+of the visual backbone.
+\item \textbf{Single-dataset validation.} H2 is tested on a stratified sample of Kaggle
+EyePACS. Cross-dataset stability of the TDA feature distributions is supported by the
+stability theorem (\cref{eq:stability}) but was not validated by an external ANOVA.
+\item \textbf{Not a clinically validated biomarker.} Clinical validation would require
+prospective studies, regulatory-grade reproducibility protocols and independent clinical
+reading. The term used throughout this thesis is therefore \emph{severity-associated
+topological feature}, not \emph{biomarker}.
+\end{enumerate}
+
+\subsection{Threats to Validity}
+\label{sec:ch3-validity}
+
+Three kinds of threats could weaken the conclusions of this chapter; each is stated here
+together with the measure taken against it.
+
+\paragraph{Internal validity.}
+The main risk is that the gain attributed to the graph comes from another difference
+between the systems, such as a different backbone or a different amount of tuning. All
+three systems share the same frozen EfficientNet-B3 features, the same folds and the same
+training budget, and the only difference between GraphDR and TOPORET is the similarity used
+to build the graph. The hyperparameters were selected on training folds only, and the
+decision thresholds of the tests were fixed before the experiments.
+
+\paragraph{External validity.}
+The hypotheses were tested on Kaggle EyePACS, a large but single benchmark whose labels come
+from a screening network in the United States. The cross-dataset results on Messidor-2 and
+IDRiD (\cref{tab:crossdata}) show that the gain survives a change of country and camera, but
+the ANOVA of H2 was not repeated on external data, and the small size of IDRiD limits the
+precision of the results obtained on it.
+
+\paragraph{Construct validity.}
+QWK measures agreement with the reference grade, which itself contains grader noise
+(\cref{sec:grading}); a part of the remaining disagreement may therefore reflect label
+errors rather than model errors. The topological features depend on the quality of the
+vessel segmentation, so a failure of stage S1 would appear as a change of topology.
+Finally, H1 was tested with five folds, which is a small sample for a $t$-test; the
+bootstrap interval and the exact permutation test reported with it were added for this reason;
+with five folds, the permutation test cannot give a $p$-value below $1/32$.
+
+\section*{Conclusion}
+\phantomsection\addcontentsline{toc}{section}{Conclusion}
+
+TOPORET confirmed H1 ($t_4=3.82$, $p=0.009$, $d_z=1.71$) and H2 ($F(4,4995)=1308.9$,
+$p<0.001$, $\eta^2=0.51$) through pre-specified tests. The dual-similarity metric is a
+prerequisite rather than an option: the visual-only graph gives a non-significant gain,
+whereas the Wasserstein-augmented graph gives a very large one, with higher Grade-3
+neighbourhood purity and larger out-of-distribution gains. The remaining gap -- Sev-NR
+$=3.4\%$ against the $2\%$ threshold -- reflects the absence of a mechanism to defer
+ambiguous cases, which the next chapter adds in the DOTS system.

@@ -1,0 +1,33 @@
+% Figure 0.1 --- global six-stage DOTS pipeline (front matter)
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize,
+  box/.style={draw, rounded corners=2pt, align=center, inner sep=2.5pt,
+              minimum height=1.9cm, text width=1.72cm},
+  arr/.style={-{Latex[length=2.2mm]}, thick}
+]
+\node[box, fill=black!6, draw=black!55] (s1) {\textbf{S1}\\Pre-proc.\\CLAHE};
+\node[box, fill=axisOf, draw=axisO, right=2.6mm of s1] (s2) {\textbf{S2}\\Backbone\\RETFound};
+\node[box, fill=axisSf, draw=axisS, right=2.6mm of s2] (s3) {\textbf{S3}\\TDA\\$H_0/H_1$};
+\node[box, fill=fusionf, draw=fusion, right=2.6mm of s3] (s4) {\textbf{S4}\\Fusion\\1031-D};
+\node[box, fill=axisRf, draw=axisR, right=2.6mm of s4] (s5) {\textbf{S5}\\Graph\\$k{=}15$};
+\node[box, fill=axisOf, draw=axisO, right=2.6mm of s5] (s6) {\textbf{S6}\\GAT $+$\\CORAL};
+\foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5,s5/s6} \draw[arr] (\a) -- (\b);
+\node[left=2.5mm of s1, font=\footnotesize, align=center] (in) {Image\\$I_i$};
+\node[right=2.5mm of s6, font=\footnotesize, align=center] (out) {$\hat y_i$ or\\defer};
+\draw[arr] (in) -- (s1); \draw[arr] (s6) -- (out);
+% legend
+\node[below=9mm of s3.south east, anchor=north, font=\footnotesize] (leg) {%
+  \tikz\node[fill=axisRf,draw=axisR,minimum size=7pt,inner sep=0]{}; Axis R (L1)\quad
+  \tikz\node[fill=axisSf,draw=axisS,minimum size=7pt,inner sep=0]{}; Axis S (L2)\quad
+  \tikz\node[fill=axisOf,draw=axisO,minimum size=7pt,inner sep=0]{}; Axis O (L3)\quad
+  \tikz\node[fill=fusionf,draw=fusion,minimum size=7pt,inner sep=0]{}; shared infrastructure};
+\end{tikzpicture}}
+\caption[Overview of the proposed system: six stages and three axes]{Overview of the proposed system (DOTS): the six typed stages S1--S6 and the axis
+to which each stage belongs. S1 (pre-processing) and S4 (feature fusion) are shared
+infrastructure. The full architecture, with equations and results, is given in
+\cref{fig:dots}.}
+\label{fig:pipe}
+\end{figure}

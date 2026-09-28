@@ -1,0 +1,42 @@
+% Figure 5.2 --- progressive contribution: QWK (bars, left axis) and Sev-NR (line, right axis)
+\begin{figure}[H]
+\centering
+\pgfplotsset{
+  progaxis/.style={
+    width=0.92\textwidth, height=6.8cm,
+    xmin=0.4, xmax=7.6, xtick={1,...,7},
+    xticklabels={{Baseline\\B3 (2019)},{$+$ visual\\graph},{$+$ dual graph\\$+$ TDA},{$+$ RET-\\Found},{$+$ CORAL},{$+$ dynamic\\GAT},{$+$ entropy\\abstention}},
+    xticklabel style={align=center, font=\scriptsize},
+    tick label style={font=\footnotesize}, label style={font=\small},
+    axis x line*=bottom,
+  }}
+\begin{tikzpicture}
+\begin{axis}[progaxis,
+    ymin=0.80, ymax=0.97, ylabel={QWK (bars)}, axis y line*=left,
+    ytick={0.80,0.84,0.88,0.92,0.96},
+    yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+    nodes near coords={\pgfmathprintnumber[fixed,fixed zerofill,precision=3]{\pgfplotspointmeta}}, nodes near coords style={font=\scriptsize, color=axisR!80!black},
+    point meta=y]
+  \addplot[ybar, bar width=17pt, fill=axisRf, draw=axisR]
+    coordinates {(1,0.840) (2,0.850) (3,0.880) (4,0.921) (5,0.934) (6,0.943) (7,0.951)};
+  \draw[axisR, dashed] (axis cs:0.4,0.90) -- (axis cs:7.6,0.90)
+    node[pos=0.02, anchor=south west, font=\scriptsize, fill=white, inner sep=1pt, text=axisR] {QWK $>0.90$ criterion};
+\end{axis}
+\begin{axis}[progaxis,
+    ymin=1.0, ymax=5.0, ylabel={Sev-NR (\%) (line)}, axis y line*=right, axis x line=none,
+    xticklabels={}, ytick={1,2,3,4,5}]
+  \addplot[very thick, failred, mark=*, mark options={fill=white, draw=failred},
+           nodes near coords={\pgfmathprintnumber[fixed,precision=1]{\pgfplotspointmeta}\%},
+           nodes near coords style={font=\scriptsize, color=failred, anchor=south west, xshift=1pt},
+           point meta=y]
+    coordinates {(1,4.3) (2,4.1) (3,3.4) (4,3.1) (5,2.6) (6,2.2) (7,1.9)};
+  \draw[failred, densely dashed, thick] (axis cs:0.4,2.0) -- (axis cs:7.6,2.0)
+    node[pos=0.02, anchor=south west, font=\scriptsize, fill=white, inner sep=1pt, text=failred] {Sev-NR $<2\%$ threshold};
+\end{axis}
+\end{tikzpicture}
+\caption[Progressive contribution from EfficientNet-B3 to DOTS]{Progressive contribution from EfficientNet-B3 to DOTS. Bars: QWK (left axis);
+line: Sev-NR (right axis). Every addition improves both metrics, and the $2\%$ safety
+threshold is crossed only at the last step (entropy abstention). The values are printed on
+the bars and the line; the last four steps correspond to the ablation of \cref{tab:ablate}.}
+\label{fig:progress}
+\end{figure}

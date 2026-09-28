@@ -1,0 +1,49 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\markboth{Abstract}{}
+\begingroup\setstretch{1.2}
+
+\paragraph{Background.}
+Diabetic retinopathy (DR) affects an estimated 103 million adults worldwide and is a
+leading cause of preventable blindness in the working-age population.
+Automated screening is clinically essential, yet no system identified in the reviewed
+literature resolves three co-existing structural limitations at once: L1 (no relational
+context between patients), L2 (no global vascular topology), and L3 (no clinical safety
+mechanism: every image is graded, and the Severe-DR Non-Referral Rate, Sev-NR, stays above
+the $2\%$ threshold).
+
+\paragraph{Methods.}
+This thesis is an eleven-publication research programme. Three hypotheses are pre-specified,
+each with its test and rejection threshold: H1, an inductive population graph adds
+information that a per-image classifier cannot recover; H2, $H_0/H_1$ persistent homology
+of the retinal vasculature is associated with severity; H3, the combination of the three
+axes is sufficient (H3a) and, within the evaluated architectural family, necessary (H3b)
+for seven predefined computational criteria. Foundations established on distributed
+systems are transferred to DR grading
+through hybrid models, the
+TOPORET population-graph framework
+and the DOTS system.
+
+\paragraph{Results.}
+H1 is confirmed ($t_4=3.82$, one-tailed $p=0.009$; $+4.0$ percentage points of quadratic
+weighted kappa, QWK). H2 is confirmed ($F(4,4995)=1308.9$, $p<0.001$, $\eta^2=0.51$).
+On five public benchmarks ($N>108{,}000$ images; $10{,}000$ held-out test predictions),
+DOTS reaches QWK $=0.951$, AUC $=0.988$, ECE $=0.040$, Sev-NR $=1.9\%$, coverage
+$93.8\%$ and $0\%$ ordinal rank violations: H3a is met at the point estimate, but the
+95\% confidence interval of Sev-NR, $[1.4\%,\,2.4\%]$, still crosses the $2\%$ line.
+H3b holds by exhaustive enumeration: all six proper subsets of the three axes fail
+Sev-NR $<2\%$.
+
+\paragraph{Conclusions.}
+The three limitations can be resolved in one architecture, and no proper subset of it
+meets all predefined criteria. This is Level~1 (computational, retrospective) evidence,
+not a licence for clinical use; a four-phase pathway (2026--2029) towards prospective
+validation and CE/FDA submission is proposed. The three-axis framework is offered as a
+template for any graded disease with an ordinal scale, a structural anatomical prior and
+an international safety threshold.
+
+\vspace{0.6em}
+\noindent\textbf{Keywords:} diabetic retinopathy; graph neural networks; GraphSAGE;
+persistent homology; ordinal regression; CORAL; selective prediction; clinical AI safety;
+RETFound; medical device software.
+\par\endgroup

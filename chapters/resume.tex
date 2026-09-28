@@ -1,0 +1,45 @@
+\chapter*{R\'esum\'e}
+\addcontentsline{toc}{chapter}{R\'esum\'e}
+\markboth{R\'esum\'e}{}
+\begingroup\setstretch{1.2}
+
+\paragraph{Contexte.}
+La r\'etinopathie diab\'etique (RD) touche environ 103~millions d'adultes dans le monde et
+reste une cause majeure de c\'ecit\'e \'evitable chez les personnes en \^age de travailler.
+Le d\'epistage automatis\'e est indispensable, mais aucun syst\`eme publi\'e ne l\`eve
+simultan\'ement trois limitations structurelles~: L1, l'absence de contexte relationnel entre
+patients~; L2, l'absence de topologie vasculaire globale~; L3, l'absence de m\'ecanisme de
+s\'ecurit\'e clinique (chaque image est class\'ee, et le taux de non-r\'ef\'erence des formes
+s\'ev\`eres, Sev-NR, reste sup\'erieur au seuil de $2\%$).
+
+\paragraph{M\'ethodes.}
+Cette th\`ese s'appuie sur un programme de onze publications et teste trois hypoth\`eses
+fix\'ees avant les exp\'eriences~: H1, un graphe de population inductif apporte une
+information qu'un classifieur image par image ne peut pas retrouver~; H2, l'homologie
+persistante $H_0/H_1$ du r\'eseau vasculaire r\'etinien est associ\'ee \`a la s\'ev\'erit\'e~;
+H3, la combinaison des trois axes est suffisante (H3a) et, dans la famille d'architectures
+\'etudi\'ee, n\'ecessaire (H3b) pour sept crit\`eres cliniques pr\'ed\'efinis. Le mod\`ele
+GraphSAGE est d'abord valid\'e sur des graphes hors m\'edecine, puis transf\'er\'e \`a la RD~;
+le cadre TOPORET construit un graphe de population \`a double similarit\'e, visuelle et
+topologique~; le syst\`eme DOTS y ajoute le mod\`ele de fondation RETFound, la r\'egression
+ordinale CORAL et l'abstention fond\'ee sur l'entropie.
+
+\paragraph{R\'esultats.}
+H1 est confirm\'ee ($t_4=3{,}82$, $p=0{,}009$~; $+4{,}0$~points de QWK) et H2 aussi
+($F(4,4995)=1308{,}9$, $p<0{,}001$, $\eta^2=0{,}51$). Sur cinq bases publiques (plus de
+$108\,000$ images), DOTS atteint QWK $=0{,}951$, AUC $=0{,}988$, ECE $=0{,}040$,
+Sev-NR $=1{,}9\,\%$, une couverture de $93{,}8\,\%$ et $0\,\%$ de violations d'ordre~; la borne
+sup\'erieure de l'intervalle de confiance \`a $95\,\%$ du Sev-NR ($2{,}4\,\%$) d\'epasse
+toutefois encore le seuil. Les six sous-ensembles propres des trois axes \'echouent tous \`a
+ce seuil (H3b).
+
+\paragraph{Conclusions.}
+Les trois limitations peuvent \^etre lev\'ees dans une seule architecture, et aucun de ses
+sous-ensembles propres ne suffit. Il s'agit d'une preuve calculatoire de niveau~1, et non
+d'une autorisation d'usage clinique~; une feuille de route en quatre phases (2026--2029) vers
+la validation prospective et la certification est propos\'ee.
+
+\vspace{0.6em}
+\noindent\textbf{Mots-cl\'es~:} r\'etinopathie diab\'etique~; r\'eseaux de neurones sur
+graphes~; homologie persistante~; r\'egression ordinale~; s\'ecurit\'e de l'IA clinique.
+\par\endgroup

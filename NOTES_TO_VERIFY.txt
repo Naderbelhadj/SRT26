@@ -1,0 +1,62 @@
+Statistical values recomputed for internal consistency (please confirm with your data)
+====================================================================================
+A. H2 ANOVA (Table 4.3): F and eta^2 were recomputed from the group means and standard
+   deviations printed in the table (1,000 images per grade, df = 4 and 4995):
+     Pi_H0  F = 385.8,  eta^2 = 0.24     Pi_H1  F = 1308.9, eta^2 = 0.51 (primary feature)
+     n_H0   F = 388.8,  eta^2 = 0.24     beta_1 F = 1258.4, eta^2 = 0.50
+     D_f    F = 1177.5, eta^2 = 0.49     Delta  F = 2294.2, eta^2 = 0.65
+   The former values (F = 47.3, eta^2 = 0.34, etc.) were mutually inconsistent. All
+   occurrences were updated (text, tables, figures, abstract, resume, General Conclusion,
+   three-language summary). Margin over the critical value: x352 (was x12.7).
+B. H1 effect size: Cohen's d_z = t/sqrt(n) = 3.82/sqrt(5) = 1.71 (was 2.1); GraphDR 0.76.
+C. Abstention by grade (Table 5.8): Grade 0 rate set to 2.1% (was 1.8%) so that the
+   per-grade rates add up to the reported overall 6.2% (621 of 10,000 images).
+D. DOTS fused embedding: 1024 (RETFound ViT-L/16) + 7 (TDA) = 1031 dimensions (was 1543-D,
+   the TOPORET value); memory estimate updated (about 4 kB per patient, 0.4 GB per 100,000).
+
+Corrections made in the manuscript -- please confirm they match your experiments
+=================================================================================
+1. H1 permutation test (Section 4.4.3, Table 5.16, Appendix C.9): with five folds an
+   exact sign-flip test has only 2^5 = 32 sign assignments, so p = 0.006 was impossible.
+   The text now reports the exact test, p = 1/32 = 0.031 (all five fold gains positive).
+2. The per-fold gain values that contradicted t4 = 3.82 have been removed; t4 = 3.82,
+   p = 0.009 and the bootstrap interval are kept as reported.
+3. CORAL loss (Equation 5.1): the loss of each image is now weighted by the class weight of
+   its true grade (lambda_{y_i}), consistent with the five reported weights (1.0, 2.5, 3.0,
+   8.0, 6.0). Weight selection is described consistently as a validation grid search on
+   Sev-NR and macro-F1.
+4. Bias ordering corrected to the standard CORAL convention (b_1 >= b_2 >= ...,
+   projection b_k <- min(b_k, b_{k-1} - eps)).
+5. DOTS QWK on Kaggle EyePACS is now reported as 0.951 everywhere (Tables 5.5, 5.6, A.1,
+   D.4 and Figure 5.4); the former value 0.949 in Table 5.5 and Table A.1 was harmonised, and the DDR
+   seed-averaged value in Table D.4 (0.952) was aligned with Table 5.5 (0.951).
+6. Clinical-impact projection (Section 5.7.2) assumes 5% severe prevalence; replace with a
+   published value for the target programme if you have one.
+
+
+Still to complete
+-----------------
+- Title page (chapters/title.tex): jury president, examiner, reviewers' affiliations,
+  defence date.
+
+Alignment with the accepted papers (October update)
+===================================================
+Done:
+- List of Publications: real titles and authors for P2 (ICAART 2026, local invariants),
+  P3 (ICAART 2026, hybrid CNN-GNN, vol. 5 pp. 4635-4642), P4 (ICPRAM 2026, hybrid
+  intelligence) and P5 (PLOS ONE, 2026); two book chapters added (B1: AdaptInv-GNN, B2:
+  topology-aware hybrid CNN-GNN, LNAI). Publication count updated to eleven.
+- Section 3.2.1 rewritten with the values of B2: APTOS 2019, ablation 88.1 / 89.3 / 89.8 /
+  91.5 / 95.1 %, AUC 0.970, Messidor-2 92.1 %, five-class 87.5 %; gains are synergistic
+  (7.0 > 6.3 pp), and every dependent statement was updated.
+- New figures from the papers: five-class confusion matrix and training curves of the hybrid
+  model (B2), normalised confusion matrices of the baseline and the population graph (P5).
+
+Still inconsistent with the papers (not changed, see Audit_These_vs_Papiers.md):
+- Section 3.1 (invariants): Table 3.2 values and the claim of a generic +4.2 pp gain are not
+  in P2, and B1 reports no F1 gain on UNSW-NB15.
+- Section 3.2.3 (LightGBM-HC): P4 uses Messidor-2 and 210 features without topology.
+- Chapter 4 (TOPORET): P5 uses 6 TDA features, a threshold graph (tau = 0.65, alpha = 0.6),
+  APTOS instead of IDRiD, and reports F = 84.3 for the H2 ANOVA (the thesis now says 1308.9).
+- Dedication and acknowledgements mention "the late Prof. Jaouher Fattahi", who is a
+  co-author of P3, P4, P5 and B2 in 2026: please check.

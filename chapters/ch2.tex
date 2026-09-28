@@ -1,0 +1,547 @@
+\section*{Introduction}
+\phantomsection\addcontentsline{toc}{section}{Introduction}
+
+Before building a complete grading system, two questions must be answered. First, does
+the GraphSAGE template with structural descriptors behave as a general architectural
+property, or does it only work on one particular dataset? Second, do global structural and
+topological features of the retina actually carry information that a deep network trained
+on the raw image does not already capture? If either answer were negative, the systems of
+the following chapters would rest on weak foundations.
+
+This chapter answers both questions with the first contributions of the thesis. In
+Part~A, we validate the graph template on distributed-systems data, where graphs are
+natural and ground truth is unambiguous: microservice orchestration and anomaly detection
+on six benchmarks. We then explain how each element of this template is transferred to
+retinal grading. In Part~B, we move to diabetic retinopathy and test the value of
+structural features with three independent methods: a hybrid CNN--GNN model with
+topological features, a gradient-boosting model on hand-crafted structural features
+(SAMF-GB), and a reduced CPU-efficient variant (LightGBM-HC). Weaker intermediate results
+are reported deliberately, to show how the final solution was built step by step.
+
+\section{Part A: Validating the Graph Template Outside Medicine}
+\label{sec:ch2-rationale}
+
+Part~A validates the GraphSAGE architectural template on six structurally diverse,
+non-medical benchmarks before any contact with retinal images. The rationale is
+epistemological: if the structural-invariant augmentation works across six domains with
+very different graph topologies, the expectation that it will transfer to inter-patient
+similarity graphs rests on reproducible evidence rather than on analogy alone. This
+six-benchmark validation is Contribution~C1; it also makes the architectural choices of
+TOPORET and DOTS easier to defend before a regulatory reviewer.
+
+\paragraph{Why distributed systems?}
+Validating a graph architecture requires data where the graph is natural and the labels
+are unambiguous. Microservice architectures and computer networks provide exactly this:
+the dependencies between services or hosts form an explicit graph, and failures or attacks
+are recorded without the inter-grader disagreement that affects medical labels. They also
+share an essential property with a screening service: the system must make decisions on
+new nodes as they appear, without being retrained. A template that works in these
+conditions is a credible candidate for a population graph of patients, and any weakness
+found there can be corrected before touching medical data.
+
+\subsection{GNN-MSOrchest: Microservice Cascade-Failure Recovery}
+\label{sec:msorchest}
+
+GNN-MSOrchest~\cite{belhadj2025icaart} models a 48-service e-commerce microservice system
+as a directed attributed graph $G=(V,E,X)$. Each node $v\in V$ carries a five-dimensional
+health vector $x_v=[\mathrm{CPU},\mathrm{mem},\mathrm{lat},\mathrm{err},\mathrm{dep}]^\top$
+updated every $200$~ms. Edges encode directed dependencies (service $u$ calls service
+$v$) with propagation-delay attributes. A two-layer GraphSAGE with mean aggregation drives
+adaptive workload allocation:
+\begin{equation}
+\hat y_v = \mathrm{MLP}\bigl(h^{(2)}_v\bigr),
+\label{eq:msorch}
+\end{equation}
+where $h^{(2)}_v$ is the node representation after two message-passing rounds with
+$d_h=256$ and $S=25$ sampled neighbours per layer. The prediction $\hat y_v$ of \cref{eq:msorch} drives
+load-shedding decisions for node $v$ during cascade propagation.
+
+\paragraph{Structural-invariant augmentation.}
+The key methodological contribution is the augmentation
+$h_{\mathrm{aug}}=[\,h_{\mathrm{GNN}}\,\Vert\,I(v)\,]$, where $I(v)$ is a
+four-dimensional structural descriptor:
+\begin{equation}
+I(v) = \bigl(\delta(v),\, c(v),\, b(v),\, h(v)\bigr)^\top ,
+\label{eq:invariants}
+\end{equation}
+with $\delta(v)$ the degree centrality, $c(v)$ the clustering coefficient, $b(v)$ the
+betweenness centrality and $h(v)$ the local structural entropy. These quantities depend
+only on graph topology, not on node features or learned representations, and are cheap
+to compute (linear in $|V|+|E|$ for all but betweenness, which is approximated by
+sampling).
+
+\Cref{tab:msorch} compares GNN-MSOrchest with a static-threshold baseline. The cascade
+isolation mechanism -- withholding load from nodes whose predictive entropy exceeds a
+threshold -- is the direct methodological precursor of the entropy abstention of DOTS
+(\cref{sec:abst}).
+
+\begin{table}[H]
+\centering
+\caption[GNN-MSOrchest versus a static-threshold baseline]{GNN-MSOrchest versus a static-threshold baseline (SimPy simulation, 48
+nodes)~\cite{belhadj2025icaart}.}
+\label{tab:msorch}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Metric & Static-threshold baseline & GNN-MSOrchest \\
+\midrule
+Mean response time (ms) & 142 & 98 ($-31.0\%$) \\
+p99 latency (ms) & 510 & 287 ($-43.7\%$) \\
+Cascade-failure containment & 34\% & 81\% ($+47$~pp) \\
+Resource-utilisation Gini coefficient & 0.41 & 0.18 ($-56.1\%$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Structural Invariants Across Six Benchmarks}
+\label{sec:invariants}
+
+The second publication~\cite{belhadj2026invariants} tests whether the augmentation of
+\cref{eq:invariants} gives statistically significant and stable gains across six
+benchmarks with heterogeneous graph structure: a synthetic controlled graph, two
+network-intrusion datasets (KDD Cup~1999, CICIDS~2017), a modern endpoint-detection
+dataset (UNSW-NB15), a refined intrusion benchmark (NSL-KDD) and a production
+microservice trace (SockShop/Istio).
+
+\Cref{tab:invariants} reports the six results. Each row is one benchmark: its domain,
+the F1 score of the plain GNN, the F1 score once the four invariants $I(v)$ are appended
+to the node features, and the resulting gain in recall on the anomalous class. The recall
+gain is positive on every benchmark and lies between $+3.1$ and $+5.0$~pp (mean $+4.2$~pp, standard deviation $0.6$~pp). The
+coefficient of variation ($0.6/4.2\approx 14\%$) is low, so the effect is stable across
+domains rather than driven by a single benchmark.
+
+\begin{table}[H]
+\centering
+\caption[Structural-invariant augmentation across six graph benchmarks]{Structural-invariant augmentation across six graph
+benchmarks~\cite{belhadj2026invariants}.}
+\label{tab:invariants}
+\small
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Benchmark & Domain & F1 (GNN) & F1 ($+I(v)$) & $\Delta$ recall \\
+\midrule
+Synthetic graph & Controlled network & 85.3\% & 93.5\% & $+5.0$~pp \\
+KDD Cup 1999 & Network intrusion (classic) & 88.1\% & 94.2\% & $+4.6$~pp \\
+CICIDS 2017 & Multi-protocol IDS & 86.7\% & 92.0\% & $+4.1$~pp \\
+UNSW-NB15 & Modern endpoint detection & 84.9\% & 90.8\% & $+3.1$~pp \\
+NSL-KDD & Intrusion (refined) & 87.4\% & 93.1\% & $+4.4$~pp \\
+SockShop/Istio & Production microservices & 89.2\% & 95.3\% & $+4.4$~pp \\
+\midrule
+Mean (SD) & & 87.0\% (1.5) & 93.2\% (1.6) & $+4.2$~pp (0.6) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Transfer Architecture and Its Justification}
+\label{sec:transfer}
+
+The transfer from distributed systems to DR grading is exact at the level of the
+architecture: GraphSAGE with $L=2$, $d_h=256$, dropout $p=0.30$, Adam with learning rate
+$10^{-3}$ and $S=25$ is used unchanged. The structural augmentation
+$h_{\mathrm{aug}}=[\,h_{\mathrm{GNN}}\Vert I(v)\,]$ becomes
+$z_i=[\,x_i^{\mathrm{CNN}}\Vert x_i^{\mathrm{TDA}}\,]$, and the cascade isolation of
+uncertain nodes becomes entropy abstention at threshold $\tau_U$.
+
+\paragraph{From distributed systems to retinal grading.}
+The transfer rests on a one-to-one correspondence between the objects of the two
+domains, set out in \cref{tab:mapping} in pipeline order. The first three rows define the
+nodes and what they carry: a service becomes a patient, the service health vector
+becomes the CNN embedding of the fundus image, and the structural invariant $I(v)$
+becomes the topological feature vector of \cref{eq:tda}. The fourth row defines the
+edges: a dependency between services becomes a dual-similarity edge between patients
+(\cref{eq:dualsim}). The last three rows define behaviour: a cascade failure becomes
+diagnostic uncertainty spreading across a grade boundary, load shedding becomes
+abstention, and recall-prioritised anomaly detection becomes the class-weighted CORAL
+loss that favours the rare severe grades. Read row by row, the table is a checklist:
+every component validated on network graphs has a named counterpart in TOPORET
+(\cref{ch:toporet}) and DOTS (\cref{ch:dots}).
+
+\begin{table}[H]
+\centering
+\caption[Mapping from distributed-systems concepts to DR-grading analogues]{Conceptual mapping from distributed-systems concepts (this chapter) to their
+DR-grading analogues (\cref{ch:toporet,ch:dots}).}
+\label{tab:mapping}
+\small
+\begin{tabular}{@{}P{6.4cm}P{8.0cm}@{}}
+\toprule
+Distributed-systems concept & DR-grading analogue \\
+\midrule
+Service node $v\in V$ & Patient $i$ \\
+Service health vector (CPU, memory, latency, \ldots) & CNN embedding $x_i^{\mathrm{CNN}}$ \\
+Structural invariant $I(v)$ (degree, clustering, betweenness, entropy) & Topological feature vector $x_i^{\mathrm{TDA}}$ (\cref{eq:tda}) \\
+Dependency edge (service $u$ calls service $v$) & Population-graph edge (dual similarity $S_{ij}$, \cref{eq:dualsim}) \\
+Cascade failure (overload propagating across services) & Diagnostic uncertainty propagating across a grade boundary \\
+Load-shedding decision (withhold traffic from an overloaded node) & Abstention (defer to a specialist when $H_i>\tau_U$) \\
+Recall-prioritised anomaly detection (rare-event sensitivity) & Class-weighted CORAL loss ($\lambda_3=8$, $\lambda_4=6$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Why hyperparameters transfer without re-tuning.}
+A natural objection is that hyperparameters validated on network-traffic and microservice
+graphs may not suit a population graph of patients. Two considerations mitigate this.
+First, the benchmarks of \cref{tab:invariants} already span a wide range of graph sizes
+(from the 48-node SimPy testbed to traffic graphs with several thousand nodes) and
+densities, and the augmentation gain is stable across this range. Second, the population
+graphs of \cref{ch:toporet,ch:dots} (several thousand to tens of thousands of nodes,
+$k=15$ neighbours per node) fall within that range, so the transfer is an interpolation
+rather than an extrapolation. The hyperparameter sensitivity analysis was nevertheless
+repeated on DR data (\cref{tab:hparam}) as a confirmatory check.
+
+\paragraph{What the transfer claims and does not claim.}
+The transfer is architectural, not distributional. It does not claim that retinal
+population graphs and microservice graphs share statistical properties, nor that
+performance on one guarantees performance on the other. It claims that the same
+architectural pattern -- GraphSAGE with mean aggregation, $L=2$ hops, $d_h=256$,
+structural-invariant augmentation -- transfers without modification, which is evidence
+for the genericity of the approach. The cross-domain validation is methodological
+insurance, not a proof of universal applicability.
+
+\subsection{Threats to the Transfer Argument}
+\label{sec:threats}
+
+Three threats deserve to be named. First, all six benchmarks are graphs over discrete
+events or entities (network flows, service calls); a population graph over patients
+carries node features of a different statistical character, and stability across event
+graphs does not by itself guarantee stability across patient-similarity graphs. Second,
+the benchmarks share an implicit assumption that better-connected neighbourhoods are more
+informative. Its analogue for disease severity -- that similar patients share diagnostic
+information -- is precisely what H1 tests, not a premise this chapter can establish.
+Third, six benchmarks remain a finite, non-random sample of graph domains; the
+coefficient-of-variation argument supports stability within this sample only.
+
+These caveats do not undermine the strategy; they are why the hyperparameter analysis is
+repeated on retinal data (\cref{sec:dualsim}) instead of relying on Part~A alone.
+
+\section{Part B: Structural Evidence on Retinal Data}
+\label{sec:partb}
+
+Part~B presents three convergent proof-of-concept validations of the structural axis
+(the answer to L2). Three independent methodologies -- deep learning, gradient boosting
+and feature attribution -- each show that global structural priors improve DR grading.
+This convergence motivates the formal statistical test of H2 in \cref{ch:toporet}.
+
+\paragraph{Experimental setting.}
+The three studies of Part~B use the public datasets of \cref{sec:datasets}. The hybrid
+CNN--GNN model was developed on APTOS~2019 with a binary referable/non-referable target,
+which allowed many ablation runs at low cost. SAMF-GB and LightGBM-HC were evaluated on the
+five-grade task on Kaggle EyePACS, the benchmark used for TOPORET and DOTS in the following
+chapters, with five-fold cross-validation stratified by grade. In all three studies, the
+same pre-processing (CLAHE and Zhang--Suen skeletonisation) was used to extract the vessel
+network, so that differences in results reflect the models rather than the input.
+
+\subsection{Hybrid CNN--GNN with Geometric and Topological Invariants}
+\label{sec:hybrid}
+
+The first retinal study~\cite{belhadj2026hybrid}, extended in the book
+chapter~\cite{mezghich2026lnaitopo}, tests whether global structural descriptors add
+information to a deep CNN--GNN pipeline. An EfficientNet-B0 backbone extracts local visual
+features; a graph neural network with mean aggregation models the relations between the
+positions of the CNN feature map, connected by a four-neighbourhood rule; and two families of
+global descriptors are added: curvature-based geometric descriptors of the vessels and
+persistent-homology invariants ($H_0$ and $H_1$ lifespans) computed from structure-enhanced
+intensity responses, without explicit vessel segmentation. The four streams are concatenated
+and classified by a fully connected layer.
+
+\paragraph{Protocol.}
+The main evaluation uses APTOS~2019 ($3{,}662$ images, resized to $128\times128$ pixels to keep
+the persistent-homology computation tractable), with a stratified $70/15/15$ split, on the
+clinically relevant binary screening task (No DR versus any DR). Five-class grading is a
+secondary analysis, and Messidor-2 ($1{,}748$ images) is used, without fine-tuning, to test
+generalisation under domain shift.
+
+\paragraph{Ablation.}
+\Cref{tab:hybrid} adds each component in turn to the CNN baseline. Relational modelling by
+the GNN gives the largest single gain ($+3.4$~pp); geometric and topological descriptors add
+$+1.2$ and $+1.7$~pp respectively. The full model reaches $95.1\%$ accuracy (AUC $0.970$,
+95\% bootstrap interval $[94.0\%,\,96.2\%]$), $+7.0$~pp over the baseline, which is more than
+the sum of the individual gains ($6.3$~pp): the components interact synergistically, and
+McNemar's test confirms the improvement over the CNN baseline ($p<0.01$). On Messidor-2,
+without any fine-tuning, the full model reaches $92.1\%$ accuracy against $88.1\%$ for the
+CNN alone, and it keeps a higher AUC under Gaussian noise, contrast changes, blur and
+downsampling~\cite{mezghich2026lnaitopo}.
+
+\begin{table}[!tb]
+\centering
+\caption[Ablation of the hybrid CNN--GNN pipeline]{Ablation of the hybrid CNN--GNN pipeline
+on APTOS~2019 (binary screening, held-out test set)~\cite{mezghich2026lnaitopo}.}
+\label{tab:hybrid}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Configuration & Accuracy & $\Delta$ vs.\ CNN \\
+\midrule
+CNN only (EfficientNet-B0) & 88.1\% & -- \\
+CNN $+$ geometric descriptors & 89.3\% & $+1.2$~pp \\
+CNN $+$ topological descriptors & 89.8\% & $+1.7$~pp \\
+CNN $+$ GNN & 91.5\% & $+3.4$~pp \\
+CNN $+$ GNN $+$ geometry and topology (full) & \textbf{95.1\%} & $\mathbf{+7.0}$~pp \\
+\bottomrule
+\end{tabular}
+\tabnote{Sum of the individual gains: $1.2+1.7+3.4=6.3$~pp, below the $7.0$~pp of the full
+model.}
+\end{table}
+
+\paragraph{Five-class grading and training behaviour.}
+On the harder five-class task, the full model reaches $87.5\%$ accuracy, with macro
+precision, recall and F1 all at $87.3\%$. \Cref{fig:hybridcm} shows where the errors lie:
+No~DR, Mild and Moderate are well separated, and most errors are confusions between the two
+advanced grades, Severe and Proliferative, which share vascular pathology at the coarse
+$128\times128$ resolution. \Cref{fig:hybridcurves} shows the training loss and accuracy:
+the loss decreases steadily and the accuracy saturates in the last epochs, without the
+divergence that would indicate unstable optimisation.
+
+\begin{figure}[!tb]
+\centering
+\includegraphics[width=0.66\linewidth]{hybrid_confusion_5class}
+\caption[Confusion matrix of the hybrid model on five-class grading]{Confusion matrix of the
+hybrid CNN--GNN model on five-class grading (APTOS~2019). Correct predictions lie on the
+diagonal; most errors are between Severe and Proliferative DR. Adapted
+from~\cite{mezghich2026lnaitopo}.}
+\label{fig:hybridcm}
+\end{figure}
+
+\begin{figure}[!tb]
+\centering
+\includegraphics[width=0.78\linewidth]{hybrid_training_curves}
+\caption[Training curves of the hybrid model]{Training loss and training accuracy of the
+hybrid CNN--GNN model on five-class grading, per epoch. Adapted
+from~\cite{mezghich2026lnaitopo}.}
+\label{fig:hybridcurves}
+\end{figure}
+
+\paragraph{Topological descriptors of the vessel skeleton.}
+The later systems of this thesis describe the vascular network with a fixed vector of
+persistence statistics. For each fundus image, the vessel skeleton is extracted with CLAHE
+pre-processing~\cite{zuiderveld1994clahe} followed by Zhang--Suen
+thinning~\cite{zhang1984thinning}. The branch points of the skeleton form a point cloud
+$P_i=\{p_1,\ldots,p_n\}\subset\mathbb{R}^2$. The Vietoris--Rips filtration is computed
+with GUDHI~\cite{maria2014gudhi}, which gives a seven-dimensional feature vector
+\begin{equation}
+x_i^{\mathrm{TDA}} = \bigl(\Pi_{H_0},\, n_{H_0},\, \Pi_{H_1},\, n_{H_1},\, \beta_1,\,
+D_f,\, \Delta\bigr)^\top \in \mathbb{R}^7 ,
+\label{eq:tda}
+\end{equation}
+where $\Pi_{H_k}$ is the total $k$-th persistence, $n_{H_k}$ the number of components
+or loops, $\beta_1$ the first Betti number, $D_f$ the fractal dimension, and $\Delta$ the
+maximum $H_1$ persistence (a neovascularisation signal).
+
+The synergy observed in \cref{tab:hybrid} motivates the next step. In the hybrid model,
+the graph links positions within one image and the topological descriptors are simply
+concatenated; TOPORET (\cref{sec:dualsim}) instead builds a graph between patients and uses
+the distance between persistence diagrams inside the similarity that defines its edges,
+fusing both signals at graph-construction time.
+
+\subsection{SAMF-GB: Structural Features Outperform GPU EfficientNet-B3}
+\label{sec:samfgb}
+
+SAMF-GB~\cite{belhadj2026samfgb} shows that seven families of hand-crafted structural
+features, combined with LightGBM gradient boosting~\cite{ke2017lightgbm}, outperform a
+GPU EfficientNet-B3 at about $1/13$ of the computational cost. The 256-dimensional
+feature vector is composed as follows:
+\begin{itemize}
+\item \textbf{vascular morphology} (48-D): vessel calibre reduction and tortuosity;
+\item \textbf{fractal dimension} (12-D): loss of vascular self-similarity;
+\item \textbf{persistent homology} (7-D): topology of the vessel network (\cref{eq:tda});
+\item \textbf{DWT texture} (64-D, four levels): microaneurysm and exudate texture;
+\item \textbf{Gabor responses} (32-D): vessel edges and IRMA characteristics;
+\item \textbf{radial FFT} (24-D): degradation of the spoke-wheel vessel pattern;
+\item \textbf{LBP $+$ log-Euclidean} (69-D): haemorrhage and exudate cluster patterns.
+\end{itemize}
+
+\Cref{tab:shap} gives the dimension and mean absolute SHAP value~\cite{lundberg2017shap}
+of each family. The three most discriminative families are all global structural
+features (vascular morphology, fractal dimension, persistent homology), not local
+appearance features. This is independent evidence for H2, obtained with a method entirely
+different from the ANOVA of \cref{sec:h2}.
+
+\begin{table}[H]
+\centering
+\caption[SAMF-GB feature families and mean absolute SHAP values]{SAMF-GB feature families, dimension and mean absolute SHAP
+value~\cite{belhadj2026samfgb}.}
+\label{tab:shap}
+\small
+\begin{tabular}{@{}lccP{6.2cm}@{}}
+\toprule
+Family & Dim. & Mean $|\mathrm{SHAP}|$ & Primary DR correlate \\
+\midrule
+Vascular morphology & 48 & 0.142 & Vessel calibre reduction, tortuosity \\
+Fractal dimension & 12 & 0.138 & Loss of vascular self-similarity \\
+Persistent homology & 7 & 0.131 & Topology of the vascular network \\
+DWT (4 levels) & 64 & 0.094 & Microaneurysm and exudate texture \\
+Gabor responses & 32 & 0.087 & Vessel edges and IRMA \\
+Radial FFT & 24 & 0.082 & Spoke-wheel vessel pattern degradation \\
+LBP $+$ log-Euclidean & 69 & 0.068 & Haemorrhage and exudate clusters \\
+\midrule
+Full SAMF-GB & 256 & -- & QWK $=0.882$; $2.1$~ms CPU inference \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The SHAP ranking of \cref{tab:shap} is also a check on the clinical plausibility of the
+model: the three families that matter most describe the geometry and topology of the
+vessels, which are the structures that ophthalmologists examine when they look for venous
+beading, capillary closure and new vessels.
+
+\Cref{tab:samf} compares SAMF-GB with
+EfficientNet-B3: SAMF-GB gains $+0.042$ QWK, runs 40 times faster on a 16-core CPU at
+about 13 times lower cost, and its predictions can be explained with SHAP.
+
+\begin{table}[H]
+\centering
+\caption[SAMF-GB versus EfficientNet-B3 on Kaggle EyePACS]{SAMF-GB versus EfficientNet-B3 on Kaggle EyePACS ($N=88{,}702$).}
+\label{tab:samf}
+\small
+\begin{tabular}{@{}lcccl@{}}
+\toprule
+System & QWK & Inference & Hardware & Art.~13 support \\
+\midrule
+EfficientNet-B3 & 0.840 & 85~ms & NVIDIA A100 & No (opaque) \\
+SAMF-GB & 0.882 & 2.1~ms & 16-core CPU & Yes (SHAP per prediction) \\
+\midrule
+Difference & $+0.042$ & $\times 40$ faster & $\times 13$ cheaper & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{LightGBM-HC}
+\label{sec:lgbmhc}
+
+Publication~\cite{belhadj2026icpram} validates a reduced 128-dimensional hand-crafted
+feature set with LightGBM, reaching QWK $=0.858$ at $1.6$~ms CPU inference on the same
+benchmark. The hyperparameters, each selected by five-fold cross-validated grid search,
+are listed in \cref{tab:lgbm-hp}. The lower QWK than SAMF-GB ($0.858$ versus $0.882$) is
+explained by the exclusion of the 7-D persistent-homology features: removing them costs
+$0.024$ QWK, which independently confirms the value of the topological component. The same conclusion is reached with a different learning algorithm and a different feature set, which makes it unlikely to be an artefact of one model.
+
+\begin{table}[H]
+\centering
+\caption[LightGBM-HC hyperparameters]{LightGBM-HC hyperparameters, selected by five-fold cross-validated grid search on
+Kaggle EyePACS (search range in parentheses).}
+\label{tab:lgbm-hp}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Hyperparameter & Selected value (search range) \\
+\midrule
+Number of boosting rounds & 480 (100--1000) \\
+Maximum tree depth & 7 (3--12) \\
+Learning rate & 0.04 (0.01--0.2, log scale) \\
+Number of leaves & 63 (15--127) \\
+Minimum child samples & 20 (5--50) \\
+Feature subsampling fraction & 0.75 (0.5--1.0) \\
+L2 regularisation & 1.2 (0--5) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Feature-family ablation.}
+To isolate the contribution of each of the four families retained in the 128-D set
+(vascular morphology, fractal dimension, DWT texture, Gabor responses), a
+leave-one-family-out ablation was run (\cref{tab:lgbm-abl}). Vascular morphology is by
+far the most load-bearing family ($-0.077$ QWK when removed), more than the two
+texture-oriented families together. This agrees with the SHAP ranking of SAMF-GB and
+reaches the same conclusion by a different method: global vascular structure carries more
+signal than local texture for this task.
+
+\begin{table}[!tb]
+\centering
+\caption[Leave-one-family-out ablation for LightGBM-HC]{Leave-one-family-out ablation for LightGBM-HC. Each row removes one family from
+the 128-D set.}
+\label{tab:lgbm-abl}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Configuration & QWK & $\Delta$ vs.\ full set \\
+\midrule
+Full 128-D feature set & 0.858 & -- \\
+$-$ Vascular morphology (48-D) & 0.781 & $-0.077$ \\
+$-$ Fractal dimension (12-D) & 0.829 & $-0.029$ \\
+$-$ DWT texture (64-D) & 0.842 & $-0.016$ \\
+$-$ Gabor responses (4-D, reduced) & 0.851 & $-0.007$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+With only four families and $128$ dimensions, LightGBM-HC keeps most of the accuracy of
+SAMF-GB at a lower cost, which makes it a practical option for screening sites equipped only
+with standard computers. Both gradient-boosting models also provide feature-level explanations directly, without any post-hoc method.
+
+\subsection{Convergent Evidence from Four Independent Methodologies}
+\label{sec:converge}
+
+Four methodologically independent approaches --- the three studies of Part~B and the
+formal ANOVA of \cref{ch:toporet} --- reach the same qualitative conclusion:
+global structural priors improve DR grading.
+\begin{enumerate}
+\item \textbf{Deep learning}~\cite{belhadj2026hybrid,mezghich2026lnaitopo}: topological descriptors add $+1.7$~pp
+beyond the CNN baseline (\cref{tab:hybrid}).
+\item \textbf{Gradient boosting}~\cite{belhadj2026samfgb}: SAMF-GB outperforms GPU
+EfficientNet-B3 by $+0.042$ QWK at about 13 times lower cost; topology ranks third of
+seven families by SHAP (\cref{tab:shap}).
+\item \textbf{Reduced gradient boosting}~\cite{belhadj2026icpram}: removing the TDA
+features costs $0.024$ QWK, independently replicating the topological signal.
+\item \textbf{Formal ANOVA} (\cref{sec:h2}): $F(4,4995)=1308.9$, $\eta^2=0.51$.
+\end{enumerate}
+
+\paragraph{Why four methodologies, not one.}
+One could ask whether a single, larger experiment would have established the same point
+with less apparent duplication. Four methodologies were used because each has its own
+characteristic failure mode, and agreement across methods with different failure modes is
+harder to explain away than one large effect. A deep-learning ablation
+(\cref{tab:hybrid}) can be confounded by optimisation idiosyncrasies; a SHAP attribution
+(\cref{tab:shap}) by correlated features inflating or deflating attributions; a
+leave-one-family-out ablation (\cref{tab:lgbm-abl}) by interactions between the removed
+and retained families. No single confound threatens all four at once, so their agreement
+is correspondingly hard to attribute to a methodological artefact. The same logic
+motivates the distributed-systems detour of Part~A: breadth of independent evidence,
+rather than depth within one experimental paradigm, is the organising principle of the
+evidential strategy of this thesis. The same principle guides the evaluation of TOPORET and DOTS in the next chapters.
+
+\section{Synthesis of the First Contributions}
+\label{sec:ch3-synthesis}
+
+\Cref{tab:ch3summary} summarises the five studies of this chapter.
+
+Three design decisions for the rest of the thesis follow directly from these studies. The
+graph template, its hyperparameters and its inductive mode can be reused unchanged on
+retinal data, since they proved stable across six domains. Topological descriptors of the
+vessel skeleton deserve a place in the model, since three different methods found them
+informative. Finally, the way the two signals are combined matters: since they are already synergistic
+when simply concatenated, the next system goes further and fuses topology into the
+similarity that builds a graph between patients. The remainder of this section summarises the evidence on which these decisions rest.
+
+\begin{table}[H]
+\centering
+\caption{Summary of the first contributions.}
+\label{tab:ch3summary}
+\small
+\begin{tabular}{@{}P{3.6cm} P{3.4cm} P{5.2cm} c@{}}
+\toprule
+Study & Data & Main result & Publication \\
+\midrule
+GNN-MSOrchest & 48-service microservice simulation & Cascade containment $81\%$ vs.\ $34\%$ & P1 \\
+Structural invariants & Six graph benchmarks & Mean recall $+4.2$~pp, CV $14\%$ & P2 \\
+Hybrid CNN--GNN & APTOS 2019 (binary) & $95.1\%$ accuracy ($+7.0$~pp), AUC $0.970$; synergistic gains & P3, B2 \\
+SAMF-GB & Kaggle EyePACS & QWK $0.882$ on CPU ($2.1$~ms) vs.\ $0.840$ & J2 \\
+LightGBM-HC & Kaggle EyePACS & QWK $0.858$; removing TDA costs $0.024$ & P4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Conclusion}
+\phantomsection\addcontentsline{toc}{section}{Conclusion}
+
+This chapter established three empirical facts. (F1)~The GraphSAGE template with
+structural descriptors is generic: it improves detection on six heterogeneous benchmarks
+(mean recall gain $+4.2$~pp, coefficient of variation $14\%$). (F2)~On DR data, relational and
+topological contributions are complementary: the full hybrid model gains $+7.0$~pp over the
+CNN baseline, more than the sum of the individual gains ($6.3$~pp). (F3)~Global
+structural and topological features carry discriminative information, as shown
+independently by a deep hybrid model, by gradient boosting with SHAP attribution and by a
+leave-one-family-out ablation. As a practical by-product, SAMF-GB grades images on a
+standard CPU in $2.1$~ms with a higher QWK than a GPU EfficientNet-B3.
+
+These results do not prove that a population graph will work on retinal images, but they
+show that it is worth testing, with topology fused into the similarity that builds the
+graph. The next chapter implements this idea in TOPORET.

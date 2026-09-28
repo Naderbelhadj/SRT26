@@ -1,0 +1,39 @@
+% Figure 1.1 --- schematic of a colour fundus photograph (left eye view)
+\begin{figure}[H]
+\centering
+\resizebox{0.8\linewidth}{!}{%
+\begin{tikzpicture}[font=\footnotesize]
+\begin{scope}
+  \clip (0,0) circle (3.0);
+  \fill[orange!55!red!45!white] (0,0) circle (3.0);
+  % vessels: superior and inferior arcades leaving the optic disc
+  \foreach \s/\w in {1/1.6pt,-1/1.6pt}{
+    \draw[red!55!black, line width=\w] (1.9,0.1*\s) .. controls (1.2,1.3*\s) and (-0.6,1.7*\s) .. (-2.9,1.0*\s);
+    \draw[red!45!black, line width=1.1pt] (1.9,0.25*\s) .. controls (1.4,1.7*\s) and (0.2,2.4*\s) .. (-1.5,2.8*\s);
+    \draw[red!55!black, line width=0.8pt] (0.3,1.35*\s) .. controls (-0.1,0.9*\s) and (-0.3,0.7*\s) .. (-0.45,0.55*\s);
+    \draw[red!55!black, line width=0.8pt] (-1.2,1.55*\s) .. controls (-1.5,1.0*\s) and (-1.9,0.6*\s) .. (-2.4,0.45*\s);
+  }
+  \draw[red!55!black, line width=1.0pt] (2.0,0) -- (2.9,0.5);
+  \draw[red!55!black, line width=1.0pt] (2.0,0) -- (2.9,-0.4);
+  % macula and fovea
+  \fill[orange!60!brown!70] (0,0) circle (0.55);
+  \fill[brown!70!black] (0,0) circle (0.14);
+  \draw[black!60, dashed] (0,0) circle (0.95);
+  % optic disc
+  \fill[yellow!55!orange!60] (2.0,0.05) circle (0.42);
+  \fill[yellow!25] (2.05,0.05) circle (0.18);
+\end{scope}
+\draw[black!70, thick] (0,0) circle (3.0);
+% labels
+\draw[-{Latex[length=1.6mm]}] (4.3,1.6) node[right, align=left] {Optic disc\\(vessels enter here)} -- (2.35,0.3);
+\draw[-{Latex[length=1.6mm]}] (4.3,-0.4) node[right, align=left] {Superior and inferior\\vascular arcades} -- (1.2,-1.35);
+\draw[-{Latex[length=1.6mm]}] (-4.1,1.3) node[left, align=right] {Macula\\(central vision)} -- (-0.75,0.55);
+\draw[-{Latex[length=1.6mm]}] (-4.1,-0.8) node[left, align=right] {Fovea\\(sharpest vision)} -- (-0.12,-0.05);
+\end{tikzpicture}}
+\caption[Main anatomical landmarks of a colour fundus photograph]{Schematic of a colour
+fundus photograph and its main landmarks. The optic disc is where the retinal vessels
+enter the eye; the vascular arcades branch from it and surround the macula, whose centre,
+the fovea, provides the sharpest vision. DR lesions near the macula threaten central vision
+most directly.}
+\label{fig:anatomy}
+\end{figure}

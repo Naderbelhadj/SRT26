@@ -1,0 +1,559 @@
+\section*{Introduction}
+\phantomsection\addcontentsline{toc}{section}{Introduction}
+
+Diabetic retinopathy is one of the most frequent complications of diabetes and a leading
+cause of preventable blindness in adults of working age. Because the disease is silent in
+its early stages, it can only be controlled by regular screening of the retina, and the
+number of people to screen is now far beyond what human graders can handle. Automated
+grading of fundus photographs by deep learning has therefore become a major research
+topic, and several systems are already used in practice.
+
+This chapter introduces the clinical problem on which the whole thesis is built. We first
+define diabetic retinopathy and describe how it develops. We then present the
+international severity scale and the fundus images used to grade it, and the way
+screening programmes measure patient safety. We review a decade of deep-learning methods
+for automated grading, and we close with the challenges and limits that current systems
+still share. These limits define the research problem addressed in the following
+chapters.
+
+\section{Diabetic Retinopathy: Definition and Clinical Context}
+\label{sec:burden}
+
+\subsection{Anatomy of the Retina}
+\label{sec:anatomy}
+
+The retina is the thin layer of neural tissue that lines the back of the eye and converts
+light into nerve signals. Seen through the pupil, as in a fundus photograph
+(\cref{fig:anatomy}), it shows three main landmarks. The \emph{optic disc} is the point
+where the optic nerve leaves the eye and where the central retinal artery and vein enter;
+it appears as a bright oval. From it, the retinal vessels branch into superior and
+inferior \emph{vascular arcades} that curve around the \emph{macula}, a region about
+$5.5$~mm wide responsible for central vision. At the centre of the macula, the
+\emph{fovea} contains the highest density of cone photoreceptors and has no inner retinal
+vessels, which is why it appears as a darker spot~\cite{abramoff2010retinal}.
+
+The retinal circulation is a terminal network: each capillary bed depends on a single
+feeding arteriole, and there are few alternative paths when a vessel closes. This makes
+the retina particularly vulnerable to diseases of small vessels such as diabetes, and it
+also makes the vascular tree a direct, non-invasive window on the state of the
+microcirculation. The shape of this tree -- its branching, its loops and its gaps -- is
+therefore clinically meaningful, an observation that motivates the topological features
+used later in this thesis.
+
+\input{figures/fig_anatomy}
+
+\subsection{Global Burden}
+
+Diabetes mellitus affects an estimated 537 million adults worldwide, a figure projected
+to reach 783 million by 2045~\cite{idf2021atlas}. Its principal ocular complication,
+diabetic retinopathy (DR), affects about 103 million people and is a leading cause of
+preventable blindness in the working-age population~\cite{teo2021global,cheung2010dr}.
+The disease is asymptomatic in its early, treatable stages, and timely laser or
+anti-VEGF treatment greatly reduces the risk of severe visual loss~\cite{cheung2010dr},
+provided that it is applied before tractional retinal detachment or extensive
+neovascularisation.
+
+\subsection{Pathophysiology and Disease Progression}
+\label{sec:patho}
+
+Chronic hyperglycaemia triggers polyol-pathway activation, protein kinase C
+up-regulation, oxidative stress and the accumulation of advanced glycation end-products.
+These converge on pericyte apoptosis, basement-membrane thickening and breakdown of the
+blood--retinal barrier~\cite{cheung2010dr}. The healthy retinal vascular tree is
+self-similar, with a fractal dimension close to $1.7$~\cite{masters2004fractal}; in the
+data of this thesis it decreases monotonically from $1.71$ at Grade~0 to $1.57$ at
+Grade~4 (\cref{tab:anova}). This loss of vascular complexity is the biological
+motivation for the persistent-homology features studied in \cref{ch:toporet}.
+
+Clinically, the cascade follows a predictable anatomical sequence rather than a uniform
+deterioration. Capillary basement-membrane thickening and pericyte loss first produce
+focal microaneurysms (Grade~1), localised weaknesses that later rupture or leak to form
+haemorrhages and lipid-rich hard exudates (Grade~2). As capillary non-perfusion spreads,
+the retina becomes ischaemic, producing venous calibre changes (beading) and
+intraretinal microvascular abnormalities (Grade~3) -- compensatory shunt vessels that
+bypass occluded capillary beds. Once ischaemia is extensive, VEGF up-regulation drives
+neovascularisation at the optic disc or on the retinal surface (Grade~4), the
+proliferative stage at which vitreous haemorrhage and tractional detachment become
+acute risks.
+
+This sequence is the clinical justification for two design choices of this thesis:
+treating DR grading as an inherently \emph{ordinal} problem (\cref{sec:coral}) rather
+than as a set of unrelated categories, and expecting the \emph{topological} complexity of
+the vascular network to change monotonically with severity (\cref{sec:ph}).
+
+\subsection{Clinical Signs of Diabetic Retinopathy}
+\label{sec:signs}
+
+The progression described above produces a set of lesions that graders look for on
+fundus photographs~\cite{wong2016dr,antonetti2012dr}:
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Microaneurysms] small red dots, less than about $125~\mu$m, caused by out-pouching
+of weakened capillary walls; they are the earliest visible sign of DR.
+\item[Haemorrhages] red spots or blots caused by the rupture of capillaries; flame-shaped
+haemorrhages lie in the nerve-fibre layer, dot-and-blot haemorrhages deeper in the retina.
+\item[Hard exudates] bright yellow deposits of lipids and proteins that leak from damaged
+vessels, often arranged in rings around a leaking area.
+\item[Cotton-wool spots] fluffy white patches caused by small infarcts of the nerve-fibre
+layer, a sign of local ischaemia.
+\item[Venous beading and IRMA] irregular calibre of the veins and abnormal shunt vessels
+inside the retina, both markers of severe ischaemia.
+\item[Neovascularisation] new, fragile vessels growing on the optic disc or elsewhere on the
+retina; they define proliferative DR and can bleed into the vitreous.
+\end{description}
+Diabetic macular oedema, the accumulation of fluid in the macula, can occur at any stage
+of DR and is a major cause of visual loss. Its reliable diagnosis requires optical
+coherence tomography (\cref{sec:imaging}); colour photographs show it only indirectly,
+through exudates close to the fovea. This thesis focuses on the severity grade of DR
+itself, as defined by the ICDR scale.
+
+\subsection{Treatment and the Value of Early Detection}
+
+Two treatments dominate the management of sight-threatening DR. Laser photocoagulation,
+introduced in the 1970s and 1980s, destroys ischaemic peripheral retina to reduce the
+drive for new vessels, and focal laser treats leaking areas near the macula.
+Intravitreal injections of anti-VEGF agents, widely used since the 2010s, block the
+growth factor responsible for neovascularisation and macular oedema. Vitrectomy is
+reserved for advanced cases with vitreous haemorrhage or tractional detachment. All these
+treatments are most effective when applied before severe visual loss; none of them can
+restore tissue that is already destroyed~\cite{cheung2010dr,wong2016dr}. The clinical
+value of screening therefore lies in detecting the disease \emph{before} symptoms appear
+and in referring the right patients quickly, which is exactly what an automated grading
+system must support.
+
+\section{Retinal Imaging}
+\label{sec:imaging}
+
+\subsection{Colour Fundus Photography}
+
+Colour fundus photography is the reference modality for DR screening. A fundus camera
+illuminates the retina through the pupil and records a colour image of about 45 degrees
+of the posterior pole, centred on the macula or on the optic disc. Images can be taken
+with or without pharmacological dilation of the pupil (mydriatic or non-mydriatic
+imaging); non-mydriatic cameras simplify screening but produce more ungradable images in
+older patients or patients with cataract. Screening protocols use one or several fields
+per eye, and the images are transmitted to readers or, increasingly, to automated
+systems~\cite{abramoff2010retinal}.
+
+\subsection{Other Imaging Modalities}
+
+Optical coherence tomography (OCT)~\cite{huang1991oct} produces cross-sectional images
+of the retinal layers with micrometre resolution and is the reference for detecting and
+monitoring macular oedema. Fluorescein angiography, which requires an intravenous dye,
+shows leakage and capillary non-perfusion but is invasive and reserved for specialist
+care. Ultra-widefield imaging captures up to 200 degrees of the retina and reveals
+peripheral lesions missed by standard fields. These modalities are complementary, but
+colour fundus photography remains the only one that is cheap, fast and widespread enough
+for population screening, and all the public grading datasets used in this thesis consist
+of colour fundus photographs.
+
+\subsection{Image Quality and Variability}
+
+Fundus photographs vary widely across sites and devices: camera model, field of view,
+resolution, illumination, compression and patient factors such as pupil size or media
+opacities all change the appearance of the image. A non-negligible fraction of screening
+images is ungradable. These variations are a major source of the performance drop observed
+when a model trained in one population is applied to another, and they motivate two
+design choices of this thesis: contrast normalisation with Contrast-Limited Adaptive Histogram Equalisation (CLAHE)
+before any analysis, and
+evaluation on five datasets acquired in four countries.
+
+\section{Severity Grading Scales}
+\label{sec:grading}
+
+The reference classification of DR severity was established by the Early Treatment
+Diabetic Retinopathy Study (ETDRS), which defined a detailed scale of more than ten levels
+from seven-field stereoscopic photographs~\cite{etdrs1991grading}. The ETDRS scale remains
+the standard in clinical trials, but it is too detailed and too costly for routine
+screening. The International Clinical Diabetic Retinopathy (ICDR) scale was proposed in
+2003 to simplify it into five levels that can be graded from standard
+photographs and that map directly onto clinical decisions~\cite{wilkinson2003icdr}.
+
+\Cref{tab:icdr} summarises the International Clinical Diabetic Retinopathy (ICDR)
+scale~\cite{wilkinson2003icdr} used to grade every image in this thesis. Grades~3 and~4
+require urgent referral; missing them is the error counted by the Severe-DR Non-Referral
+Rate (Sev-NR).
+
+Fundus photographs are colour images of the back of the eye, usually centred on the macula
+with a field of view of about $45^\circ$. They can be taken with or without pupil dilation;
+non-mydriatic cameras are preferred in screening because they are faster and more
+comfortable, at the cost of a higher rate of ungradable images. Grading is a visual task:
+the grader counts and locates microaneurysms, haemorrhages, exudates, venous beading and
+new vessels, and maps them to a grade. Even among experts, agreement is only moderate at
+the boundaries between neighbouring grades, which is why screening programmes use double
+grading and arbitration for difficult cases. An automated system inherits this ambiguity:
+the reference labels themselves are uncertain near the grade boundaries.
+
+\begin{table}[H]
+\centering
+\caption[International Clinical Diabetic Retinopathy (ICDR) severity scale]{International Clinical Diabetic Retinopathy (ICDR) severity
+scale~\cite{wilkinson2003icdr}. Grades 3--4 are safety-critical.}
+\label{tab:icdr}
+\footnotesize
+\begin{tabular}{@{}c l P{6.4cm} l@{}}
+\toprule
+Grade & Clinical name & Primary vascular signs & Referral urgency \\
+\midrule
+0 & No DR & None & Annual recall \\
+1 & Mild NPDR & Microaneurysms only & 12 months \\
+2 & Moderate NPDR & Haemorrhages and exudates, below the 4-2-1 rule & 6 months \\
+3 & Severe NPDR & 4-2-1 rule: $\geq 20$ haemorrhages per quadrant, venous beading or IRMA & 2--4 weeks \\
+4 & Proliferative DR & Neovascularisation; vitreous or pre-retinal haemorrhage & Emergency \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\Cref{fig:fundus} shows one representative fundus photograph for each
+grade.
+
+\begin{figure}[H]
+\centering
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{ccccc}
+\includegraphics[width=0.188\textwidth]{fundus_grade0} &
+\includegraphics[width=0.188\textwidth]{fundus_grade1} &
+\includegraphics[width=0.188\textwidth]{fundus_grade2} &
+\includegraphics[width=0.188\textwidth]{fundus_grade3} &
+\includegraphics[width=0.188\textwidth]{fundus_grade4} \\[2pt]
+\small\textbf{Grade 0} & \small\textbf{Grade 1} & \small\textbf{Grade 2} &
+\small\textbf{Grade 3} & \small\textbf{Grade 4} \\
+\footnotesize No DR & \footnotesize Mild NPDR & \footnotesize Moderate NPDR &
+\footnotesize Severe NPDR & \footnotesize Proliferative DR
+\end{tabular}
+\caption[Representative fundus photographs for ICDR grades 0--4]{Representative fundus photographs for ICDR grades 0--4 (Kaggle EyePACS and
+APTOS~2019 public datasets~\cite{kaggle2015eyepacs,aptos2019}). Lesion density and type
+increase with grade: microaneurysms (Grade~1), haemorrhages and hard exudates (Grade~2),
+venous beading and IRMA (Grade~3), neovascularisation (Grade~4).}
+\label{fig:fundus}
+\end{figure}
+
+Grading is not an exact science. Even trained ophthalmologists disagree on a substantial
+fraction of images, especially between adjacent grades, and the agreement depends on the
+reference standard used: adjudication by a panel of retina specialists gives more
+reliable labels than a single grader or a majority vote~\cite{krause2018grader}. Public
+datasets are usually labelled by one or a few graders, so their labels contain some noise,
+concentrated at the boundaries between grades. Any grading system, human or automated,
+must therefore be judged against this intrinsic ambiguity, and a system that can recognise
+ambiguous cases is valuable in itself. This is also why many programmes grade each image
+twice and send disagreements to a senior grader: the most useful help that an automated
+system can give is often to indicate which images deserve this second look. In the systems developed in this thesis, this role is played by the abstention mechanism of \cref{ch:dots}. Such a system does not replace the second grader; it directs the grader's attention to the cases that need it most.
+
+\section{Screening Programmes and Patient Safety}
+\label{sec:screening}
+
+Population-scale screening is therefore a public-health imperative, and automated
+grading is the only way to make it affordable at national scale~\cite{ting2017jama,
+abramoff2018pivotal}. The safety of such a programme is measured by how many
+sight-threatening cases it fails to refer. At a Severe-DR Non-Referral Rate of
+$4.3\%$ -- the value reached by EfficientNet-B3 in this thesis -- a programme screening
+$500{,}000$ patients a year, of whom about $25{,}000$ have severe disease, would leave
+roughly $1{,}100$ sight-threatening cases unreferred every year (the assumptions of this
+projection are stated in \cref{sec:impact}).
+
+Organised screening has been shown to work at the scale of a country. In England, the
+national programme started in 2003 invites every person with diabetes aged 12 and over for
+annual photographic screening, with images graded in a multi-level quality-assured
+process; since its introduction, diabetic retinopathy is no longer the leading cause of
+certifiable blindness in the working-age population~\cite{scanlon2017english}. In the
+United States, the EyePACS telemedicine network brought photographic screening to primary
+care clinics by transmitting images to remote certified graders~\cite{cuadros2009eyepacs}
+-- the same network that later provided the Kaggle dataset used in this thesis. Such
+programmes need large numbers of trained graders, which is precisely the resource that
+automated systems can save.
+
+A screening programme is therefore judged on two different axes. Accuracy measures how
+often the grade assigned to an image is correct, and is usually reported as the quadratic
+weighted kappa (QWK) with the reference grader. Safety measures how often a patient who
+needs urgent care is sent home, and is reported as the Severe-DR Non-Referral Rate
+(Sev-NR). National programmes typically require a very low non-referral rate for
+sight-threatening disease; this thesis adopts a threshold of $2\%$ throughout. The two axes
+do not move together: a system can gain several points of QWK while its Sev-NR stays above
+the threshold, as the next section shows. The metrics are defined formally in
+\cref{sec:metrics}.
+
+\section{Public Datasets}
+\label{sec:datasets}\label{app:datasets}
+
+Research on automated DR grading relies on a small number of public datasets of colour
+fundus photographs graded on the ICDR scale. Five of them are used in this thesis
+(\cref{tab:datasets}). Kaggle EyePACS~\cite{kaggle2015eyepacs} was released for a public
+competition in 2015 and remains by far the largest. APTOS~2019~\cite{aptos2019} was
+released for a second competition by an Indian tele-ophthalmology society.
+IDRiD~\cite{porwal2018idrid,porwal2020idrid} was collected at a single Indian clinic and
+also provides lesion segmentations. Messidor-2~\cite{decenciere2014messidor} comes from
+French hospitals, and DDR~\cite{li2019ddr} from several Chinese hospitals. Other public
+datasets, such as DRIVE~\cite{staal2004drive} and STARE~\cite{hoover2000stare}, provide
+manual vessel segmentations rather than grades; they have been central to the development
+of vessel segmentation methods.
+
+\begin{table}[H]
+\centering
+\caption[Grade distribution (\%) across the five public benchmarks]{Grade distribution (\%) across the five public benchmarks.}
+\label{tab:datasets}
+\small
+\begin{tabular}{@{}lrccccc l@{}}
+\toprule
+Dataset & $N$ & G0 & G1 & G2 & G3 & G4 & Origin \\
+\midrule
+Kaggle EyePACS~\cite{kaggle2015eyepacs} & 88{,}702 & 74.2 & 6.8 & 15.1 & 2.5 & 1.4 & USA, multi-site \\
+APTOS 2019~\cite{aptos2019} & 3{,}662 & 49.3 & 10.1 & 27.3 & 5.3 & 8.0 & India \\
+IDRiD~\cite{porwal2018idrid} & 516 & 40.9 & 5.0 & 32.0 & 8.5 & 13.6 & India, single site \\
+Messidor-2~\cite{decenciere2014messidor} & 1{,}748 & 53.5 & 15.0 & 23.0 & 5.0 & 3.5 & France \\
+DDR~\cite{li2019ddr} & 13{,}673 & 46.0 & 12.6 & 29.3 & 5.0 & 7.1 & China, multi-site \\
+\midrule
+Total & 108{,}301 & & & & & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The five benchmarks differ in ways relevant to the cross-dataset results of
+\cref{tab:bench}. Kaggle EyePACS, by far the largest, aggregates images from many US
+clinical sites and camera models; it is the most heterogeneous benchmark and the main
+training and validation source for the twelve experiments of \cref{app:results}. APTOS
+2019 and IDRiD come from Indian screening programmes but differ in scale ($3{,}662$
+versus $516$ images) and in multi-site versus single-site acquisition; the small size of
+IDRiD is the likely explanation of its performance gap (\cref{sec:limits-gc}).
+Messidor-2 (France) and DDR (China) extend the geographic range of the evaluation,
+although no dataset provides per-image demographic annotations, so geographic diversity
+is only a proxy for population diversity. Grades~3 and~4 are the smallest classes in
+every dataset (from $3.9\%$ to $22.1\%$ combined), which motivates the class-weighted
+CORAL loss of \cref{eq:coral} and the sensitivity analysis of \cref{tab:weights}: a
+system trained without correcting this imbalance would under-predict exactly the two
+safety-critical grades on which Sev-NR and PDR-NR are measured.
+
+\section{Automated Grading: A Review of Methods}
+\label{sec:decade}
+
+Automated DR detection has been studied for more than two decades. Its history can be read
+in four stages, which together explain the design of the systems developed in this
+thesis. Recent reviews give a broader picture~\cite{tsiknakis2021review,alyoubi2020review,
+ting2019ophthalmology}. The four stages are presented in chronological order, each with its main strength and the limitation that motivated the next one.
+
+\subsection{Classical Image Analysis}
+
+The first systems followed the reasoning of a human grader: detect the anatomical
+landmarks, segment the vessels, find the lesions, and combine their counts into a
+decision. Vessel segmentation received particular attention, with matched filters,
+morphological operators and supervised pixel classifiers evaluated on the DRIVE and STARE
+datasets~\cite{hoover2000stare,staal2004drive,fraz2012vessel}. Lesion detectors were
+designed for bright lesions such as exudates~\cite{walter2002exudates} and for red lesions
+such as microaneurysms and haemorrhages~\cite{niemeijer2005redlesions}. Combined into
+complete systems, these methods reached screening-level sensitivity on large
+populations~\cite{abramoff2008diabetes,abramoff2010retinal}. Their strength was
+interpretability: every decision could be traced to detected lesions. Their weakness was
+the accumulation of hand-tuned stages, each sensitive to image quality.
+
+\subsection{Deep Convolutional Networks}
+
+Deep learning replaced this pipeline by a single network trained end to end on graded
+images~\cite{lecun2015deep,litjens2017survey}. In 2016, a convolutional network trained on
+more than 100{,}000 graded images detected referable DR with a sensitivity and
+specificity comparable to those of ophthalmologists~\cite{gulshan2016jama}, and similar
+results were reported by other groups~\cite{abramoff2016improved,gargeya2017automated,
+ting2017jama}. The Kaggle competition of 2015 popularised the quadratic weighted kappa as
+the grading metric and led to many architectures based on standard ImageNet
+backbones~\cite{he2016resnet,szegedy2016inception,tan2019efficientnet}. These networks
+learn lesion detectors implicitly and are much more robust than hand-crafted pipelines,
+but they are opaque, and their decisions are made one image at a time.
+
+\subsection{Lesion-Aware and Attention Models}
+
+A second generation of models tried to recover part of the interpretability of classical
+systems. Lesion-mining approaches locate suspicious regions and use them to refine the
+grade~\cite{quellec2017deep,wang2017zoomin}, while attention mechanisms weight the image
+regions or the feature channels that matter most for each
+grade~\cite{hu2018senet,he2021cabnet}. Systems trained on several tasks, such as lesion
+segmentation and grading together, have extended detection to the whole disease spectrum,
+including early stages~\cite{dai2021deepdr}. Visual explanations such as class activation
+maps~\cite{zhou2016cam} or integrated gradients~\cite{sundararajan2017ig} have also been
+shown to help human graders when displayed alongside the prediction~\cite{sayres2019integrated}.
+
+\subsection{Transformers and Foundation Models}
+
+Vision transformers~\cite{dosovitskiy2021vit} process an image as a sequence of patches
+with self-attention, and capture long-range relations that convolutions see only
+indirectly. Their main impact on DR grading has come through \emph{foundation models}:
+networks pre-trained on very large unlabelled datasets and adapted to many tasks with
+little labelled data~\cite{bommasani2021foundation}. RETFound~\cite{zhou2023retfound},
+pre-trained by masked autoencoding on $1.6$ million retinal images, is the most prominent
+example in ophthalmology and currently gives the best grading accuracy on several
+benchmarks.
+
+\subsection{Graph-Based and Population Approaches}
+
+Graph neural networks, which learn on sets of related objects rather than isolated
+samples, have been applied to many medical problems~\cite{ahmedt2021graphmed}. In
+population graphs, each node is a patient and edges connect similar
+patients~\cite{parisot2018disease}; the grade of a patient can then be informed by the
+patients who resemble it. For DR, this line of work has remained limited to visual
+similarity between images, and the global structure of the vessel network has not been
+used to connect patients. \Cref{ch:background} introduces these methods in detail.
+
+\subsection{Clinical Validation and Deployment}
+
+Several systems have now been evaluated outside the laboratory. An autonomous system was
+cleared by the US Food and Drug Administration in 2018 after a prospective trial in primary
+care~\cite{abramoff2018pivotal}. Deep-learning systems were validated in national
+programmes in India~\cite{gulshan2019india} and Thailand~\cite{ruamviboonsuk2019thailand},
+and in a screening population in Zambia~\cite{bellemo2019zambia}. These studies confirm
+that automated grading can match human graders on high-quality images, but they also
+reveal practical obstacles: a study of a system deployed in Thai clinics found that
+ungradable images, connectivity problems and workflow constraints reduced its usefulness
+in practice~\cite{beede2020human}. More generally, the gap between retrospective accuracy
+and clinical impact is now recognised as a central challenge of medical
+AI~\cite{kelly2019challenges,liu2019comparison,rajpurkar2022ai}.
+
+\subsection{Synthesis}
+
+\Cref{tab:sota} summarises the systems most relevant to this thesis, from 2016 to 2026.
+Despite a $+8.0$~pp QWK gain from EfficientNet-B3 (2019, QWK $=0.840$) to RETFound (2023,
+QWK $=0.920$), none of them resolves the three structural limitations defined in the next
+section. This is not a coincidence: L1, L2 and L3 are properties of the function class, not
+of specific learned weights.
+
+\begin{table}[H]
+\centering
+\caption[Comparison of DR grading systems, 2016--2026]{Comparison of DR grading systems, 2016--2026. ``Retinal pre-training'' means
+initialisation on retinal rather than natural images.}
+\label{tab:sota}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l c P{5.0cm} c c c c@{}}
+\toprule
+System & Year & Key method & QWK & L1 & L2 & L3 \\
+\midrule
+Gulshan et al.~\cite{gulshan2016jama} & 2016 & Deep CNN (Inception-v3) & n/a$^{\dagger}$ & \xmark & \xmark & \xmark \\
+EfficientNet-B3~\cite{tan2019efficientnet} & 2019 & Compound-scaled CNN & 0.840 & \xmark & \xmark & \xmark \\
+CABNet~\cite{he2021cabnet} & 2021 & Category attention, ResNet & 0.830 & \xmark & \xmark & \xmark \\
+GraphDR$^{\ddagger}$ & 2022 & ResNet $+$ GCN (visual graph) & 0.850 & partial & \xmark & \xmark \\
+RETFound~\cite{zhou2023retfound} & 2023 & ViT-L/16, retinal pre-training & 0.920 & \xmark & \xmark & \xmark \\
+SAMF-GB~\cite{belhadj2026samfgb} & 2026 & LightGBM $+$ structural features & 0.882 & \xmark & partial & \xmark \\
+\midrule
+TOPORET~\cite{belhadj2025plos}$^{\star}$ & 2025 & EfficientNet $+$ TDA $+$ GraphSAGE & 0.880 & \cmark & \cmark & \xmark \\
+DOTS~\cite{belhadj2026dots}$^{\star}$ & 2026 & RETFound $+$ CORAL $+$ GAT $+$ abstention & \textbf{0.951} & \cmark & \cmark & \cmark \\
+\bottomrule
+\end{tabular}
+\tabnote{$^{\dagger}$Gulshan et al.\ report AUC $=0.991$ for referable DR, not QWK.
+$^{\ddagger}$Visual-similarity GCN population graph; re-implemented in this thesis as
+the ablation control of \cref{ch:toporet}. $^{\star}$This thesis. QWK values other than
+those of the original papers are measured on Kaggle EyePACS under the protocol of
+\cref{ch:toporet}.}
+\end{table}
+
+Three patterns emerge from \cref{tab:sota}.
+
+\paragraph{Pattern 1: accuracy gains do not resolve structural limitations.}
+Between 2019 and 2023 QWK improved by $+8.0$~pp (EfficientNet-B3 $\to$ RETFound), yet
+L1, L2 and L3 remain unresolved in every system. This is not a failure of engineering
+effort: L1, L2 and L3 are properties of the architecture class, not of hyperparameters
+or dataset size.
+
+\paragraph{Pattern 2: domain-matched pre-training is more productive than architectural
+refinement.}
+From EfficientNet-B3 to GraphDR (2019--2022), three years of architectural refinement
+gained $+1.0$~pp. RETFound (2023) gained $+7.0$~pp in a single step by changing the
+initialisation rather than the architecture.
+
+\paragraph{Pattern 3: the safety--accuracy gap is persistent.}
+The best system without abstention (RETFound, QWK $=0.920$) still has Sev-NR
+$\approx 3.1\%$, $1.1$~pp above the $2\%$ threshold. The further $+3.1$~pp QWK from
+RETFound to DOTS reduces Sev-NR by $38.7\%$ in relative terms: the remaining performance
+gap is concentrated in the safety-critical regime. Closing this gap therefore calls for changes to the architecture itself, rather than for larger networks or more training data.
+
+\section{Challenges and Limits of Current Systems}
+\label{sec:challenges}
+
+Despite a decade of progress, automated DR grading still faces open challenges. Some are
+practical: models trained on one population lose accuracy on images from other cameras or
+other countries; public datasets are small for the severe grades; and a model that always
+answers, even when the image is ambiguous, is hard to accept in a clinical workflow. This
+thesis focuses on three limitations that are not practical but \emph{architectural}: they
+are shared by every system reviewed above and cannot be removed by more data or larger
+networks.
+
+\subsection{Three Structural Limitations}
+\label{sec:limits}
+
+The following limitations are defined as binary architectural properties. They do not
+depend on the volume of training data, on network depth or on computational budget.
+
+\paragraph{Definition 1.1 (L1 -- No Relational Context).}
+A system satisfies L1 if and only if $P(Y_i \mid I_i, \mathcal{C}) = P(Y_i \mid I_i)$,
+where $\mathcal{C}$ denotes the patient cohort. Every system published at the time of
+writing satisfies this condition.
+
+\paragraph{Definition 1.2 (L2 -- No Vascular Topology).}
+A system satisfies L2 if and only if its feature map $\varphi : I \to \mathbb{R}^d$ uses
+only operations with bounded receptive fields (convolutions, local attention). Such a
+map cannot compute global topological invariants of the vascular network.
+
+\paragraph{Definition 1.3 (L3 -- No Clinical Safety).}
+A system satisfies L3 if and only if it must produce a grade for every input, with no
+mechanism for deferring genuinely ambiguous cases to a human grader.
+
+\subsection{Why the Limitations Cannot Be Resolved Independently}
+\label{sec:coupled}
+
+A natural question is whether each limitation could be resolved by adding one component
+to an existing state-of-the-art system. The answer is no, and the reason is structural.
+
+Resolving \textbf{L1 alone} (adding a population graph) requires a similarity metric for
+edge construction. A visual-only metric produces a graph that is not significantly better
+than no graph at all (GraphDR: $t_4=1.71$, $p=0.08$, not significant; \cref{tab:h1}). A
+dual metric that includes the Wasserstein distance between persistence diagrams requires
+the TDA pipeline of L2 to be already in place.
+
+Resolving \textbf{L2 alone} (adding TDA features without the graph) yields $+0.016$ QWK
+(\cref{tab:ablation3}) -- useful, but far from sufficient. The full $+0.040$ QWK gain
+requires the dual-metric graph of L1 to exploit the topological features in the
+neighbourhood weighting.
+
+Resolving \textbf{L3 alone} (the ordinal-safety axis without graph or topology, subset
+$\{O\}$ of \cref{tab:h3b}) leaves Sev-NR $=3.6\%$, still above the $2\%$ threshold: the
+underlying predictions are not accurate enough for a coverage-preserving abstention
+threshold to bring the error below the line.
+
+\looseness=-1
+This interdependence is the motivating rationale for
+the joint three-axis architecture validated in \cref{ch:toporet,ch:dots}, and it is
+tested formally by H3b in \cref{ch:dots}.
+
+\subsection{Positioning of This Thesis}
+\label{sec:position}
+
+\Cref{tab:sota} makes the gap concrete: over seven years and $+8.0$~pp of QWK from
+architectural scaling alone, no system resolves even one structural limitation. This is
+consistent with the diagnosis of \cref{sec:limits}: independent per-image CNN or ViT
+classifiers, whatever their scale or training volume, cannot represent inter-patient
+relations, cannot compute global topological invariants, and have no mechanism for
+declining to answer. Closing each gap therefore requires an architectural addition, not
+further scaling.
+
+\Cref{tab:limits} summarises the three limitations, their clinical consequence and the
+component of this thesis that addresses each of them.
+
+\begin{table}[H]
+\centering
+\caption{The three structural limitations and how this thesis addresses them.}
+\label{tab:limits}
+\footnotesize
+\begin{tabular}{@{}l P{4.4cm} P{4.6cm} c@{}}
+\toprule
+Limitation & Clinical consequence & Component of this thesis & Chapters \\
+\midrule
+L1 -- no relational context & Similar patients never inform each other's grade & Inductive dual-similarity population graph & 3--5 \\
+L2 -- no vascular topology & Loss of vessel loops and rarefaction is not measured & Persistent homology of the vessel skeleton & 3--5 \\
+L3 -- no right to abstain & Ambiguous severe cases are sent home & CORAL ordinal head and entropy-based abstention & 5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Conclusion}
+\phantomsection\addcontentsline{toc}{section}{Conclusion}
+
+\looseness=-1
+This chapter presented the clinical problem addressed in this thesis. Despite a rise in
+grading accuracy from a QWK of $0.840$ to $0.920$ in four years, every published system still
+grades each image in isolation (L1), ignores the topology of the vascular tree (L2) and must
+answer even when the image is ambiguous (L3). Addressing these coupled limitations requires
+learning on graphs, topological data analysis and ordinal prediction with abstention,
+which the next chapter introduces together with the evaluation metrics of the thesis.

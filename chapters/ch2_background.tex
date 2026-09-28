@@ -1,0 +1,465 @@
+\section*{Introduction}
+\phantomsection\addcontentsline{toc}{section}{Introduction}
+
+The previous chapter showed that current DR grading systems share three architectural
+limitations: they ignore the relations between patients, they ignore the global
+structure of the vascular tree, and they cannot decline to answer. Each limitation calls
+for a family of methods that is well established on its own but rarely used in medical
+image grading: graph neural networks for relations between patients, topological data
+analysis for the structure of the vessels, and ordinal prediction with calibrated
+abstention for safe decisions.
+
+This chapter introduces these methods and the tools used to evaluate them. We first
+recall the deep-learning models used for medical images, from convolutional networks to
+vision transformers and foundation models. We then present learning on graphs and the
+inductive GraphSAGE model. Next, we introduce
+persistent homology, which turns the shape of the vessel skeleton into numbers. We present
+ordinal regression and the CORAL method, followed by uncertainty, calibration and
+selective prediction, and by explainability. Finally, we define the evaluation metrics and
+the statistical tests used in the experimental chapters.
+
+\section{Deep Learning for Medical Image Analysis}
+\label{sec:dl}
+
+\subsection{Convolutional Neural Networks}
+
+A convolutional neural network (CNN) processes an image through a stack of layers that
+apply small learned filters over the whole image, followed by non-linearities and pooling
+operations~\cite{lecun2015deep,goodfellow2016deep}. Early layers detect edges and textures,
+deeper layers combine them into parts and objects. Because the same filter is applied at
+every position, a CNN has far fewer parameters than a fully connected network and is
+naturally robust to small translations, which suits images of lesions that can appear
+anywhere on the retina.
+
+The history of CNNs for image recognition is largely a history of depth. AlexNet showed in
+2012 that a deep network trained on GPUs could outperform hand-crafted
+features on ImageNet~\cite{krizhevsky2012imagenet,deng2009imagenet}. VGG networks stacked
+small $3\times3$ filters~\cite{simonyan2015vgg}; Inception modules combined filters of
+several sizes~\cite{szegedy2016inception}; residual networks made very deep models
+trainable by adding shortcut connections~\cite{he2016resnet},
+\begin{equation}
+x_{l+1} = x_l + \mathcal{F}(x_l;\,W_l),
+\label{eq:resnet}
+\end{equation}
+so that each block of \cref{eq:resnet} only learns a correction $\mathcal{F}$ to its input. DenseNet connected
+every layer to all previous ones~\cite{huang2017densenet}, and EfficientNet scaled depth,
+width and resolution together with a single coefficient~\cite{tan2019efficientnet}.
+EfficientNet-B3 is the convolutional baseline used throughout this thesis. In medical
+imaging, the same architectures, sometimes combined with segmentation networks such as
+U-Net~\cite{ronneberger2015unet}, now dominate most tasks~\cite{litjens2017survey}, with
+results that match specialists in dermatology~\cite{esteva2017dermatologist} and
+ophthalmology~\cite{gulshan2016jama}.
+
+\subsection{Attention and Vision Transformers}
+
+Convolutions only look at a small neighbourhood at a time; relations between distant
+regions of the image are captured indirectly, after many layers. The transformer
+architecture~\cite{vaswani2017attention} replaces convolution by \emph{self-attention}, in
+which every element of a sequence is updated with a weighted sum of all the others:
+\begin{equation}
+\mathrm{Attention}(Q,K,V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V,
+\label{eq:attention}
+\end{equation}
+where, in \cref{eq:attention}, the queries $Q$, keys $K$ and values $V$ are linear projections of the input. The
+vision transformer (ViT)~\cite{dosovitskiy2021vit} applies this mechanism to an image cut
+into patches of $16\times16$ pixels, each treated as a token. Transformers need more data
+than CNNs to train from scratch, but scale better, and hierarchical variants such as the
+Swin transformer~\cite{liu2021swin} bring back some of the locality of convolutions.
+Attention weights are also used, with caution, as a form of explanation, since they show
+which parts of the input the model relied on.
+
+\subsection{Transfer Learning and Foundation Models}
+
+Medical datasets are small compared with natural-image datasets, and labels are costly.
+Transfer learning addresses this problem by initialising a model with weights learned on
+another task, usually ImageNet classification, and fine-tuning it on the medical
+task~\cite{pan2010transfer}. This practice is almost universal, although the features
+learned on natural images are not always the most relevant for medical
+images~\cite{raghu2019transfusion}.
+
+Self-supervised learning removes the need for labels during pre-training: a network learns
+by solving a task built from the data itself, such as recognising two augmented views of
+the same image~\cite{chen2020simclr} or reconstructing masked image patches~\cite{he2022mae}.
+Models pre-trained in this way on very large and diverse data, and then adapted to many
+downstream tasks, are called \emph{foundation models}~\cite{bommasani2021foundation}.
+RETFound~\cite{zhou2023retfound} is a vision transformer pre-trained with masked
+autoencoding on $1.6$ million unlabelled retinal images; it is the backbone of the DOTS
+system of \cref{ch:dots}.
+
+\subsection{Training Deep Networks}
+
+Deep networks are trained by minimising a loss function with stochastic gradient descent
+or one of its adaptive variants, of which Adam~\cite{kingma2015adam} is the most widely
+used. Regularisation techniques such as dropout~\cite{srivastava2014dropout}, batch
+normalisation~\cite{ioffe2015batchnorm} and data augmentation (random rotations, flips,
+colour changes) reduce overfitting. For graded medical images, two further issues matter:
+class imbalance, because severe grades are rare, and the ordinal nature of the labels.
+Both are addressed in this thesis through the loss function (\cref{sec:coral}).
+
+\section{Learning on Graphs}
+\label{sec:graphs}
+
+\subsection{Graphs and Message Passing}
+
+A graph $G=(V,E)$ is a set of nodes $V$ connected by edges $E$. In a population graph,
+each node is a patient (or a fundus image) described by a feature vector $x_v$, and an edge
+between two nodes means that the two patients are similar. A graph neural network (GNN)
+computes a representation $h_v$ of each node by repeatedly combining its own features with
+those of its neighbours $\mathcal{N}(v)$. After $L$ rounds of this \emph{message passing},
+the representation of a node summarises its $L$-hop neighbourhood, and a classifier
+applied to $h_v$ can use information from similar patients to grade the current one.
+
+Three architectures dominate the literature. The graph convolutional network
+(GCN)~\cite{kipf2017gcn} averages neighbour features with fixed weights given by the graph
+structure. The graph attention network (GAT)~\cite{velickovic2018gat} learns a weight
+$\alpha_{ij}$ for each edge, so that the most informative neighbours count more. GraphSAGE,
+presented below, samples a fixed number of neighbours and learns how to aggregate them.
+
+Graph neural networks were first defined as recurrent models that propagate information
+until a fixed point is reached~\cite{scarselli2009gnn}. Spectral approaches then defined
+convolution on graphs through the eigenvectors of the graph
+Laplacian~\cite{bruna2014spectral}, and fast polynomial approximations made them
+practical~\cite{defferrard2016cheb}. Most current models can be written in the
+\emph{message-passing} framework~\cite{gilmer2017mpnn,hamilton2020grl}, illustrated in
+\cref{fig:mp}: at each layer, every node receives messages from its neighbours, aggregates
+them, and updates its own representation.
+
+\input{figures/fig_messagepassing}
+
+The choice of aggregation function determines what a GNN can distinguish: sum
+aggregation is strictly more expressive than mean or max aggregation, as shown by the
+graph isomorphism network (GIN)~\cite{xu2019gin}. Comprehensive surveys cover the many
+variants proposed since~\cite{wu2021gnnsurvey,bronstein2017geometric}. In medicine, graphs
+have been used to represent molecules, anatomical structures, brain connectivity and
+populations of patients~\cite{ahmedt2021graphmed}. In a population graph, the edge
+weights encode how similar two patients are, using image features or clinical
+information~\cite{parisot2018disease}; the quality of this similarity is crucial, since a
+graph that connects dissimilar patients propagates noise rather than signal.
+
+\subsection{Inductive Inference with GraphSAGE}
+\label{sec:sage}
+
+GraphSAGE~\cite{hamilton2017graphsage} learns aggregation functions over sampled
+neighbour sets:
+\begin{align}
+h^{(l)}_{\mathcal{N}(v)} &= \operatorname{MEAN}\bigl(\{\,h^{(l-1)}_u : u\in\mathcal{N}(v)\,\}\bigr),
+\label{eq:sage-agg}\\
+h^{(l)}_v &= \sigma\bigl(W^{(l)}\cdot\bigl[\,h^{(l-1)}_v \,\Vert\, h^{(l)}_{\mathcal{N}(v)}\,\bigr]\bigr).
+\label{eq:sage-upd}
+\end{align}
+With $S=25$ samples per layer and $L=2$ layers, each prediction aggregates $S^L=625$
+neighbour embeddings at $O(S^L)$ cost, independent of the size of the cohort. This
+inductiveness is a deployment prerequisite: a new patient receives a prediction in
+$1.2$~ms without retraining the graph. Transductive alternatives such as
+GCN~\cite{kipf2017gcn} and the original GAT~\cite{velickovic2018gat} require the full
+graph at training time (\cref{sec:gnnvariants}). For a screening service, where the population grows continuously, this difference is decisive: an inductive model can be deployed once and used for years, whereas a transductive one would have to be retrained whenever new patients join the graph.
+
+\subsection{Choosing a Graph Architecture for Screening}
+\label{sec:gnnvariants}
+
+Three families of graph neural network were compared for clinical suitability.
+\Cref{tab:gnn} compares their inference mode, per-patient cost, retraining need and
+support for the per-prediction transparency required by Article~13 of the EU AI
+Act~\cite{euaiact2024}.
+
+\begin{table}[H]
+\centering
+\caption[GNN variant comparison]{GNN variant comparison; inductive GraphSAGE is the deployable choice.}
+\label{tab:gnn}
+\small
+\begin{tabular}{@{}lllP{3.3cm}c@{}}
+\toprule
+Model & Inference & Per-patient cost & Retraining for a new patient & Art.~13 \\
+\midrule
+GCN~\cite{kipf2017gcn} & Transductive & $O(|E|)$ per layer & Yes, full graph & Low \\
+GAT~\cite{velickovic2018gat} & Full graph & $O(|E|)$ per layer & Yes, full graph & Medium \\
+GraphSAGE~\cite{hamilton2017graphsage} & Inductive & $O(S^L)$, constant & No ($1.2$~ms) & Low \\
+Dynamic GAT (DOTS) & Inductive & $O(S^L)$, constant & No ($1.2$~ms) & High \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+GraphSAGE inductiveness is a deployment prerequisite. The dynamic GAT layer of DOTS adds
+per-edge attention weights $\alpha_{ij}$ that are recomputed at inference time
+(\cref{eq:att}); they give Article~13 transparency without any post-hoc attribution
+machinery.
+
+In practice, building a population graph requires three choices: the feature vector that
+describes each patient, the similarity used to compare two patients, and the number $k$
+of neighbours kept for each node. The first two decide which patients are considered
+similar, and therefore what information the graph can propagate; the third controls a
+trade-off between noise (too many weak neighbours) and isolation (too few). For cohorts of
+tens of thousands of images, the $k$ nearest neighbours are found with approximate search
+libraries such as FAISS~\cite{johnson2021faiss}, which keeps graph construction fast
+enough for a screening service.
+
+\section{Topological Data Analysis}
+\label{sec:ph}
+
+\subsection{From Vessel Skeletons to Point Clouds}
+
+Topological data analysis (TDA) studies the \emph{shape} of data: how many connected
+pieces it has, how many loops, and at which scale these features appear and disappear.
+For retinal images, the object of interest is the vascular tree. After segmentation and
+thinning, the vessels are reduced to a one-pixel skeleton, and the branch points of this
+skeleton form a point cloud in the plane. Healthy vessels form a regular, tree-like
+network; as DR progresses, capillaries close, abnormal shunts appear and new fragile vessels
+grow, which changes the number of components and loops of the network.
+
+\subsection{Simplicial Complexes and Homology}
+
+Topology studies the properties of shapes that do not change under continuous
+deformation, such as the number of connected pieces or of holes. To apply it to data, a
+finite set of points must first be turned into a shape. A \emph{simplicial complex} does
+this by gluing together simple building blocks: points (0-simplices), segments
+(1-simplices), triangles (2-simplices) and their higher-dimensional
+analogues~\cite{edelsbrunner2010computational}. The \emph{homology} of the complex then
+counts its holes by dimension: the rank of $H_0$ is the number of connected components,
+the rank of $H_1$ the number of independent loops (the first Betti number $\beta_1$), and
+so on. For a vessel skeleton, $H_0$ reflects how fragmented the network is and $H_1$ how
+many closed loops it contains.
+
+\subsection{Persistent Homology}
+
+For the branch points $P=\{p_1,\ldots,p_n\}$ of a vessel skeleton, the Vietoris--Rips
+filtration adds a simplex $\sigma$ as soon as all pairwise distances within $\sigma$ are
+at most $\varepsilon$. As $\varepsilon$ grows from $0$ to $\infty$, topological
+features -- $H_0$ (connected components) and $H_1$ (independent loops) -- are born at scale
+$b_j$ and die at $d_j$, with persistence $p_j=d_j-b_j$~\cite{edelsbrunner2002persistence,
+carlsson2009topology}. The resulting persistence diagram $D$ summarises global structure
+while being robust to local deformation: the stability
+theorem~\cite{cohensteiner2007stability} bounds the change in the diagram by the change
+in the filtering function,
+\begin{equation}
+d_B(D_f, D_g) \;\leq\; \lVert f-g\rVert_\infty ,
+\label{eq:stability}
+\end{equation}
+where $d_B$ is the bottleneck distance. TOPORET compares diagrams with the closely related
+Wasserstein distance $W_2$ (\cref{eq:dualsim}). This robustness is the proposed
+explanation of the $+2.0$~pp out-of-distribution gain of TOPORET on Messidor-2
+(\cref{sec:crossdata}).
+
+Persistence is what makes the method robust. A single threshold $\varepsilon$ would give
+counts of components and loops that depend strongly on its value and on small errors of
+segmentation; by following all thresholds at once, persistent homology keeps only the
+features that survive over a wide range of scales. For a vessel skeleton, a short-lived
+loop is typically an artefact of thinning, whereas a long-lived loop corresponds to a real
+closed vascular circuit, such as an abnormal shunt or a neovascular frond.
+\Cref{fig:filtration} illustrates the construction on a toy example. Persistent homology
+was introduced as a way to separate robust topological features from
+noise~\cite{edelsbrunner2002persistence,zomorodian2005computing}, and it is now the main
+tool of topological data analysis~\cite{carlsson2009topology,chazal2021intro}.
+
+\input{figures/fig_filtration}
+
+\subsection{From Diagrams to Features}
+
+A persistence diagram is a set of points of variable size, which cannot be fed directly to
+a standard learning model. Several vector representations have been proposed: persistence
+landscapes~\cite{bubenik2015landscapes}, persistence images~\cite{adams2017images}, learned
+layers that process diagrams inside a neural
+network~\cite{hofer2017topological,carriere2020perslay}, and simple summary statistics such
+as total persistence, number of features or the longest bar. Efficient software makes these
+computations practical on large datasets~\cite{otter2017roadmap,maria2014gudhi,
+tauzin2021giotto}. This thesis uses a small vector of interpretable summary statistics
+(\cref{eq:tda}), which can be related directly to vascular pathology.
+
+\section{Ordinal Prediction}
+\label{sec:coral}
+
+\subsection{Why DR Grading Is an Ordinal Problem}
+
+The five ICDR grades are ordered: Grade~3 is worse than Grade~2, which is worse than
+Grade~1. A standard classifier ignores this order and treats a confusion between Grade~0
+and Grade~4 exactly like a confusion between Grade~3 and Grade~4, although the first is a
+serious clinical error and the second is a disagreement that also occurs between experts.
+Ordinal regression methods decompose the problem into $K-1$ binary questions of the form
+``is the grade at least $k$?'' and combine their answers.
+
+\subsection{Families of Ordinal Methods}
+
+Ordinal regression has a long history in statistics and machine
+learning~\cite{gutierrez2016ordinal}. A simple and general approach transforms a
+$K$-class ordinal problem into $K-1$ binary problems, ``is the grade greater than $k$?'',
+and combines their probabilities~\cite{frank2001ordinal}. Deep versions of this idea train
+a network with $K-1$ binary outputs~\cite{niu2016ordinal}, but nothing guarantees that the
+estimated probabilities decrease with $k$, so the model can produce inconsistent rankings.
+Other works keep a standard classifier and change the loss, for example by directly
+optimising the weighted kappa~\cite{delatorre2018kappa}. CORAL and CORN, presented next,
+are the two most widely used deep ordinal methods with a rank-consistency property.
+
+\subsection{CORAL and CORN}
+
+CORAL~\cite{cao2020coral} guarantees rank consistency through an architectural
+constraint rather than a loss penalty. A shared weight vector $w\in\mathbb{R}^d$ and
+$K-1$ ordered biases $b_1\geq\cdots\geq b_{K-1}$ are used, the ordering being enforced by
+the projection
+\begin{equation}
+b_k \leftarrow \min(b_k,\, b_{k-1} - \epsilon), \qquad k=2,\ldots,K-1 .
+\label{eq:coral-proj}
+\end{equation}
+This guarantees $\hat P(Y\geq 1)\geq \hat P(Y\geq 2)\geq\cdots$ for every possible input
+and every weight configuration. It is an algebraic identity, not a statistical tendency:
+it yields $0\%$ rank violations at inference time. The loss-based alternative
+CORN~\cite{shi2023corn}, used by TOPORET, offers no such guarantee.
+
+\Cref{fig:coral} summarises the resulting architecture. The single shared weight vector
+is what makes the guarantee possible: all binary questions use the same score $s_i$, and
+only the thresholds $b_k$ move along it.
+
+\input{figures/fig_coral}
+
+Rank consistency matters beyond elegance. A model that gives a higher probability to
+``at least Grade~4'' than to ``at least Grade~3'' produces an output that has no clinical
+meaning and cannot be explained to a grader. It also makes the choice of a referral rule
+ambiguous, since different thresholds on the cumulative probabilities can lead to
+contradictory decisions. With CORAL, the cumulative probabilities form a proper survival
+function over the grades, so that any referral rule of the form ``refer if
+$\hat P(Y\geq 3)>t$'' is well defined and monotone in $t$. In this thesis, such thresholds are always chosen on validation data and then kept fixed for the test sets.
+
+\section{Uncertainty, Calibration and Selective Prediction}
+\label{sec:calib}
+
+\subsection{Calibration}
+
+The Expected Calibration Error (ECE)~\cite{naeini2015ece,guo2017calibration} partitions the $n$
+predictions into $M$ confidence bins $B_m$ and measures the gap between accuracy and
+confidence:
+\begin{equation}
+\mathrm{ECE} = \sum_{m=1}^{M} \frac{|B_m|}{n}\,\bigl|\operatorname{acc}(B_m) - \operatorname{conf}(B_m)\bigr| .
+\label{eq:ece}
+\end{equation}
+DOTS reaches ECE $=0.040$: on average, its predicted confidence departs from empirical
+accuracy by $4.0$ percentage points.
+
+\subsection{Sources of Uncertainty}
+
+The uncertainty of a prediction has two sources~\cite{kendall2017uncertainties}.
+\emph{Aleatoric} uncertainty comes from the data itself: an image may be blurred, or the
+lesions may be genuinely at the boundary between two grades, and more training data will
+not remove this ambiguity. \emph{Epistemic} uncertainty comes from the model: it is high
+for inputs unlike those seen during training, and decreases with more data. Estimating
+epistemic uncertainty usually requires several predictions per input, obtained with Monte
+Carlo dropout~\cite{gal2016dropout} or with an ensemble of independently trained
+networks~\cite{lakshminarayanan2017ensembles}. In medical decision making, reporting
+uncertainty is increasingly seen as a requirement rather than an
+option~\cite{begoli2019uncertainty}. The system developed in this thesis uses a single-pass estimate of predictive uncertainty, for reasons of latency discussed in \cref{sec:ch4-rationale}.
+
+\subsection{Selective Prediction and Abstention}
+
+The idea of letting a classifier reject uncertain inputs is old: Chow showed in 1970
+that, for a given cost of errors and of rejections, the optimal rule rejects the inputs
+whose highest class probability is below a threshold~\cite{chow1970reject}. A calibrated model knows, to some extent, when it is likely to be wrong. Selective
+prediction uses this information to let the model \emph{abstain}: when the uncertainty of a
+prediction exceeds a threshold, the case is deferred to a human expert instead of being
+graded automatically~\cite{geifman2017selective}. Two quantities then describe the system:
+the \emph{coverage}, i.e.\ the fraction of cases graded automatically, and the error rate on
+the cases that are graded. Lowering the threshold defers more cases and reduces errors, at
+the cost of more work for human graders. In this thesis the uncertainty is measured by the
+predictive entropy of the grade distribution (\cref{sec:abst}).
+
+\section{Explainability}
+\label{sec:xai}
+
+A clinician who receives an automated grade needs to know why it was given, and European
+regulation requires that high-risk AI systems be transparent to their users. Explanation
+methods for image classifiers fall into two groups. \emph{Post-hoc} methods explain a
+trained model from outside: class activation maps~\cite{zhou2016cam} and
+Grad-CAM~\cite{selvaraju2017gradcam} highlight the image regions that most influenced the
+decision, integrated gradients~\cite{sundararajan2017ig} attribute the prediction to input
+pixels, and model-agnostic methods such as LIME~\cite{ribeiro2016lime} and
+SHAP~\cite{lundberg2017shap} approximate the model locally with a simple one. For DR,
+displaying such explanations has been shown to help graders~\cite{sayres2019integrated}.
+Their limitation is that they approximate the model and may not reflect its actual
+reasoning. \emph{Intrinsic} explanations, by contrast, come from quantities that the model
+computes to make its decision, such as attention weights or interpretable features. The
+systems of this thesis rely on intrinsic explanations: the similar patients selected by
+the graph, their attention weights and the topological features of the vessel network
+(\cref{sec:audit}).
+
+\section{Evaluation Metrics and Statistical Tests}
+\label{sec:metrics}
+
+\subsection{Metrics}
+
+The following metrics are used throughout the experimental chapters.
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Quadratic weighted kappa (QWK)] Agreement between predicted and reference grades,
+corrected for chance and weighted by the squared distance between grades:
+\begin{equation}
+\kappa_w = 1-\frac{\sum_{i,j} w_{ij}\,O_{ij}}{\sum_{i,j} w_{ij}\,E_{ij}},\qquad
+w_{ij}=\frac{(i-j)^2}{(K-1)^2},
+\label{eq:qwk}
+\end{equation}
+where, in \cref{eq:qwk}, $O$ is the observed confusion matrix and $E$ the matrix expected by
+chance~\cite{cohen1968weighted}. QWK is the standard accuracy metric of DR grading
+challenges.
+\item[Area under the ROC curve (AUC)] Ability to separate referable from non-referable
+images, independently of the decision threshold~\cite{hanley1982auc}.
+\item[Expected calibration error (ECE)] Gap between confidence and accuracy
+(\cref{eq:ece}).
+\item[Severe-DR non-referral rate (Sev-NR)] Fraction of images of Grades~3--4 that are
+neither referred nor deferred to a human grader. It is the primary safety metric of this
+thesis, with a threshold of $2\%$.
+\item[PDR non-referral rate (PDR-NR)] The same quantity restricted to Grade~4.
+\item[Coverage] Fraction of images graded automatically (not deferred).
+\item[Rank violations] Fraction of predictions for which the cumulative probabilities
+$\hat P(Y\geq k)$ are not decreasing in $k$.
+\end{description}
+
+\subsection{Statistical Tests}
+
+Each hypothesis of the thesis is tested with a statistical procedure fixed before the
+experiment. A paired $t$-test compares two systems evaluated on the same cross-validation
+folds; a one-way analysis of variance (ANOVA), followed by Tukey's post-hoc
+test~\cite{tukey1949}, tests whether a feature differs across the five grades; and
+bootstrap resampling~\cite{efron1993bootstrap} gives confidence intervals for the safety
+metrics. Effect sizes are reported with Cohen's $d$ and $\eta^2$~\cite{cohen1988}. The
+formal statements are collected in \cref{app:stats}.
+
+\section{Summary of the Methods}
+\label{sec:methods-summary}
+
+\Cref{tab:methods} summarises where each method introduced in this chapter is used in the
+rest of the thesis and which limitation it addresses.
+
+Two observations follow from \cref{tab:methods}. First, each limitation is addressed by a
+method with a formal property rather than by a heuristic: inductiveness for the graph,
+stability for persistence diagrams, rank consistency for CORAL and calibration for
+abstention. Second, the methods are complementary rather than redundant: the graph and the
+topology act on the representation of a patient, whereas the ordinal head and the
+abstention act on the decision taken from that representation. The experimental chapters
+test whether this complementarity holds in practice.
+
+\begin{table}[H]
+\centering
+\caption{Methods introduced in this chapter and their role in the thesis.}
+\label{tab:methods}
+\small
+\begin{tabular}{@{}P{4.2cm} P{6.2cm} c c@{}}
+\toprule
+Method & Role in the thesis & Limitation & Chapters \\
+\midrule
+EfficientNet-B3, RETFound & Visual features of the fundus image & -- & 3--5 \\
+GraphSAGE & Inductive population graph; constant-time grading of a new patient & L1 & 3--5 \\
+Graph attention (GAT) & Patient-specific neighbour weights; intrinsic explanation & L1 & 5 \\
+Persistent homology & Topological descriptors of the vessel skeleton & L2 & 3--5 \\
+CORN & Ordinal head of TOPORET & L3 & 4 \\
+CORAL & Rank-consistent ordinal head of DOTS & L3 & 5 \\
+Entropy-based abstention & Deferral of ambiguous cases to a human grader & L3 & 5 \\
+QWK, AUC, ECE, Sev-NR & Accuracy, calibration and safety evaluation & -- & 3--5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Conclusion}
+\phantomsection\addcontentsline{toc}{section}{Conclusion}
+
+This chapter introduced the methodological tools on which the thesis relies. Deep
+networks and retinal foundation models provide the visual features; the inductive
+GraphSAGE model exploits the similarity between patients while grading a new patient in
+constant time; persistent homology turns the shape of the vessel skeleton into stable
+descriptors; CORAL guarantees consistent grade rankings, and entropy-based abstention
+defers uncertain cases. The metrics separate accuracy (QWK, AUC) from safety (Sev-NR,
+PDR-NR) and reliability (ECE, coverage, rank violations). The next chapter tests these tools
+on simpler settings before applying them to the retina.

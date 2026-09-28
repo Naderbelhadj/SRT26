@@ -1,0 +1,37 @@
+% Figure 5.1 — centred H3b diagram
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  fail/.style={draw=failred, fill=failf, rounded corners=3pt, align=center,
+               inner sep=5pt, minimum width=2.7cm, minimum height=1.45cm},
+  pass/.style={draw=okgreen, fill=okf, rounded corners=3pt, align=center,
+               inner sep=6pt, minimum width=4.4cm, minimum height=2.7cm}
+]
+
+% singles
+\node[fail] (R)  at (-4.3, 2.35) {\textbf{\{R\} only}\\Sev-NR $=4.1\%$\\fails the $2\%$ rule};
+\node[fail] (S)  at (-4.3, 0.45) {\textbf{\{S\} only}\\Sev-NR $=4.0\%$\\fails the $2\%$ rule};
+\node[fail] (O)  at (-4.3,-1.45) {\textbf{\{O\} only}\\Sev-NR $=3.6\%$\\fails the $2\%$ rule};
+
+% pairs
+\node[fail] (RS) at ( 4.3, 2.35) {\textbf{\{R,S\}}\\Sev-NR $=3.4\%$\\fails the $2\%$ rule};
+\node[fail] (RO) at ( 4.3, 0.45) {\textbf{\{R,O\}}\\Sev-NR $=2.2\%$ *\\fails the $2\%$ rule};
+\node[fail] (SO) at ( 4.3,-1.45) {\textbf{\{S,O\}}\\Sev-NR $=2.4\%$\\fails the $2\%$ rule};
+
+% DOTS
+\node[pass] (D) at (0,0.45) {\textbf{DOTS \{R, S, O\}}\\[2pt]Sev-NR $=\mathbf{1.9\%}$\\95\% CI $[1.4\%,\ 2.4\%]$\\[2pt]{\scriptsize point estimate passes}\\{\scriptsize CI upper bound still $>2\%$}};
+
+\foreach \x in {R,S,O}
+  \draw[-{Latex}, failred, thick] (\x.east) -- (D.west);
+\foreach \x in {RS,RO,SO}
+  \draw[-{Latex}, failred, thick] (\x.west) -- (D.east);
+
+\node[font=\scriptsize\color{failred}] at (0,-2.55) {predefined safety line: Sev-NR $=2.0\%$};
+\draw[failred, densely dashed, thick] (-6.1,-2.78) -- (6.1,-2.78);
+\node[font=\scriptsize\color{black!60}, text width=12.2cm, align=center] at (0,-3.25)
+  {* Closest failure: \{R,O\} at $2.2\%$. Bootstrap 95\% CI on (DOTS $-$ \{R,O\}) is $[-0.54,-0.08]$ pp and excludes $0$.};
+\end{tikzpicture}
+\caption[H3b: all six proper subsets fail the 2\% rule]{H3b in one picture: the six ways of dropping an axis all fail Sev-NR $<2\%$ (red boxes); only the full three-axis system (green) reaches $1.9\%$ at the point estimate. Each arrow compares one reduced system with DOTS.}
+\label{fig:h3b}
+\end{figure}

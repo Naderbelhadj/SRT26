@@ -1,0 +1,38 @@
+% Figure 4.1 --- complete DOTS architecture
+\begin{figure}[!tb]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize,
+  box/.style={draw, rounded corners=2.5pt, align=center, inner sep=2pt,
+              minimum height=1.5cm, text width=1.7cm},
+  card/.style={draw, rounded corners=2pt, align=center, font=\scriptsize,
+               text width=4.3cm, inner sep=4pt},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\def\dx{2.27}
+\node[box, fill=black!4, draw=black!55] (in) at (0,0) {\textbf{Input}\\fundus\\image $I_i$};
+\node[box, fill=black!6, draw=black!55] (s1) at (\dx,0) {\textbf{S1}\\CLAHE,\\skeleton};
+\node[box, fill=axisOf, draw=axisO] (s2) at (2*\dx,0) {\textbf{S2 (O)}\\RETFound\\ViT-L/16};
+\node[box, fill=fusionf, draw=fusion] (s4) at (3*\dx,0) {\textbf{S4}\\fusion\\1031-D};
+\node[box, fill=axisRf, draw=axisR] (s5) at (4*\dx,0) {\textbf{S5 (R)}\\graph $+$\\GAT, $k{=}15$};
+\node[box, fill=axisOf, draw=axisO] (s6) at (5*\dx,0) {\textbf{S6 (O)}\\CORAL $+$\\abstention};
+\node[box, fill=okf, draw=okgreen] (out) at (6*\dx,0) {\textbf{Output}\\grade 0--4\\or defer};
+\node[box, fill=axisSf, draw=axisS] (s3) at (2.5*\dx,-2.0) {\textbf{S3 (S)}\\$H_0/H_1$\\7-D TDA};
+\foreach \a/\b in {in/s1,s1/s2,s2/s4,s4/s5,s5/s6,s6/out} \draw[arr] (\a) -- (\b);
+\draw[arr, axisS] (s1.south) |- (s3.west);
+\draw[arr, axisS] (s3.east) -| (s4.south);
+\node[font=\scriptsize, text=black!65, align=center] at (5.5*\dx,-1.55) {defer if $H_i>0.73$ nats};
+
+\node[card, fill=axisRf, draw=axisR] at (0.9*\dx,-3.75) {\textbf{Axis R closes L1}\\neighbours share signal\\H1: $t_4=3.82$, $p=0.009$};
+\node[card, fill=axisSf, draw=axisS] at (3*\dx,-3.75) {\textbf{Axis S closes L2}\\vessel loops $H_0/H_1$\\H2: $F(4,4995)=1308.9$};
+\node[card, fill=axisOf, draw=axisO] at (5.1*\dx,-3.75) {\textbf{Axis O closes L3}\\CORAL: $0\%$ rank violations\\Sev-NR $=1.9\%$ $[1.4,\,2.4]$};
+\end{tikzpicture}}
+\caption[Complete DOTS architecture]{Complete DOTS architecture, read left to right.
+Blue: Axis~R (graph, L1); green: Axis~S (topology, L2); purple: Axis~O (ordinal $+$
+safety, L3); grey and orange: shared pre-processing and fusion. The skeleton produced by
+S1 feeds the topological branch S3, whose 7-D vector is fused with the RETFound
+embedding in S4. The three cards name the limitation each axis closes and the result
+that confirms it.}
+\label{fig:dots}
+\end{figure}

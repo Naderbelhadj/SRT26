@@ -1,0 +1,107 @@
+\chapter*{General Conclusion}
+\addcontentsline{toc}{chapter}{General Conclusion}
+\markboth{General Conclusion}{}
+\label{ch:conclusion}
+
+This thesis addressed the automated grading of diabetic retinopathy in a context where
+screening needs grow much faster than the number of human graders, and where an automated
+system is only acceptable if it is both accurate and safe for patients. Starting from a
+review of a decade of deep-learning methods, we showed that every published system shares
+three architectural limitations: it grades each image in isolation, it ignores the global
+topology of the vascular network, and it must answer even when the image is ambiguous.
+The whole work was organised around resolving these three limitations together.
+
+The study began with the clinical context of the disease and the methodological tools
+needed to address the three limitations: graph neural networks, persistent homology,
+ordinal regression and calibrated abstention. We then validated the graph template outside
+medicine, on microservice and network-security graphs, and gathered the first evidence,
+with three independent methods, that structural and topological features of the retina
+carry information that deep visual features miss. These results led to TOPORET, an
+inductive population graph whose edges combine visual and topological similarity. Its
+pre-specified tests confirmed that the graph brings a significant gain over independent
+classification ($t_4=3.82$, $p=0.009$) and that topological features are strongly
+associated with severity ($F(4,4995)=1308.9$, $\eta^2=0.51$). TOPORET, however, remained
+above the safety threshold. The final system, DOTS, added a retinal foundation model, an
+ordinal head with guaranteed rank consistency and entropy-based abstention. On five public
+benchmarks it meets the seven predefined criteria at the point estimate (QWK $=0.951$,
+Sev-NR $=1.9\%$, $0\%$ rank violations), and an exhaustive enumeration showed that none of
+its six reduced versions does. Finally, the system was engineered as medical-device
+software whose design maps onto the IEC~62304 and ISO~14971 standards and the EU AI Act.
+
+The three research questions of the thesis can therefore be answered as follows. Does
+the relational context between patients carry information that a per-image classifier
+cannot recover? Yes, provided that the graph is built with a similarity that includes the
+topology of the vessels; a visual similarity alone is not enough. Is the global topology
+of the vascular network related to the severity of the disease? Yes, strongly, with the
+largest effects for the loops that appear with neovascularisation. Can a single
+architecture meet all the predefined criteria of accuracy, calibration and safety, and are
+all of its components needed? Yes at the point estimate, and none of its reduced versions
+does, although the confidence interval of the safety criterion still calls for prospective
+confirmation.
+
+The contributions of this research are both scientific and practical. On the scientific
+side, the thesis shows that the three limitations of automated DR grading can be resolved
+in a single architecture, and that the three components are complementary rather than
+interchangeable: within the evaluated family, removing any of them loses the safety
+criterion. It also introduces the use of persistent-homology descriptors of the vessel
+skeleton inside the similarity of a population graph, and a validation discipline in which
+every hypothesis, test and threshold is fixed before the experiment. On the practical side,
+DOTS grades an image in $31.4$~ms on a single GPU, defers only $6.2\%$ of images to human
+graders, explains each decision with the similar cases and topological features that
+support it, and is designed to be verified and certified. Under explicit prevalence
+assumptions, it would avoid about $600$ missed sight-threatening cases per year in a
+programme of $500{,}000$ patients. A CPU model developed along the way (SAMF-GB) also
+offers a low-cost alternative for settings without GPUs.
+
+Beyond its results, the research programme taught several methodological lessons that may
+be useful to other work on medical AI. First, accuracy and safety must be measured
+separately: every system in this thesis gained QWK long before it crossed the safety
+threshold, and optimising the former does not guarantee the latter. Second, validating an
+architectural idea outside medicine, where data are plentiful and labels unambiguous, made
+the medical experiments easier to design and to interpret. Third, fixing hypotheses, tests
+and thresholds before running the experiments turned some results that could have been
+discarded, such as the non-significant visual-only graph, into informative findings.
+Fourth, designing for regulation from the start cost little and avoided late changes to the
+architecture. Finally, the most useful component for safety was not the most accurate one:
+entropy-based abstention adds less than one point of QWK, but it is the step that brings
+the non-referral rate below the threshold.
+
+\phantomsection\label{sec:limits-gc}
+
+These results must be read within clear limits. All experiments are retrospective, on
+curated public datasets; the upper bound of the 95\% confidence interval of Sev-NR
+($2.4\%$) is still above the $2\%$ threshold, so statistical compliance with the safety
+criterion is not yet established. Performance is lower on the smallest dataset (IDRiD,
+$516$ images), where the population graph is sparse. None of the datasets provides
+demographic information, so fairness across age, sex and ethnicity could not be assessed.
+The population graph uses a single visit per patient and ignores the progression of the
+disease over time. Finally, the computation of topological features is the main latency
+bottleneck, and the integration with hospital information systems (FHIR adapter) is
+designed but not yet implemented.
+
+These limits open several directions for future work. The most immediate is a
+prospective, multi-site reader study, pre-registered, to confirm the safety of DOTS in
+real screening conditions and to reduce the uncertainty on Sev-NR; it is the first step of
+the four-phase translation roadmap of \cref{sec:roadmap}, which leads to a randomised
+trial and to CE marking and FDA submission. On the methodological side, learnable
+topological layers could replace the hand-crafted persistence vector and possibly improve
+accuracy, provided that they remain interpretable. A temporal population graph, linking the
+successive visits of each patient, could exploit the speed of progression at the difficult
+Grade~2/3 boundary. Federated construction of the population graph would allow several
+hospitals to collaborate without sharing patient data. Smartphone-based fundus capture,
+connected to the DOTS inference service, could extend screening to low-resource settings.
+Finally, an explanation layer based on large language models could turn the logged evidence
+into narratives adapted to clinicians and patients, under strict safeguards that prevent
+it from contradicting the grade or the decision to abstain.
+
+More broadly, the three-axis framework -- relational graph, structural topology, and
+ordinal prediction with safe abstention -- is not specific to the retina. It can serve as a
+template for any graded disease with an ordinal severity scale, a structural anatomical
+prior and a safety threshold, such as age-related macular degeneration or glaucoma.
+
+In summary, this work contributes to making automated screening of diabetic retinopathy
+not only more accurate, but also safer, more transparent and closer to clinical use. The
+code, models and configurations are released for independent reproduction, and the
+remaining steps towards deployment are clearly identified. The prevention of blindness at
+the scale of a population will depend on the ability to carry such systems from
+computational validation to everyday clinical practice.

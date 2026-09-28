@@ -1,0 +1,392 @@
+% ===========================================================================
+\chapter{Consolidated Numerical Results}
+\label{app:results}
+\lotgroup{Appendix A -- Consolidated Numerical Results}
+
+\Cref{tab:experiments} lists the twelve principal experiments in chronological order.
+
+\begin{table}[H]
+\centering
+\caption[The twelve principal experiments, in chronological order]{The twelve principal experiments, in chronological order.}
+\label{tab:experiments}
+\small
+\begin{tabular}{@{}c P{4.6cm} l P{4.3cm} r@{}}
+\toprule
+\# & Experiment & Publication & Primary result & $N$ \\
+\midrule
+1 & GraphSAGE microservice orchestration & P1~\cite{belhadj2025icaart} & Cascade containment $81\%$ & 48 nodes \\
+2 & Structural-invariant anomaly detection & P2~\cite{belhadj2026invariants} & Mean recall $+4.2$~pp & 6 graphs \\
+3 & Hybrid CNN--GNN $+$ geometric and topological invariants & P3, B2~\cite{belhadj2026hybrid,mezghich2026lnaitopo} & $95.1\%$ binary accuracy ($+7.0$~pp) & 3{,}662 \\
+4 & LightGBM-HC (hand-crafted) & P4~\cite{belhadj2026icpram} & QWK $=0.858$, $1.6$~ms CPU & 88{,}702 \\
+5 & SAMF-GB & J2~\cite{belhadj2026samfgb} & QWK $=0.882$, $2.1$~ms CPU & 88{,}702 \\
+6 & TOPORET in distribution & P5~\cite{belhadj2025plos} & QWK $=0.880$ & 88{,}702 \\
+7 & TOPORET cross-dataset & P7~\cite{belhadj2026miua} & QWK $=0.900$ ($+2.0$~pp) & 1{,}748 \\
+8 & H1 graph-contribution test & P5~\cite{belhadj2025plos} & $t_4=3.82$, $p=0.009$, $d_z=1.71$ & 88{,}702 \\
+9 & H2 topological ANOVA & P5~\cite{belhadj2025plos} & $F=1308.9$, $\eta^2=0.51$, $p<0.001$ & 5{,}000 \\
+10 & DOTS in distribution & J1~\cite{belhadj2026dots} & QWK $=0.951$ & 88{,}702 \\
+11 & DOTS H3a seven-criterion evaluation & J1~\cite{belhadj2026dots} & $7/7$ criteria met & 10{,}000 \\
+12 & H3b necessity enumeration & J1~\cite{belhadj2026dots} & $6/6$ proper subsets fail & 10{,}000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reading the sequence.}
+The experiments are ordered chronologically rather than thematically, and the progression
+is informative in itself. Experiments 1--2 establish the GraphSAGE structural-invariant
+template entirely outside medicine, on samples chosen for architectural diversity rather
+than scale. Experiments 3--5 move to diabetic retinopathy at the proof-of-concept level,
+each isolating one candidate signal against a fixed baseline. Experiments 6--9 form the
+TOPORET validation, ending with the two confirmatory tests (8--9) that decide H1 and H2.
+Experiments 10--12 apply the same discipline to DOTS and H3; experiment 12 is the most
+computationally demanding of the programme, with six independently trained subset
+architectures evaluated against all seven criteria under one protocol. The necessity enumeration (12) uses the $10{,}000$-image test set of the H3a evaluation, so
+that DOTS and every proper subset are compared on identical data.
+
+
+% ===========================================================================
+\chapter{Hyperparameter Reference}
+\label{app:hyper}
+\lotgroup{Appendix B -- Hyperparameter Reference}
+
+\Cref{tab:hyper} lists every hyperparameter of TOPORET and DOTS side by side.
+
+\begin{table}[H]
+\centering
+\caption[Hyperparameter reference]{Hyperparameter reference: TOPORET versus DOTS.}
+\label{tab:hyper}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Hyperparameter & TOPORET & DOTS \\
+\midrule
+Backbone & EfficientNet-B3 (frozen) & RETFound ViT-L/16 (frozen) \\
+Ordinal method & CORN (loss-based) & CORAL (architectural) \\
+Graph type & Static dual similarity & Dynamic GAT \\
+$\alpha$ (visual/topological balance) & 0.65 & 0.65 \\
+$k$ (neighbours per node) & 15 & 15 \\
+$d_h$ (hidden dimension) & 256 & 256 \\
+$L$ (GNN layers) & 2 & 2 \\
+$S$ (samples per layer) & 25 & 25 \\
+Dropout $p$ & 0.30 & 0.30 \\
+Class weights $\lambda_0,\ldots,\lambda_4$ & -- & $1.0, 2.5, 3.0, 8.0, 6.0$ \\
+Label smoothing $\epsilon$ & -- & 0.05 \\
+Abstention threshold $\tau_U$ & -- & 0.73~nats \\
+Optimiser & Adam, lr $=10^{-3}$ & Adam, lr $=10^{-3}$ \\
+Batch size & 32 & 32 \\
+Epochs & 100 & 100 \\
+Random seed & 42 & 42 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reading the comparison.}
+The graph and optimisation hyperparameters ($\alpha$, $k$, $d_h$, $L$, $S$, dropout,
+optimiser, batch size, epochs, seed) are identical in the two systems; only the rows that
+address Gaps~A--C (\cref{sec:ch4-gaps}) -- backbone, ordinal method, graph type, and the
+three DOTS-specific additions (class weights, label smoothing, abstention
+threshold) -- differ. This follows from the ablation design of \cref{tab:ablate}: because
+each gap resolution was introduced as an isolated change, the table records exactly which
+decisions produced the TOPORET-to-DOTS gain, with no confound from incidental re-tuning.
+The GraphSAGE-family hyperparameters were not tuned separately for each system; they
+were carried forward from the six-benchmark validation of \cref{ch:found} and the
+DR-specific sweep of \cref{tab:hparam}.
+
+% ===========================================================================
+\chapter{Statistical Test Reference}
+\label{app:stats}
+\lotgroup{Appendix C -- Statistical Test Reference}
+
+This appendix collects the formal statement of every statistical test used in the thesis.
+Each hypothesis was pre-specified: before any experimental result was seen, the null
+hypothesis, the test statistic, the significance threshold and the effect-size metric were
+fixed. \Cref{tab:falsif} lists, for each claim, the outcome that would have falsified it,
+the observed result and the margin by which the claim survived.
+
+\begin{table}[H]
+\centering
+\caption[Falsification criteria and observed margins]{Falsification criteria and observed margins.}
+\label{tab:falsif}
+\small
+\begin{tabular}{@{}P{4.2cm}P{3.0cm}P{4.3cm}P{2.9cm}@{}}
+\toprule
+Claim & Falsified if & Observed & Margin \\
+\midrule
+H1 -- graph QWK gain & $t_4 < 2.78$ & $t_4=3.82$, $p=0.009$ & $\times1.37$ critical \\
+H2 -- topology linked to severity & $F(4,4995) < 3.72$ & $F=1308.9$, $p<0.001$ & $\times352$ critical \\
+H3a -- all seven criteria & any criterion violated & $7/7$ met at the point estimate (\cref{tab:h3a}) & Sev-NR CI $[1.4\%,2.4\%]$ crosses $2\%$ \\
+H3b -- necessity & any proper subset has Sev-NR $<2\%$ & $6/6$ proper subsets fail & constructive \\
+CORAL violations & any violation at test time & $0.0\%$ & algebraic identity \\
+Sev-NR point estimate & $\geq 2.0\%$ & $1.9\%$ $[1.4\%,\,2.4\%]$ & $0.1$~pp \\
+\bottomrule
+\end{tabular}
+\tabnote{The critical values are $t_{0.025,4}=2.78$ (the conservative threshold adopted
+for H1) and $F_{0.005;\,4,4995}=3.72$ (Bonferroni-corrected level used for H2); see
+\cref{app:stats}.}
+\end{table}
+
+\paragraph{Notation convention.}
+\textbf{H1}, \textbf{H2}, \textbf{H3} (upright) denote the three research hypotheses.
+$H_0$ and $H_1$ (italic, subscript, in math mode) denote the zeroth and first
+persistent-homology groups. The two notations are unrelated: hypothesis H2 is tested
+using $H_0$ and $H_1$ features as independent variables.
+
+
+\section{H1: Paired \texorpdfstring{$t$}{t}-Test}
+\begin{align}
+H_0 &: \mu_{\Delta\mathrm{QWK}} \leq 0 \quad \text{(the graph gives no QWK improvement)}, \\
+H_a &: \mu_{\Delta\mathrm{QWK}} > 0 \quad \text{(the graph gives a positive improvement)}, \\
+t &= \frac{\bar d}{s_d/\sqrt{n}}, \qquad \mathrm{df}=n-1=4,
+\end{align}
+where $\bar d$ is the mean of the five per-fold QWK differences (TOPORET minus
+EfficientNet-B3) and $s_d$ their standard deviation. The one-tailed critical value at
+$\alpha=0.05$ is $t_{0.05,4}=2.132$. The more conservative $t_{0.025,4}=2.776$ (that is,
+$\alpha=0.05$ two-tailed) was adopted as the decision threshold to guard against
+directional mis-specification. Observed: $t_4=3.82$, one-tailed $p=0.009$, above both
+thresholds.
+
+\section{H2: One-Way ANOVA with Bonferroni Correction}
+\begin{align}
+H_0 &: \mu_{G_0}=\mu_{G_1}=\cdots=\mu_{G_4} \quad \text{for the feature tested}, \\
+H_a &: \text{at least one } \mu_{G_k} \text{ differs}, \\
+F &= \frac{\mathrm{MS}_{\mathrm{between}}}{\mathrm{MS}_{\mathrm{within}}}, \qquad
+\mathrm{df}_1=4,\ \mathrm{df}_2=4995 .
+\end{align}
+Six features are tested (\cref{tab:anova}); the Bonferroni level is $0.05/6\approx0.0083$,
+lowered to $\alpha=0.005$ for conservatism. Critical value:
+$F_{0.005;\,4,4995}=3.72$. Post-hoc: Tukey HSD~\cite{tukey1949} on all
+$\binom{5}{2}=10$ pairwise grade comparisons per feature.
+
+\section{H3a: Bootstrap Confidence Intervals}
+For each of the seven criteria of \cref{tab:h3a}, a 95\% confidence interval is computed
+by stratified bootstrap~\cite{efron1993bootstrap} ($B=10{,}000$ resamples, stratified by
+true grade to preserve the class distribution). A criterion ``passes'' if its point
+estimate meets the threshold; the interval is reported for transparency, but the
+pre-specified decision rule uses the point estimate, except where explicitly stated (the
+Phase~2 success criterion requires the interval).
+
+\section{H3b: Constructive Enumeration}
+No inferential test applies to H3b. The claim is established by constructing and
+evaluating all six proper subsets against the same seven-criterion specification
+(\cref{sec:h3b}). Necessity claims of the form ``no member of this finite, fully
+enumerable set satisfies property $P$'' are established more rigorously by exhaustive
+verification than by sampling, since the entire population of interest is evaluated. The price of this rigour is computational: every proper subset must be trained and evaluated on all benchmarks (\cref{tab:compute}).
+
+\section{Effect-Size Formulae}
+\begin{align}
+d &= \frac{\bar x_1-\bar x_2}{s_{\mathrm{pooled}}}, \qquad
+s_{\mathrm{pooled}} = \sqrt{\frac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2}}, \\
+d_z &= \frac{\bar\delta}{s_\delta} = \frac{t}{\sqrt{n}}, \\
+\eta^2 &= \frac{\mathrm{SS}_{\mathrm{between}}}{\mathrm{SS}_{\mathrm{total}}}
+        = \frac{df_1\,F}{df_1\,F+df_2} .
+\end{align}
+The first formula is used for comparisons between independent groups; the second, where
+$\bar\delta$ and $s_\delta$ are the mean and standard deviation of the paired differences
+over the $n$ folds, is used for the paired $t$-test of H1 ($d_z=3.82/\sqrt5=1.71$); the third
+relates $\eta^2$ to the $F$ statistic of a one-way ANOVA, and gives $\eta^2=0.51$ for the
+primary feature of H2.
+Effect sizes complement $p$-values: a $p$-value says whether an effect is likely to be
+real, an effect size says how large it is, independently of the sample size. With the large
+samples used in this thesis, even negligible differences can reach significance, which is
+why every primary comparison is reported with its effect size. \Cref{tab:effthresh} gives
+the conventional interpretation thresholds~\cite{cohen1988}; all effect sizes reported in
+\cref{tab:effects} meet or exceed the ``large'' threshold.
+
+\begin{table}[H]
+\centering
+\caption{Conventional thresholds for the interpretation of effect sizes.}
+\label{tab:effthresh}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Measure & Small & Medium & Large \\
+\midrule
+Cohen's $d$ (difference of two means) & 0.2 & 0.5 & 0.8 \\
+$\eta^2$ (share of variance explained, ANOVA) & 0.01 & 0.06 & 0.14 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Control of Multiple Comparisons}
+
+Testing many hypotheses on the same data increases the chance of a false positive. Three
+measures limit this risk in the thesis. First, each research hypothesis has a single
+pre-specified primary test and a single primary metric, fixed before the experiment
+(\cref{tab:falsif}); secondary analyses, such as the bootstrap and permutation tests of H1,
+are reported as supporting evidence and do not change the decision. Second, when several
+tests address the same hypothesis, as for the topological features of H2, the significance
+level is corrected with the Bonferroni method and lowered further for conservatism. Third,
+the necessity claim H3b does not rely on a statistical test at all, since the six proper
+subsets form the complete set of alternatives and are all evaluated.
+
+% ===========================================================================
+\chapter{Reproducibility and Software Environment}
+\label{app:repro}
+\lotgroup{Appendix D -- Reproducibility and Software Environment}
+
+\section{Code and Data Availability}
+All code, model weights and configuration files described in this thesis are released
+under the Apache~2.0 licence at \url{https://github.com/Nader-BelHadj/plosene} upon
+acceptance of the DOTS article~\cite{belhadj2026dots}. The release includes the source
+code of the six pipeline stages (\cref{tab:stages}), the 47-test verification suite
+(\cref{tab:unittests}), YAML configurations for the twelve principal experiments
+(\cref{app:results}) and a Dockerfile that pins every software dependency. The five
+datasets are public and must be obtained from their original distributors
+(\cref{app:datasets}).
+
+\section{Software Environment}
+\Cref{tab:software} lists the software components and their versions.
+\begin{table}[H]
+\centering
+\caption[Software environment and key library versions]{Software environment and key library versions.}
+\label{tab:software}
+\small
+\begin{tabular}{@{}l P{10.4cm}@{}}
+\toprule
+Component & Version / use \\
+\midrule
+Python & 3.10 \\
+PyTorch~\cite{paszke2019pytorch} & 2.1, CUDA 12.1 \\
+PyTorch Geometric~\cite{fey2019pyg} & 2.4 (GraphSAGE and GAT implementations) \\
+GUDHI~\cite{maria2014gudhi} & 3.9 (Vietoris--Rips persistent homology, stage S3) \\
+FAISS~\cite{johnson2021faiss} & 1.7 (approximate $k$-NN, stage S5) \\
+timm & Version pinned in the Dockerfile (RETFound and EfficientNet-B3 loading) \\
+scikit-learn~\cite{pedregosa2011sklearn} & 1.3 (evaluation metrics) \\
+SciPy & ANOVA and $t$-tests (\cref{sec:testimpl}) \\
+OpenCV & 4.8 (CLAHE and Zhang--Suen skeletonisation, stage S1) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\Cref{tab:hardware} lists the hardware used at each stage of the programme. All timings reported in the thesis were measured on this hardware, so that latency and cost figures can be compared directly across chapters.
+
+\begin{table}[!tb]
+\centering
+\caption[Hardware used for training, benchmarking and testing]{Hardware used for training, benchmarking and testing.}
+\label{tab:hardware}
+\small
+\begin{tabular}{@{}l P{9.6cm}@{}}
+\toprule
+Context & Hardware \\
+\midrule
+Model training (all experiments) & $1\times$ NVIDIA A100 (40~GB), 16-core CPU, 128~GB RAM \\
+Inference latency (\cref{tab:latency}) & $1\times$ NVIDIA A100 (stages S2, S5, S6); 16-core CPU (stage S3) \\
+Unit-test suite & CPU only, any modern x86-64 workstation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Randomness and Seeding}
+The primary experiments use a single global seed (42) for all stochastic operations: model
+initialisation, data-loader shuffling, cross-validation fold assignment and bootstrap
+resampling. The stability analysis of \cref{sec:numrepro} repeats the main experiments with two
+additional seeds (123 and 7).
+Five-fold splits are stratified by ICDR grade, computed once per experiment and held fixed
+across all ablation variants (\cref{tab:ablate,tab:ablation3}), so that differences
+between configurations are not confounded by different splits.
+
+\section{Reproducibility Tolerance}
+\label{sec:tolerance}
+Because some GPU kernels are not bit-exact across hardware generations even with fixed
+seeds, results within $2\sigma$ of the reported values -- with $\sigma$ the five-fold
+standard deviation reported with each primary metric (for example \cref{tab:h1}) -- are
+considered a successful reproduction. Bit-level reproduction is neither claimed nor
+expected.
+
+\section{FAIR Compliance Statement}
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Findable] Code repository indexed with a persistent identifier on acceptance of the
+DOTS article; thesis archived in the institutional repository of ENSI, University of
+Manouba.
+\item[Accessible] Public repository without access restrictions; the Apache~2.0 licence
+permits reuse with attribution.
+\item[Interoperable] Configurations in YAML; model weights in the standard PyTorch
+checkpoint format.
+\item[Reusable] Documented dependency versions (\cref{tab:software}), a Dockerfile for
+exact environment reconstruction, and this appendix as a stand-alone reference.
+\end{description}
+
+\section{Computational Cost Summary}
+\Cref{tab:compute} summarises approximate compute consumption by phase, from logged job
+durations on the hardware of \cref{tab:hardware}. Figures are rounded, because several
+exploratory runs of the early phases were not systematically logged. The H3b enumeration
+is the most expensive phase despite testing the smallest architectures: exhaustive
+enumeration requires every proper subset to be trained to convergence on every
+benchmark, rather than sharing a backbone as the DOTS ablation (\cref{tab:ablate}) does.
+
+\begin{table}[H]
+\centering
+\caption[Approximate GPU-hours by experimental phase]{Approximate GPU-hours by experimental phase.}
+\label{tab:compute}
+\small
+\begin{tabular}{@{}P{6.2cm} r P{6.0cm}@{}}
+\toprule
+Phase & GPU-hours & Dominant cost \\
+\midrule
+Distributed-systems benchmarks (\cref{ch:found}) & $\sim$40 & SimPy simulation; CPU-bound \\
+Structural proof of concept (\cref{ch:found}) & $\sim$120 & EfficientNet-B0 ablations, five folds \\
+TOPORET development and validation (\cref{ch:toporet}) & $\sim$310 & Hyperparameter sweep (\cref{tab:hparam}) $\times$ five folds \\
+DOTS development and ablation (\cref{ch:dots}) & $\sim$480 & RETFound-based models across Gaps A--C, five folds \\
+H3b necessity enumeration (\cref{ch:dots}) & $\sim$540 & Six subset architectures $\times$ five benchmarks \\
+\midrule
+Total & $\sim$1{,}490 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Numerical Reproducibility Specification}
+\label{sec:numrepro}
+\Cref{tab:seeds} gives the seeds and the variance across runs for the main systems.
+
+\begin{table}[H]
+\centering
+\caption[Reproducibility specification]{Reproducibility specification: mean $\pm$ SD over three seeds.}
+\label{tab:seeds}
+\small
+\begin{tabular}{@{}llcc@{}}
+\toprule
+Experiment & Seeds & QWK & Sev-NR \\
+\midrule
+TOPORET (Kaggle EyePACS) & 42, 123, 7 & $0.880\pm0.003$ & $3.4\pm0.2\%$ \\
+DOTS (Kaggle EyePACS) & 42, 123, 7 & $0.951\pm0.003$ & $1.9\pm0.1\%$ \\
+DOTS (APTOS 2019) & 42, 123, 7 & $0.953\pm0.004$ & $1.7\pm0.2\%$ \\
+DOTS (IDRiD) & 42, 123, 7 & $0.878\pm0.005$ & $2.1\pm0.3\%$ \\
+DOTS (Messidor-2) & 42, 123, 7 & $0.948\pm0.003$ & $1.8\pm0.2\%$ \\
+DOTS (DDR) & 42, 123, 7 & $0.951\pm0.003$ & $1.9\pm0.2\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Parameter Selection Record}
+All parameters were selected on training and validation data only, in this order:
+\begin{enumerate}
+\item \textbf{Backbone} (EfficientNet-B3 or RETFound): validation-fold QWK; fixed before
+the H3a test.
+\item \textbf{$\alpha=0.65$}: grid $\alpha\in\{0.5,0.6,0.65,0.7,0.8\}$ inside the stable
+range of \cref{tab:hparam}, on training folds; fixed before the H1 test.
+\item \textbf{$k=15$}: grid $k\in\{5,8,10,15,20\}$ on validation-fold QWK; fixed before the
+H1 test.
+\item \textbf{Class weights $\lambda_0,\ldots,\lambda_4$}: grid search on validation-fold Sev-NR and macro-F1
+(\cref{tab:weights}); fixed before the H3a test.
+\item \textbf{Abstention threshold $\tau_U=0.73$ nats}: smallest threshold meeting Sev-NR
+$<2\%$ with coverage above $90\%$ on the validation fold (\cref{tab:tau}); fixed before
+the H3a test.
+\item \textbf{Test-set access}: each held-out test set was accessed exactly once, after
+all parameters above were fixed.
+\end{enumerate}
+
+\section{Statistical Test Implementation Details}
+\label{sec:testimpl}
+\begin{itemize}
+\item \textbf{H1 $t$-test:} \texttt{scipy.stats.ttest\_rel}, one-tailed, df $=4$;
+nominal threshold $t_4>2.132$, conservative threshold $t_4>2.776$; both passed
+($t_4=3.82$).
+\item \textbf{H1 bootstrap:} $10{,}000$ resamples with replacement of the five fold
+differences; 95\% CI from the 2.5th and 97.5th percentiles.
+\item \textbf{H1 permutation:} exact enumeration of the $2^5=32$ sign assignments of the
+five fold differences; the one-sided $p$-value is the fraction of assignments whose mean
+difference is at least the observed one. With all five differences positive, $p=1/32$.
+\item \textbf{H2 ANOVA:} \texttt{scipy.stats.f\_oneway}, $n=5{,}000$ stratified sample
+($1{,}000$ per grade); Bonferroni level $0.05/6=0.0083$, lowered to $0.005$.
+\item \textbf{H3b bootstrap:} $10{,}000$ resamples of prediction-level Sev-NR for each
+subset; the CI of the difference is computed as above.
+\end{itemize}

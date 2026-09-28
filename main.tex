@@ -1,0 +1,101 @@
+% =====================================================================
+%  Nader Belhadj -- PhD thesis (ENSI, University of Manouba)
+%  Main file. Compile: pdfLaTeX + BibTeX (Overleaf default).
+% =====================================================================
+\documentclass[12pt,a4paper,oneside,openany]{report}
+\input{preamble}
+
+\begin{document}
+
+% ------------------------------------------------------------ front matter
+\pagenumbering{roman}
+\input{chapters/title}
+\input{chapters/dedication}
+\pagestyle{plain}
+\input{chapters/acknowledgements}
+\input{chapters/resume}
+\input{chapters/abstract}
+
+\cleardoublepage
+\phantomsection
+\pdfbookmark[0]{Contents}{toc}
+\tableofcontents
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Algorithms}
+\listofalgorithms
+\input{chapters/abbreviations}
+
+% ------------------------------------------------------------ main matter
+\cleardoublepage
+\pagestyle{thesis}
+\pagenumbering{arabic}
+\input{chapters/intro}
+
+\setcounter{figure}{0}\setcounter{table}{0}
+\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
+\renewcommand{\thetable}{\thechapter.\arabic{table}}
+
+\chapter{Diabetic Retinopathy and Automated Grading}
+\label{ch:sota}
+\lofgroup{Chapter 1 -- Diabetic Retinopathy and Automated Grading}
+\lotgroup{Chapter 1 -- Diabetic Retinopathy and Automated Grading}
+\input{chapters/ch1}
+
+\chapter{Learning on Graphs, Topology and Ordinal Prediction}
+\label{ch:background}
+\lofgroup{Chapter 2 -- Learning on Graphs, Topology and Ordinal Prediction}
+\lotgroup{Chapter 2 -- Learning on Graphs, Topology and Ordinal Prediction}
+\input{chapters/ch2_background}
+
+\chapter{Structural and Topological Priors for Retinal Image Grading}
+\label{ch:found}
+\lofgroup{Chapter 3 -- Structural and Topological Priors for Retinal Image Grading}
+\lotgroup{Chapter 3 -- Structural and Topological Priors for Retinal Image Grading}
+\input{chapters/ch2}
+
+\chapter{Topology-Aware Population Graph for Diabetic Retinopathy Grading}
+\label{ch:toporet}
+\lofgroup{Chapter 4 -- Topology-Aware Population Graph for Diabetic Retinopathy Grading}
+\lotgroup{Chapter 4 -- Topology-Aware Population Graph for Diabetic Retinopathy Grading}
+\input{chapters/ch3}
+
+\chapter{Safe Ordinal Grading of Diabetic Retinopathy with Abstention}
+\label{ch:dots}
+\lofgroup{Chapter 5 -- Safe Ordinal Grading of Diabetic Retinopathy with Abstention}
+\lotgroup{Chapter 5 -- Safe Ordinal Grading of Diabetic Retinopathy with Abstention}
+\input{chapters/ch4}
+
+\chapter{Software Architecture and Regulatory Compliance}
+\label{ch:reg}
+\lofgroup{Chapter 6 -- Software Architecture and Regulatory Compliance}
+\lotgroup{Chapter 6 -- Software Architecture and Regulatory Compliance}
+\input{chapters/ch6}
+
+\input{chapters/conclusion}
+
+% ------------------------------------------------------------ back matter
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
+\markboth{Bibliography}{}
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\input{chapters/publications}
+
+\appendix
+\inappendixtrue
+\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
+\renewcommand{\thetable}{\thechapter.\arabic{table}}
+\input{chapters/appendix}
+
+\end{document}

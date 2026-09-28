@@ -1,0 +1,30 @@
+% CORAL head schematic
+\begin{figure}[!tb]
+\centering
+\resizebox{0.95\linewidth}{!}{%
+\begin{tikzpicture}[font=\footnotesize,
+  box/.style={draw, rounded corners=2pt, align=center, inner sep=3pt, minimum height=0.75cm},
+  arr/.style={-{Latex[length=2mm]}, thick}]
+\node[box, fill=black!6, draw=black!55, minimum height=3.8cm, minimum width=1.7cm] (z) at (0,0) {Embedding\\$z_i$};
+\node[box, fill=axisRf, draw=axisR, minimum height=3.8cm, minimum width=2.2cm] (w) at (3.2,0) {Shared\\weights $w$\\[4pt]$s_i = w^\top z_i$};
+\node[font=\bfseries\scriptsize] at (6.9,2.35) {Logits};
+\node[font=\bfseries\scriptsize] at (10.3,2.35) {$\hat P(Y\geq k)$};
+\foreach \k/\y in {1/1.35,2/0.45,3/-0.45,4/-1.35}{
+  \node[box, fill=axisOf, draw=axisO, minimum width=2.4cm] (g\k) at (6.9,\y) {$g_i^{(\k)} = s_i + b_\k$};
+  \node[box, fill=white, draw=black!55, minimum width=2.2cm] (p\k) at (10.3,\y) {$\sigma\big(g_i^{(\k)}\big)$};
+  \draw[arr] (w.east) -- (g\k.west);
+  \draw[arr] (g\k) -- (p\k);
+}
+\draw[arr] (z) -- (w);
+\node[box, fill=okf, draw=okgreen, minimum height=3.8cm, minimum width=3.2cm] (y) at (14.2,0) {Grade $\hat y_i$\\[4pt]number of $k$\\with $\hat P(Y\geq k)>0.5$};
+\foreach \k in {1,2,3,4} \draw[arr] (p\k.east) -- (y.west |- p\k.east);
+\node[font=\scriptsize, text=axisO, align=center] at (6.9,-2.55) {$b_1\geq b_2\geq b_3\geq b_4$\\enforced after each update};
+\node[font=\scriptsize, align=center] at (10.3,-2.55) {decreasing in $k$\\$\Rightarrow 0$ rank violations};
+\end{tikzpicture}}
+\caption[The CORAL ordinal head]{The CORAL ordinal head. A single weight vector $w$ is shared
+by the $K-1=4$ binary questions ``is the grade at least $k$?''; only the biases $b_k$ differ.
+Because the biases are kept ordered, the estimated probabilities always decrease with $k$,
+whatever the input and the weights, and the grade is simply the number of questions
+answered ``yes''.}
+\label{fig:coral}
+\end{figure}

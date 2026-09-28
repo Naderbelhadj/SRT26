@@ -1,0 +1,177 @@
+% =====================================================================
+%  Preamble -- Belhadj PhD thesis
+%  Compiles with pdfLaTeX (Overleaf default) or XeLaTeX / LuaLaTeX.
+% =====================================================================
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage[a4paper,top=2.6cm,bottom=2.6cm,inner=3.0cm,outer=2.5cm,
+            headheight=15pt,headsep=0.8cm,footskip=1.1cm]{geometry}
+\usepackage{setspace}
+\setstretch{1.3}
+\raggedbottom
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2.5em}
+\hyphenation{Table Tables Figure Figures Section Sections Chapter Chapters Equation Equations Appendix Algorithm DOTS TOPORET RETFound GraphSAGE}
+\widowpenalty=10000
+\clubpenalty=500
+
+% ---------------------------------------------------------------- maths
+\usepackage{amsmath,amssymb,bm}
+\numberwithin{equation}{chapter}
+
+% ---------------------------------------------------------------- floats
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,longtable,multirow,array,makecell}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric,backgrounds}
+\tikzset{every picture/.append style={execute at begin picture={\setstretch{1.0}}}}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,labelsep=endash,justification=justified,
+              singlelinecheck=true,skip=6pt}
+\captionsetup[figure]{position=bottom}
+\captionsetup[table]{position=top}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage[ruled,vlined,linesnumbered,algochapter]{algorithm2e}
+\SetAlgoCaptionSeparator{\unskip~--}
+\renewcommand{\listalgorithmcfname}{List of Algorithms}
+\SetAlFnt{\small}
+\usepackage[section]{placeins}
+\usepackage{flafter}
+\usepackage{needspace}
+\usepackage{pdflscape}
+\usepackage{afterpage}
+\usepackage{etoolbox}
+\AtBeginEnvironment{table}{\setstretch{1.0}}
+\AtBeginEnvironment{figure}{\setstretch{1.0}}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+\setlength{\textfloatsep}{14pt}
+\setlength{\floatsep}{12pt}
+\setlength{\intextsep}{12pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{5pt}
+
+% A short italic note placed directly under a table (never repeats "Table X").
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\tabnote}[1]{\par\vspace{3pt}{\footnotesize\itshape #1\par}}
+
+% ---------------------------------------------------------------- lists, misc
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt}
+\usepackage{csquotes}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+\usepackage{url}
+
+% ---------------------------------------------------------------- Unicode in text
+\usepackage{newunicodechar}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{±}{\ensuremath{\pm}}
+\newunicodechar{→}{\ensuremath{\to}}
+\newunicodechar{−}{\ensuremath{-}}
+
+% ---------------------------------------------------------------- colours
+\definecolor{axisR}{HTML}{1F4E79}
+\definecolor{axisRf}{HTML}{D6E6F5}
+\definecolor{axisS}{HTML}{1B7A4E}
+\definecolor{axisSf}{HTML}{D9F0E3}
+\definecolor{axisO}{HTML}{6B3D8C}
+\definecolor{axisOf}{HTML}{EADCF3}
+\definecolor{failred}{HTML}{A32020}
+\definecolor{failf}{HTML}{F8D6D6}
+\definecolor{okgreen}{HTML}{1B7A4E}
+\definecolor{okf}{HTML}{D9F0E3}
+\definecolor{limred}{HTML}{C0392B}
+\definecolor{navy}{HTML}{16324F}
+\definecolor{fusion}{HTML}{B35C00}
+\definecolor{fusionf}{HTML}{FCE8D2}
+
+% ---------------------------------------------------------------- headings
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\centering}
+  {\large\scshape\color{navy}\chaptertitlename\ \thechapter}
+  {6pt}
+  {\titlerule[0.6pt]\vspace{8pt}\LARGE\bfseries\color{navy}}
+  [{\vspace{6pt}\titlerule[0.6pt]}]
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\centering}
+  {}
+  {0pt}
+  {\titlerule[0.6pt]\vspace{8pt}\LARGE\bfseries\color{navy}}
+  [{\vspace{6pt}\titlerule[0.6pt]}]
+\titlespacing*{\chapter}{0pt}{-24pt}{22pt}
+\titleformat{\section}{\normalfont\Large\bfseries\color{navy}\raggedright}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\raggedright}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{0.8em}{}
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{13pt}{6pt}
+\titlespacing*{\paragraph}{0pt}{7pt}{0.8em}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+
+% Chapter epigraph: \epigraph{quote}{source}
+\newcommand{\epigraph}[2]{%
+  \begin{flushright}\begin{minipage}{0.72\textwidth}\raggedleft\small
+  \textit{#1}\par\vspace{3pt}--- #2\end{minipage}\end{flushright}\vspace{10pt}}
+
+% ---------------------------------------------------------------- headers
+\usepackage{fancyhdr}
+\newif\ifinappendix
+\renewcommand{\chaptermark}[1]{\markboth{%
+  \ifinappendix Appendix~\thechapter\else Chapter~\thechapter\fi.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\quad #1}}
+\fancypagestyle{thesis}{%
+  \fancyhf{}%
+  \fancyhead[L]{\small\itshape\nouppercase{\leftmark}}%
+  \fancyfoot[C]{\small\thepage}%
+  \renewcommand{\headrulewidth}{0.4pt}}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------------------------------------------------------------- TOC / lists
+\usepackage[titles]{tocloft}
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftchappagefont}{\bfseries}
+\setlength{\cftbeforechapskip}{6pt}
+\renewcommand{\cftdot}{.}
+\setlength{\cftfignumwidth}{3.2em}
+\setlength{\cfttabnumwidth}{3.2em}
+
+% Group headings inside the List of Figures / List of Tables
+\newcommand{\listgroup}[2]{\addtocontents{#1}{\protect\addvspace{9pt}\protect\noindent\protect\parbox{\protect\linewidth}{\protect\raggedright\protect\small\protect\bfseries\protect\color{navy}\protect\strut#2\protect\strut}\protect\par\protect\nopagebreak\protect\addvspace{4pt}\protect\nopagebreak}}
+\newcommand{\lofgroup}[1]{\listgroup{lof}{#1}}
+\newcommand{\lotgroup}[1]{\listgroup{lot}{#1}}
+
+% ---------------------------------------------------------------- links (last)
+\usepackage[hidelinks,bookmarksnumbered,bookmarksopen]{hyperref}
+\hypersetup{
+  pdftitle={Deep Learning-Based Prediction of Disease Progression Using Medical Imaging: An Application to Diabetology},
+  pdfauthor={Nader Belhadj},
+  pdfsubject={Doctoral Thesis in Computer Science -- Artificial Intelligence},
+  pdfkeywords={diabetic retinopathy, GraphSAGE, persistent homology, CORAL, clinical AI safety, RETFound}}
+\usepackage[nameinlink,capitalise,noabbrev]{cleveref}
+\crefname{equation}{Equation}{Equations}
+\Crefname{equation}{Equation}{Equations}
+\crefname{appendix}{Appendix}{Appendices}
+
+\graphicspath{{img/}{figures/}}
