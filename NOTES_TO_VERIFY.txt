@@ -456,3 +456,12 @@ v19 (gaps covered by computation from published figures, no new experiment):
 - H1 d_z = 1.71 reinterpreted as consistency across (overlapping) folds, size of gain = +0.04 QWK.
 - Sev-NR sample size: upper CP bound < 2% at ~1% needs ~650 severe images; 80% power (true 1%, H0 2%, exact one-sided binomial, alpha 0.025) needs ~1,240 severe images (~25,000 screened at 5% prevalence). Added in Ch.5 (5.8.2), Ch.6 roadmap, conclusion.
 - One-page summary (EN/FR/AR): "inductive" removed for TOPORET, transductive evaluation, corrected H1, small H2 effect.
+
+v20 (floats separated by text everywhere; figure-text consistency):
+- New line-level detector of consecutive floats without prose between them (validated on v19: finds its 4 cases); v20: 0 stacked, 68/68 floats after mention with no heading between.
+- Ch.1: Table 1.1 and Figure 1.2 pinned and separated by a linking paragraph; ICDR 4-2-1 sentence; 1.7.3 and conclusion tightened; Table 1.4 columns widened.
+- Ch.3: Section 3.2.1 restructured (Table 3.4 / text / Figure 3.1 / text / Figure 3.2); Eq. 3.3 no longer split from its "where" clause; Table 3.8 pinned.
+  CORRECTED from the figure itself: Figure 3.1 caption/text wrongly said most errors are Severe<->PDR; the matrix shows Severe/PDR -> Moderate (61, 63) and Mild<->Moderate (71, 49) dominate, Severe<->PDR = 27+32; PDR predicted Mild/No DR = 13/295 = 4.4%.
+  CORRECTED: Figure 3.2 text said accuracy "saturates" - it still rises (0.72 -> 0.89 over 10 epochs); only training curves, so no claim about overfitting.
+- Ch.4: Table 4.1 / S1 text / Figure 4.2 / S2-S4 text + Eq. 4.1 / Figure 4.3; leftover Norm() removed from z_i; Figure 4.1 text "five patient-aware splits" -> "five-fold cross-validation"; sentence on typed contracts added.
+- Figure 4.4 checked against text: consistent.

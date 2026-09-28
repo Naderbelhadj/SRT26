@@ -19,7 +19,7 @@
 \node[right=2.5mm of s6, font=\footnotesize, align=center] (out) {Grade\\$\hat y_i$};
 \draw[arr] (in) -- (s1); \draw[arr] (s6) -- (out);
 \node[below=6mm of s3.south east, anchor=north, font=\footnotesize, align=center] {%
-  Kaggle DR: QWK $=0.88$, accuracy $95.5\%$ (five patient-aware splits)\\H1: $t_4=3.82$ \quad H2: $F=84.3$, $p<0.001$};
+  Kaggle DR: QWK $=0.88$, accuracy $95.5\%$ (five-fold cross-validation)\\H1: $t_4=3.82$ \quad H2: $F=84.3$, $p<0.001$};
 \end{tikzpicture}}
 \caption[TOPORET six-stage pipeline]{TOPORET six-stage pipeline. Blue stages form the relational axis (L1), the green
 stage the structural axis (L2). There is no ordinal-safety axis: every image is graded

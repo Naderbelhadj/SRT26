@@ -167,6 +167,10 @@ the standard in clinical trials, but it is too detailed and too costly for routi
 screening. The International Clinical Diabetic Retinopathy (ICDR) scale was proposed in
 2003 to simplify it into five levels that can be graded from standard
 photographs and that map directly onto clinical decisions~\cite{wilkinson2003icdr}.
+Its grades are defined by the type of lesions present rather than by exact counts, with one
+exception: the 4-2-1 rule, which separates severe from moderate NPDR by counting
+haemorrhages, venous beading and IRMA per quadrant. The boundary between Grades~2 and~3,
+decisive for referral, is therefore the only one defined by explicit counts.
 
 \Cref{tab:icdr} summarises the ICDR scale used to grade every image in this thesis.
 Grades~3 and~4 require urgent referral; missing them, that is, predicting No~DR or Mild
@@ -177,7 +181,7 @@ Grading the colour fundus photographs of \cref{sec:imaging} is a visual task:
 the grader counts and locates microaneurysms, haemorrhages, exudates, venous beading and
 new vessels, and maps them to a grade using the rules of \cref{tab:icdr}.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption[International Clinical Diabetic Retinopathy (ICDR) severity scale]{International Clinical Diabetic Retinopathy (ICDR) severity
 scale~\cite{wilkinson2003icdr}. Grades 3--4 are safety-critical. The referral intervals
@@ -198,10 +202,12 @@ Grade & Clinical name & Primary vascular signs & Referral urgency \\
 \end{tabular}
 \end{table}
 
-\Cref{fig:fundus} shows one representative fundus photograph for each
-grade.
+\Cref{fig:fundus} shows one representative fundus photograph for each grade. The lesions of
+\cref{tab:icdr} appear in increasing number and severity from left to right, but the
+difference between two neighbouring grades is often a matter of a few lesions, which is the
+source of the disagreement between graders discussed below.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \setlength{\tabcolsep}{2pt}
 \begin{tabular}{ccccc}
@@ -228,10 +234,11 @@ reference standard used: adjudication by a panel of retina specialists gives mor
 reliable labels than a single grader or a majority vote~\cite{krause2018grader}. Public
 datasets are usually labelled by one or a few graders, so their labels contain some noise,
 concentrated at the boundaries between grades. Any grading system, human or automated,
-must therefore be judged against this intrinsic ambiguity, and a system that can recognise
-ambiguous cases is valuable in itself. This is also why many programmes grade each image
-twice and send disagreements to a senior grader: the most useful help that an automated
-system can give is often to indicate which images deserve this second look. In the systems developed in this thesis, calibrated grade probabilities and the display of similar reference cases (\cref{ch:dots}) are first steps towards this role; an automatic deferral of ambiguous images is left to future work. Such a system does not replace the second grader; it directs the grader's attention to the cases that need it most. In the experiments of this thesis, the Mild--Moderate boundary concentrates the largest share of errors for every system (\cref{ch:toporet,ch:dots}), which is consistent with this intrinsic ambiguity.
+must therefore be judged against this intrinsic ambiguity. Many programmes grade each image
+twice and send disagreements to a senior grader; an automated system is most useful when it
+indicates which images deserve this second look. The calibrated probabilities and similar
+reference cases of this thesis (\cref{ch:dots}) are first steps towards this role; an
+automatic deferral of ambiguous images is left to future work. In the experiments of this thesis, the Mild--Moderate boundary concentrates the largest share of errors for every system (\cref{ch:toporet,ch:dots}), which is consistent with this intrinsic ambiguity.
 
 \section{Screening Programmes and Patient Safety}
 \label{sec:screening}
@@ -517,23 +524,19 @@ systems; combining all three in one model is left to future work.
 \subsection{Positioning of This Thesis}
 \label{sec:position}
 
-\Cref{tab:sota} makes the gap concrete: over a decade of progress in accuracy, none of
-the representative external systems reviewed resolves the three structural limitations, and only
-graph-based systems address L1 even partially. This is consistent with the diagnosis of
-\cref{sec:limits}: independent per-image CNN or ViT classifiers do not represent
-inter-patient relations explicitly, do not compute global topological invariants, and are
-rarely trained or evaluated with the referral decision in mind. This thesis therefore investigates
-architectural additions rather than further scaling.
-
-\Cref{tab:limits} summarises the three limitations, their clinical consequence and the
-component of this thesis that addresses each of them.
+\Cref{tab:sota} makes the gap concrete: over a decade of progress in accuracy, none of the
+representative external systems resolves the three structural limitations, because
+per-image classifiers neither relate patients, nor compute global topological invariants,
+nor target the referral decision (\cref{sec:limits}). This thesis therefore investigates
+architectural additions rather than further scaling; \cref{tab:limits} summarises the three
+limitations, their clinical consequence and the component that addresses each of them.
 
 \begin{table}[!htbp]
 \centering
 \caption{The three structural limitations and how this thesis addresses them.}
 \label{tab:limits}
 \footnotesize
-\begin{tabular}{@{}P{3.2cm} P{4.2cm} P{4.8cm} c@{}}
+\begin{tabular}{@{}P{3.0cm} P{4.6cm} P{5.6cm} c@{}}
 \toprule
 Limitation & Clinical consequence & Component of this thesis & Ch. \\
 \midrule
@@ -548,10 +551,8 @@ L3 -- no safety-oriented grading & Severe cases may be graded as No DR or Mild, 
 \phantomsection\addcontentsline{toc}{section}{Conclusion}
 
 \looseness=-1
-This chapter presented the clinical problem addressed in this thesis. Despite a decade of
-gains in grading accuracy, the representative systems reviewed here still grade each image
-in isolation (L1), ignore the topology of the vascular tree (L2) and are rarely trained or
-evaluated with the referral of severe cases in mind (L3). Addressing these limitations
-requires learning on graphs, topological data analysis, ordinal prediction and calibrated
-safety evaluation, which the next chapter introduces together with the evaluation metrics
-of the thesis.
+Despite a decade of gains in accuracy, the representative systems reviewed in this chapter
+still grade each image in isolation (L1), ignore the topology of the vascular tree (L2) and
+are rarely trained or evaluated with the referral of severe cases in mind (L3). Addressing
+them requires learning on graphs, topological data analysis, ordinal prediction and
+calibrated safety evaluation, which the next chapter introduces with the evaluation metrics.

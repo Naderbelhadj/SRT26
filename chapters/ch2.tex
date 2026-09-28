@@ -276,15 +276,9 @@ gives the largest single gain ($+3.4$~pp); geometric and topological descriptors
 $+1.2$ and $+1.7$~pp respectively. The full model reaches $95.1\%$ accuracy (AUC $0.970$,
 95\% bootstrap interval $[94.0\%,\,96.2\%]$), $+7.0$~pp over the baseline, which is more
 than the sum of the individual gains ($6.3$~pp), and McNemar's test indicates a
-significant improvement over the CNN baseline ($p<0.01$). On Messidor-2, without any
-fine-tuning, the full model reaches $92.1\%$ accuracy against $88.1\%$ for the CNN alone,
-and it keeps a higher AUC under Gaussian noise, contrast changes, blur and
-downsampling~\cite{mezghich2026lnaitopo}. The conference paper~\cite{belhadj2026hybrid}
-reports the same end points ($88.1\%$ for the CNN, $95.1\%$ for the full model) with a
-different decomposition: CNN $+$ GNN $91.5\%$, CNN $+$ Transformer $92.1\%$, and
-CNN $+$ GNN $+$ Transformer $95.1\%$.
+significant improvement over the CNN baseline ($p<0.01$).
 
-\begin{table}[!tb]
+\begin{table}[H]
 \centering
 \caption[Ablation of the hybrid CNN--GNN pipeline]{Ablation of the hybrid CNN--GNN pipeline
 on APTOS~2019 (binary screening, held-out test set), extended
@@ -306,28 +300,48 @@ CNN $+$ GNN $+$ geometry and topology (full) & \textbf{95.1\%} & $\mathbf{+7.0}$
 model. Single split; the gains are not accompanied by a test of the interaction.}
 \end{table}
 
+On Messidor-2, without any fine-tuning, the full model reaches $92.1\%$ accuracy against
+$88.1\%$ for the CNN alone, and it keeps a higher AUC under Gaussian noise, contrast
+changes, blur and downsampling~\cite{mezghich2026lnaitopo}. The conference
+paper~\cite{belhadj2026hybrid} reports the same end points ($88.1\%$ for the CNN, $95.1\%$
+for the full model) with a different decomposition: CNN $+$ GNN $91.5\%$, CNN $+$
+Transformer $92.1\%$, and CNN $+$ GNN $+$ Transformer $95.1\%$.
+
 \paragraph{Five-class grading and training behaviour.}
 On the harder five-class task, the full model reaches $87.5\%$ accuracy, with macro
 precision, recall and F1 all at $87.3\%$~\cite{belhadj2026hybrid}. \Cref{fig:hybridcm}
-shows where the errors lie: No~DR, Mild and Moderate are well separated, and most errors
-are confusions between the two advanced grades, Severe and Proliferative, which share
-vascular pathology at the coarse $128\times128$ resolution. \Cref{fig:hybridcurves} shows
-the training loss and accuracy: the loss decreases steadily and the accuracy saturates in
-the last epochs, without the divergence that would indicate unstable optimisation.
+shows where the errors lie. No~DR is almost always recognised ($1{,}795$ correct images).
+The largest error flows pull the two advanced grades towards Moderate: $61$ Severe and $63$
+Proliferative images are predicted as Moderate. They are followed by confusions between
+Mild and Moderate ($71$ and $49$ images), whereas confusions between Severe and
+Proliferative are fewer ($27$ and $32$).
 
-\begin{figure}[!tb]
+Read against the safety criteria of \cref{ch:dots}, the errors towards Moderate would still
+lead to referral, but $13$ of the $295$ Proliferative images are predicted as Mild or No~DR
+($4.4\%$), above the $2\%$ threshold adopted later; this study did not target safety. At a
+resolution of $128\times128$ pixels, the fine signs of the advanced grades, such as new
+vessels and intraretinal microvascular abnormalities, are hard to resolve, which is
+consistent with the pull towards Moderate.
+
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.66\linewidth]{hybrid_confusion_5class}
+\includegraphics[width=0.56\linewidth]{hybrid_confusion_5class}
 \caption[Confusion matrix of the hybrid model on five-class grading]{Confusion matrix of the
 hybrid CNN--GNN model on five-class grading (APTOS~2019). Correct predictions lie on the
-diagonal; most errors are between Severe and Proliferative DR. Adapted
+diagonal; the largest errors are Severe and Proliferative images predicted as Moderate.
+Adapted
 from~\cite{mezghich2026lnaitopo}.}
 \label{fig:hybridcm}
 \end{figure}
 
-\begin{figure}[!tb]
+\Cref{fig:hybridcurves} shows the training loss and accuracy over ten epochs: the loss falls
+steadily from about $0.78$ to $0.31$ and the accuracy rises from about $0.72$ to $0.89$,
+without oscillation. Only training curves are available, so the figure documents stable
+optimisation, not the absence of overfitting, which rests on the held-out results above.
+
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.78\linewidth]{hybrid_training_curves}
+\includegraphics[width=0.7\linewidth]{hybrid_training_curves}
 \caption[Training curves of the hybrid model]{Training loss and training accuracy of the
 hybrid CNN--GNN model on five-class grading, per epoch. Adapted
 from~\cite{mezghich2026lnaitopo}.}
@@ -354,8 +368,8 @@ maximum $H_1$ persistence (a neovascularisation signal).
 The synergy observed in \cref{tab:hybrid} motivates the next step. In the hybrid model,
 the graph links regions within one image and the topological descriptors are simply
 concatenated; TOPORET (\cref{sec:dualsim}) instead builds a graph between patients and uses
-the distance between persistence diagrams inside the similarity that defines its edges,
-fusing both signals at graph-construction time.
+a topological distance inside the similarity that defines its edges, fusing both signals at
+graph-construction time.
 
 \subsection{SAMF-GB: Structural Features Outperform GPU EfficientNet-B3}
 \label{sec:samfgb}
@@ -486,7 +500,7 @@ features ($-0.029$) and the fractal descriptors ($-0.024$). Vascular structure i
 informative on Messidor-2, but in this pipeline it does not dominate multiscale texture;
 the study supports the value of vascular descriptors, not specifically of topology.
 
-\begin{table}[!tb]
+\begin{table}[H]
 \centering
 \caption[Feature-group ablation for LightGBM-HC]{Feature-group ablation for LightGBM-HC on
 Messidor-2 (five-fold mean)~\cite{belhadj2026icpram}.}

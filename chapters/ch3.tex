@@ -103,8 +103,13 @@ reused in \cref{ch:dots,ch:reg}.
 \Cref{tab:stages} gives the typed input/output contract of each stage. The contracts are
 what makes each stage unit-testable in isolation (\cref{sec:iec62304}); the systems of
 \cref{ch:dots} keep this decomposition and change the content of some stages.
+Each contract fixes the type, the dimension and the valid range of what a stage receives
+and returns. A stage can therefore be replaced without touching the others: DGTS changes
+the backbone of S2 and the graph of S5, and DOTS replaces S5--S6 by a refinement encoder
+and an ordinal head, while S1 is shared by all three systems. The same contracts define the
+checks of the verification plan of \cref{tab:unittests}.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption[TOPORET six-stage modular pipeline]{TOPORET six-stage modular pipeline. Each stage has a typed interface contract
 that supports IEC~62304-style unit verification.}
@@ -133,7 +138,7 @@ thinning~\cite{zhang1984thinning} gives a one-pixel skeleton; components smaller
 $50$ pixels are removed as artefacts. \Cref{fig:clahe} shows the effect of CLAHE, and
 \cref{fig:skeleton} follows stages S1--S3 on one image.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \begin{minipage}{0.86\textwidth}
 \begin{subfigure}[t]{0.4\textwidth}\centering
@@ -149,14 +154,6 @@ $50$ pixels are removed as artefacts. \Cref{fig:clahe} shows the effect of CLAHE
 \label{fig:clahe}
 \end{figure}
 
-\begin{figure}[!tb]
-\centering
-\includegraphics[width=0.86\textwidth]{vessel_skeleton_persistence}
-\caption[Vessel skeleton extraction and topological features (stages S1--S3)]{Vessel skeleton extraction and topological features (stages S1--S3):
-(a)~vessel network, (b)~Zhang--Suen skeleton $P_i$, (c)~Vietoris--Rips persistence
-diagram $D_i$ (filled: $H_0$ components; open: $H_1$ loops).}
-\label{fig:skeleton}
-\end{figure}
 
 \paragraph{Stages S2--S4: visual and topological features.}
 EfficientNet-B3~\cite{tan2019efficientnet}, pre-trained on ImageNet and kept frozen, gives a
@@ -176,11 +173,20 @@ n_\ell^{H_1}\bigr)^\top \in \mathbb{R}^6 ,
 \label{eq:tda-toporet}
 \end{equation}
 and the node feature vector
-$z_i=[\,x_i^{\mathrm{CNN}}\,\Vert\,\mathrm{Norm}(x_i^{\mathrm{TDA}})\,]\in\mathbb{R}^{1542}$,
+$z_i=[\,x_i^{\mathrm{CNN}}\,\Vert\,x_i^{\mathrm{TDA}}\,]\in\mathbb{R}^{1542}$,
 in which the two parts are concatenated as computed.
 SAMF-GB uses a different, seven-dimensional topological vector (\cref{eq:tda}), and DGTS
 computes persistent homology on feature-space neighbourhoods rather than on the vessels
 (\cref{ch:dots}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.76\textwidth]{vessel_skeleton_persistence}
+\caption[Vessel skeleton extraction and topological features (stages S1--S3)]{Vessel skeleton extraction and topological features (stages S1--S3):
+(a)~vessel network, (b)~Zhang--Suen skeleton $P_i$, (c)~Vietoris--Rips persistence
+diagram $D_i$ (filled: $H_0$ components; open: $H_1$ loops).}
+\label{fig:skeleton}
+\end{figure}
 
 \subsection{Dual-Similarity Population Graph}
 \label{sec:dualsim}
