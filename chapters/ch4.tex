@@ -377,11 +377,12 @@ Kaggle EyePACS. Its grade distribution (\cref{tab:abstention}) is $52.3\%$, $10.
 $24.9\%$, $6.1\%$ and $6.4\%$ for Grades~0--4, so that $1{,}256$ images ($12.6\%$) are
 severe. A random sample of $10{,}000$ images from these two sources could contain at most
 about $7\%$ severe images (\cref{tab:datasets}), so the test set over-represents the severe
-grades. The test set was therefore deliberately enriched in severe grades; its
-composition by source dataset and grade is given in \cref{tab:testcomp}, and the exact list
-of test images (identifier, source dataset and grade) is recorded in an evaluation
-manifest, \texttt{test\_manifest.csv}, generated from the evaluation outputs and released
-with the code (\cref{app:repro}). This enrichment increases the number of severe cases on
+grades. The test set was therefore deliberately enriched in severe grades: it is not a
+simple random draw, and it should not be read as one. Its complete composition by source
+dataset and grade is given in \cref{tab:testcomp}, so that any metric can be re-weighted to
+a natural prevalence, and the exact list of test images (identifier, source dataset and
+grade) is written by the evaluation script to an evaluation manifest,
+\texttt{test\_manifest.csv}, to be released with the code (\cref{app:repro}). This enrichment increases the number of severe cases on
 which Sev-NR and PDR-NR are estimated, but it also means that prevalence-dependent metrics, such as QWK and
 accuracy, describe this test set rather than a screening population with natural
 prevalence. The other benchmarks are used to measure performance across acquisition
