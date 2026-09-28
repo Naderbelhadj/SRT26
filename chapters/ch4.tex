@@ -99,9 +99,11 @@ external Messidor-2 dataset.
 the DOTS ablation (CNN baseline, $+$GraphSAGE, $+$CORAL only, $+$TTA only) meets the
 Sev-NR criterion.
 \end{description}
-The thresholds are those used for autonomous DR screening~\cite{abramoff2018pivotal} and
-in the DOTS article~\cite{belhadj2026dots}; they are adopted here, not chosen after seeing
-the results. H3 is evaluated at the point estimate; the confidence intervals are reported
+The thresholds are those of the DOTS article~\cite{belhadj2026dots}. They are informed by
+autonomous screening practice, whose pivotal trial used pre-defined sensitivity and
+specificity endpoints~\cite{abramoff2018pivotal}, and by national programmes that monitor
+the referral of sight-threatening disease~\cite{scanlon2017english}; they are evaluation
+targets of this thesis, not published regulatory thresholds. H3 is evaluated at the point estimate; the confidence intervals are reported
 and discussed in \cref{sec:ch4-discussion}.
 
 \section{Shared Experimental Protocol}
@@ -185,15 +187,16 @@ criteria of H3a.
 
 \begin{table}[H]
 \centering
-\caption[Screening safety criteria of H3a]{Screening safety criteria of H3a, adopted from
-autonomous DR screening practice~\cite{abramoff2018pivotal,belhadj2026dots}.}
+\caption[Screening safety criteria of H3a]{Screening safety criteria of H3a: evaluation
+targets of this thesis, taken from the DOTS article~\cite{belhadj2026dots} and informed by
+screening practice~\cite{abramoff2018pivotal,scanlon2017english}.}
 \label{tab:criteria}
 \small
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{@{}P{5.4cm}lP{6.0cm}@{}}
 \toprule
 Criterion & Threshold & Rationale \\
 \midrule
-Quadratic weighted kappa & $\geq0.80$ & Agreement required for grading \\
+Quadratic weighted kappa & $\geq0.80$ & Substantial agreement with the reference grades \\
 Severe non-referral rate (Sev-NR) & $\leq2\%$ & Missed urgent referrals, Grade~3 \\
 PDR non-referral rate (PDR-NR) & $\leq2\%$ & Missed urgent referrals, Grade~4 \\
 Grade~$0\to4$ and Grade~$4\to0$ confusions & $0\%$ & Catastrophic ordinal errors \\
@@ -297,9 +300,9 @@ $16$--$64$; setting the focal parameter $\gamma$ to $0$ (plain cross-entropy) lo
 $0.012$.
 
 \paragraph{Calibration.}
-On fold~0, temperature scaling ($T=1.42$) reduces the ECE from $0.084$ to $0.031$, the
-maximum calibration error from $0.187$ to $0.063$, and the Brier score from $0.148$ to
-$0.141$.
+Temperature scaling, fitted on the validation split of each fold, gives temperatures
+between $1.38$ and $1.47$. On fold~0 it reduces the ECE from $0.084$ to $0.031$, the maximum
+calibration error from $0.187$ to $0.063$, and the Brier score from $0.148$ to $0.141$.
 
 \paragraph{Per-grade results and external validation.}
 \Cref{tab:dgts-grade} gives the per-grade results in cross-validation and on EyePACS.
@@ -585,7 +588,6 @@ Head and loss & GraphSAGE $+$ PH branch; focal loss & FRE $+$ CORAL; ordinal los
 QWK, five-fold CV & $0.941\pm0.008$ & $0.9527\pm0.0063$ \\
 External validation & EyePACS, $35{,}126$ images, QWK $0.925$ & Messidor-2, $1{,}744$ images, QWK $0.931$ \\
 External Sev-NR / PDR-NR & $\approx2.1\%$ / $\approx1.8\%$ & $1.4\%$ / $1.9\%$ \\
-Calibrated ECE & $0.031$ (fold 0) & $0.031\pm0.003$ (five-class) \\
 Inference (T4 GPU) & $18.3$~ms & $\approx75$~ms (TTA $\times5$) \\
 \bottomrule
 \end{tabular}

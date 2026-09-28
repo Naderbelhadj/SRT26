@@ -383,3 +383,13 @@ test_manifest.csv reproduces Table 5.3 exactly.
   - DOTS papers call Messidor-2 "Belgian"; it is French (thesis says France).
   - DOTS and DGTS both report T = 1.42 and calibrated ECE 0.031.
   - DGTS says Sev-NR 2.1% is "below 2%" on EyePACS; thesis states it is slightly above.
+
+=== Iterative excellence pass ===
+* DOTS venue fixed: SN Computer Science only (bib + publications). DGTS manuscript still
+  declares CMPB for DOTS -> author must update that declaration.
+* H3 thresholds no longer attributed to Abramoff's pivotal trial (whose endpoints were
+  sensitivity/specificity); now "evaluation targets of the DOTS article, informed by
+  screening practice".
+* Calibration: comparison table no longer juxtaposes the two ECE 0.031; DGTS temperature
+  reported as the published fold range 1.38-1.47. Prepared oral explanation in the report.
+* Criteria table width fixed; no visible overfull boxes; 0 errors, 0 undefined refs.
