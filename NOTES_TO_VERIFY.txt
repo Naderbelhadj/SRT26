@@ -508,3 +508,5 @@ v26 (defensibility pass, no new experiments):
 - Abstract/resume: final sentence "retrospective evidence ... support further clinical validation but establish neither prospective clinical safety nor regulatory compliance"; H3 phrased as screening-oriented targets.
 - Fixed a wrong cross-reference (perspectives appeared as "Section 6.10"); 3 sub-2pt overfull boxes removed.
 - Checks: 0 errors, 0 undefined, 0 overfull, 71 floats OK (GC flags = running-header false positives), 0 stacked, resume/abstract one page each.
+
+v27: List of Publications intro sentence: PLOS ONE (J3) stated as under revision, three journals under review (entries and bib already said so).
