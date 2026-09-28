@@ -291,3 +291,12 @@ Commit both files and release test_manifest.csv with the code. Do not submit the
 while any red value remains (LaTeX also warns "Missing value ...").
 If the test selection used a specific algorithm and seed, add one sentence stating them
 next to Table 5.3 (the script cannot recover them from the predictions).
+
+Eighth pass: author-supplied evaluation values
+==============================================
+Filled from the author: t = 0.60; validation coverage 93.8% and Sev-NR 1.9% at
+tau_U = 0.73 (identical to the test values, now stated explicitly in Ch.5); all seven
+test values reproduced from the saved predictions.
+STILL RED (12 cells): Table 5.3, test composition by source dataset and grade. The
+author gave only "APTOS = 2,xxx, EyePACS = 7,xxx"; exact counts per grade are needed
+(output of tools/verify_h3a.py, or chapters/h3a_values.tex written by it).

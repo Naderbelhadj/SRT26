@@ -518,7 +518,10 @@ achieved at the point-estimate level, with moderate evidential strength
 criterion.
 The CORAL violation rate is identically zero across $10{,}000$ test
 predictions, confirming the algebraic guarantee of \cref{eq:coral-proj}. For comparison, on the validation folds used to select $\tau_U$
-(\cref{tab:tau}), the coverage was \valCov{} and the Sev-NR \valSevNR{}.
+(\cref{tab:tau}), the coverage was \valCov{} and the Sev-NR \valSevNR{}: the test values
+coincide with the validation values at the reported precision. Both thresholds ($\tau_U$
+and $t$) were frozen before the single access to the test set, and a re-run of the
+evaluation from the saved predictions reproduces all seven test values of \cref{tab:h3a}.
 
 \begin{table}[H]
 \centering
