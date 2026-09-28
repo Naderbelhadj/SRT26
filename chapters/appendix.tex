@@ -74,7 +74,7 @@ Dropout $p$ & 0.30 & 0.30 \\
 Class weights & $w_c=N/(C\,N_c)$ & $1.0, 2.5, 3.0, 8.0, 6.0$ \\
 Label smoothing $\epsilon$ & -- & 0.05 \\
 Abstention threshold $\tau_U$ & -- & 0.73~nats \\
-Severe-DR referral threshold $t$ & -- & \refT{} (validation; frozen before test) \\
+Severe-DR referral threshold $t$ & -- & Validation-selected; frozen before test (released configuration) \\
 Referral rule & Not applicable & Refer if $\hat P(Y\geq3)>t$ or $H_i>\tau_U$ (\cref{eq:referral}) \\
 Optimiser & Adam, lr $10^{-3}\to10^{-5}$ (cosine) & Adam, lr $=10^{-3}$ \\
 Batch size & 64 & 32 \\
@@ -389,7 +389,7 @@ the H3a test.
 test.
 \item \textbf{Class weights $\lambda_0,\ldots,\lambda_4$}: grid search on validation-fold Sev-NR and macro-F1
 (\cref{tab:weights}); fixed before the H3a test.
-\item \textbf{Referral threshold $t=\refT$}: selected on the validation folds together with
+\item \textbf{Referral threshold $t$}: selected on the validation folds together with
 $\tau_U$; fixed before the H3a test.
 \item \textbf{Abstention threshold $\tau_U=0.73$ nats}: smallest threshold meeting Sev-NR
 $<2\%$ with coverage above $90\%$ on the validation fold (\cref{tab:tau}); fixed before

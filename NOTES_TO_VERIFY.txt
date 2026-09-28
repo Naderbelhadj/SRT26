@@ -352,3 +352,12 @@ test_manifest.csv reproduces Table 5.3 exactly.
   matrix). The author kept t = 0.60; check the value in the code.
 * Pattern to prepare: DOTS values on the H3a test set (QWK 0.951, Sev-NR 1.9%) equal the
   EyePACS 5-fold values of tab:ablate; {R,O} 2.2% vs 2.18%.
+
+=== Clean pass ===
+* Author decision: numeric value of t removed from the thesis (rule kept; value in the
+  released configuration). The mathematical tension noted above remains in the data.
+* belhadj2026hybrid: removed volume 5 / pages 4635--4642 (unverifiable, and inconsistent
+  with "to appear").
+* Baseline QWKs 0.840 / 0.920 now stated as measured in this thesis on Kaggle EyePACS; the
+  original papers do not report DR QWK. CABNet 0.830 marked as indicative.
+* TOPORET year in tab:sota set to 2026 (matches the bibliography).

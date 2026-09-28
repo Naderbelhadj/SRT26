@@ -409,7 +409,7 @@ AI~\cite{kelly2019challenges,liu2019comparison,rajpurkar2022ai}.
 
 \Cref{tab:sota} summarises the systems most relevant to this thesis, from 2016 to 2026.
 Despite a $+8.0$~pp QWK gain from EfficientNet-B3 (2019, QWK $=0.840$) to RETFound (2023,
-QWK $=0.920$), none of them addresses the three structural limitations defined in the next
+QWK $=0.920$), both measured in this thesis on Kaggle EyePACS, none of them addresses the three structural limitations defined in the next
 section. Within the representative systems reviewed in this thesis, these three
 requirements are not addressed simultaneously by a single evaluated architecture.
 
@@ -431,7 +431,7 @@ Visual population graph$^{\ddagger}$ & -- & EfficientNet-B3 $+$ visual populatio
 RETFound~\cite{zhou2023retfound} & 2023 & ViT-L/16, retinal pre-training & 0.920 & \xmark & \xmark & \xmark \\
 SAMF-GB~\cite{belhadj2026samfgb} & 2026 & LightGBM $+$ structural features & 0.882 & \xmark & partial & \xmark \\
 \midrule
-TOPORET~\cite{belhadj2025plos}$^{\star}$ & 2025 & EfficientNet $+$ TDA $+$ GraphSAGE & 0.88 & \cmark & \cmark & \xmark \\
+TOPORET~\cite{belhadj2025plos}$^{\star}$ & 2026 & EfficientNet $+$ TDA $+$ GraphSAGE & 0.88 & \cmark & \cmark & \xmark \\
 DOTS~\cite{belhadj2026dots}$^{\star}$ & 2026 & RETFound $+$ CORAL $+$ GAT $+$ abstention & \textbf{0.951} & \cmark & \cmark & \cmark \\
 \bottomrule
 \end{tabular}
@@ -439,9 +439,10 @@ DOTS~\cite{belhadj2026dots}$^{\star}$ & 2026 & RETFound $+$ CORAL $+$ GAT $+$ ab
 $^{\ddagger}$Ablation variant~(C) of TOPORET (\cref{tab:ablation3}): a population graph
 built from visual similarity only, on the same frozen EfficientNet-B3 features,
 representative of graph-based DR approaches that use visual similarity only; it is not the
-reproduction of a specific published system. $^{\star}$This thesis. QWK values other than
-those of the original papers are measured on Kaggle EyePACS under the protocol of
-\cref{ch:toporet}.}
+reproduction of a specific published system. $^{\star}$This thesis. The QWK of
+EfficientNet-B3 and RETFound is measured in this thesis on Kaggle EyePACS (\cref{tab:bench});
+the original papers do not report DR QWK. The CABNet value is indicative, obtained under a
+different protocol, and not directly comparable.}
 \end{table}
 
 Three patterns emerge from \cref{tab:sota}.

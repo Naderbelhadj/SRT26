@@ -437,12 +437,13 @@ validation folds only.
 The complete safety mechanism of DOTS is
 \begin{equation}
 \text{refer image } i \iff \hat P(Y_i\geq 3) > t \quad\text{or}\quad H_i>\tau_U ,
-\qquad t=\refT,\ \tau_U=0.73~\text{nats},
+\qquad \tau_U=0.73~\text{nats},
 \label{eq:referral}
 \end{equation}
 where the second condition is the entropy abstention of \cref{eq:ent} (the deferred image
 is referred to a human grader). Both thresholds were selected on the validation folds and
-frozen before the test evaluation. Sev-NR counts a severe image (Grade~3 or~4) as
+frozen before the test evaluation; the value of the referral threshold $t$ is part of the
+released configuration files (\cref{app:repro}). Sev-NR counts a severe image (Grade~3 or~4) as
 \emph{not referred} when neither condition holds. Because referral uses the cumulative probability
 rather than the most probable grade, the Sev-NR of a system is not the same quantity as
 the fraction of severe images whose \emph{predicted grade} is below~3 in a confusion
