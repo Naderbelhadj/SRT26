@@ -1,0 +1,345 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{xcolor,booktabs,array,enumitem,titlesec,fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\definecolor{navy}{HTML}{16324F}
+\definecolor{okgreen}{HTML}{1B7A4E}
+\definecolor{limred}{HTML}{A32020}
+\titleformat{\section}{\large\bfseries\color{navy}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{navy}}{\thesubsection}{0.6em}{}
+\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\color{gray}Defence preparation -- N.~Belhadj}
+\fancyhead[R]{\small\color{gray}Internal document, not part of the thesis}
+\fancyfoot[C]{\small\thepage}
+\newcounter{qn}
+\newcommand{\Q}[1]{\refstepcounter{qn}\par\medskip\noindent{\color{navy}\bfseries Q\theqn.\ #1}\par\nopagebreak}
+\newcommand{\A}{\noindent\textbf{Answer.}\ }
+\newcommand{\Avoid}[1]{\par\noindent{\color{limred}\small\textbf{Avoid:} #1}}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\begin{document}
+
+\begin{center}
+{\Large\bfseries\color{navy} Defence Preparation}\\[3pt]
+{\large Deep Learning-Based Prediction of Disease Severity Using Medical Imaging:\\
+An Application to Diabetology}\\[4pt]
+{\small Every number below is taken from the thesis (version v27); section and table
+numbers refer to that version.}
+\end{center}
+
+\section{The thesis in one minute}
+\begin{enumerate}[leftmargin=1.5em,itemsep=1pt]
+\item \textbf{Problem.} Representative DR grading systems share three limitations: they
+grade each image in isolation (L1), ignore the global topology of the vessels (L2), and
+rarely model the order of the grades or measure missed referrals of severe cases (L3).
+\item \textbf{Objective.} Exploit relations, topology and ordinality to improve DR grading,
+tested through three pre-specified hypotheses H1, H2, H3.
+\item \textbf{Framework, not a single model.} TOPORET (relations $+$ vessel topology,
+transductive, H1 and H2), DGTS (inductive population graph with a feature-space
+topological regulariser, external EyePACS) and DOTS (ordinal CORAL pipeline evaluated
+against screening targets, external Messidor-2, H3).
+\item \textbf{Results.} Evidence supporting H1 ($t_4=3.82$, $p=0.019$; corrected for fold
+overlap, $p=0.015$ for the three benchmarks combined); a small statistical association for H2
+($F=84.3$, $p<0.001$, $\eta^2\approx0.01$); DOTS satisfies the screening targets at the point
+estimate internally (QWK $0.953$, Sev-NR $0.97\%$) and on Messidor-2 (QWK $0.931$, Sev-NR
+$1.4\%$), where none of four reduced variants does.
+\item \textbf{Scope.} Retrospective (Level~1) evidence, not a clinical validation; the
+internal Sev-NR interval $[0.2\%,\,2.8\%]$ still crosses $2\%$. The next steps are a
+patient-level and multi-seed re-evaluation, a unified model with deferral, and a
+prospective multi-site reader study.
+\end{enumerate}
+
+\section{Numbers to know by heart}
+\begin{center}\small
+\begin{tabular}{@{}P{5.2cm}P{10.8cm}@{}}
+\toprule
+Item & Value \\
+\midrule
+DR burden & about $103$ million adults (Chapter~1) \\
+H1 (TOPORET, Kaggle DR) & $+0.04$ QWK, $t_4=3.82$, $p=0.019$, $d_z=1.71$; Messidor-2 $+0.07$, APTOS $+0.04$ \\
+H1 robustness & bootstrap CI $[+0.021,\,+0.059]$; sign-flip $p=1/32$; Nadeau--Bengio $t=2.45/2.63/2.25$ ($p=0.070/0.058/0.088$); Fisher $p=0.015$ \\
+H2 (Kaggle DR, $35{,}126$ images) & $F=84.3$, $p<0.001$, $\eta^2\approx0.0095$; $F\approx42$ if $n$ halved; $\alpha=0.005<0.05/6$ \\
+TOPORET ablation (Kaggle DR) & TDA features $+0.02$; graph with TDA in edges $+0.03$; full $+0.04$ QWK \\
+TOPORET settings & $\alpha=0.6$, $\tau=0.65$, five-fold, seed $42$, image-level, transductive \\
+Fused corpus & $5{,}859$ images (APTOS~2019 $3{,}662$ $+$ KaggleDR-F1 $2{,}197$); $309$ Severe, $472$ PDR \\
+DGTS & CV QWK $0.941\pm0.008$; EyePACS zero-shot $0.925\pm0.008$ ($35{,}126$ images); Sev-NR on EyePACS $\approx2.1\%$; $18.3$~ms/image \\
+DGTS ablation (APTOS) & graph $+0.018$ (A2$\to$A3); PH regulariser $+0.030$ (A2$\to$A4); Wilcoxon $p=0.031$ \\
+DOTS internal & QWK $0.9527\pm0.0063$; Sev-NR $0.97\%$ ($3/309$) $[0.2,\,2.8]\%$; PDR-NR $1.27\%$ ($6/472$) $[0.5,\,2.7]\%$; McNemar $p=0.013$ \\
+DOTS Messidor-2 & $1{,}744$ images; QWK $0.931$; Sev-NR $1.4\%$; PDR-NR $1.9\%$; no $0\leftrightarrow4$ confusion \\
+H3b variants (Messidor-2) & Sev-NR: baseline $5.8\%$, $+$GraphSAGE $4.1\%$, $+$CORAL $3.7\%$, $+$TTA $2.9\%$ \\
+DOTS errors & $82.9\%$ adjacent; none spans four grades; about $75$~ms/image (TTA $\times5$) \\
+Sample size for the next study & about $650$ severe images for the CI upper bound $<2\%$; about $1{,}240$ for $80\%$ power \\
+Publications & $13$: $9$ accepted or published ($7$ conference, $2$ book chapters) $+$ $4$ journals ($1$ under revision at PLOS ONE, $3$ under review) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Likely questions and answers}
+
+\subsection{Coherence and originality}
+
+\Q{What is the single contribution of this thesis?}
+\A A structured body of retrospective evidence on how relational, topological and ordinal
+information can complement deep visual representations for DR grading, obtained with
+three dedicated systems and pre-specified tests, and reported with its limits.
+
+\Q{Why three systems instead of one model?}
+\A The thesis proposes a three-axis research framework. Each axis is instantiated by a
+dedicated system so that its contribution can be measured separately, with its own
+ablation. Combining the three in one model -- a population graph with vascular topology
+and a CORAL head, plus deferral -- is the first model to build next, not a claim of this thesis.
+\Avoid{``DOTS contains everything.'' It does not use the graph or topology in its final form.}
+
+\Q{Population graphs already exist (Parisot et al.). What is new?}
+\A Population graphs for disease prediction existed, and in DR they connected images by
+visual similarity only. TOPORET adds persistence descriptors of the vessel skeleton to the
+edge similarity and to the node features; to our knowledge this had not been done before.
+DGTS adds an inductive graph with a feature-space persistent-homology regulariser, and DOTS
+adds a screening-oriented evaluation in which safety metrics are reported next to QWK and
+checked on external data.
+
+\Q{How do the three systems differ in the evidence they provide?}
+\A Table~1 of the Introduction: TOPORET gives transductive evidence (H1, H2), DGTS
+inductive and external evidence (EyePACS), DOTS screening-oriented point-estimate
+evidence (Messidor-2, H3). They are not identical forms of evidence, and the thesis says so.
+
+\subsection{H1 and TOPORET}
+
+\Q{Your H1 test has four degrees of freedom. Is that serious?}
+\A It is a limitation and I treat it as one. The pre-specified test gives $t_4=3.82$,
+$p=0.019$. Because five folds are few, I added a bootstrap interval that excludes zero and
+an exact sign-flip test ($p=1/32$, the minimum possible: the gain is positive in every fold).
+Because folds overlap, I applied the Nadeau--Bengio correction: no single benchmark stays
+below $0.05$, but the three benchmarks, which are independent datasets, combined by
+Fisher's method give $p=0.015$. So H1 is supported by converging but limited evidence, not
+proven in general.
+
+\Q{TOPORET is transductive. Is that not information leakage?}
+\A No labels of test images are used; their features, not their grades, influence their
+neighbours during training, which is the standard transductive setting of Parisot et al.
+It is, however, not equivalent to a strictly inductive, patient-independent evaluation,
+and the thesis states it. The inductive evidence for the relational axis comes from DGTS,
+whose graph is built from the training fold only (graph $+0.018$ QWK).
+
+\Q{Kaggle DR and Messidor-2 contain both eyes. Could the fellow eye explain the gain?}
+\A Partly, possibly: a test image can be connected to the fellow eye, whose grade is
+usually the same. Two facts limit this concern: the gain is also observed on APTOS~2019,
+which has one image per patient ($+0.04$ QWK), and DGTS, evaluated on a corpus where the
+split is patient-level, also shows a graph gain. A patient-level re-evaluation of TOPORET
+is the first item of the perspectives; the released code needs only a grouped split.
+
+\Q{Why is your Kaggle DR accuracy not comparable with published systems?}
+\A Because it is obtained transductively with image-level folds, which differs from the
+patient-level or external test sets of most studies. For that reason Section~4.4.8 does not
+rank TOPORET against published systems; what is valid is the paired comparison with the
+CNN baseline on the same features and folds.
+
+\Q{Which component of TOPORET matters most?}
+\A The graph: with CNN-only node features and topology only in the edges it adds $+0.03$
+QWK, against $+0.02$ for topological node features alone; the full model adds $+0.04$.
+The contributions are complementary and roughly additive.
+
+\subsection{H2 and topology}
+
+\Q{$\eta^2\approx0.01$: is the effect not negligible?}
+\A It is small and I say so. The association is statistically robust -- $F=84.3$ against a
+critical value of about $3.72$, and still about $42$ if the effective sample size were
+halved -- but grade explains about $1\%$ of the variance of $H_1$ persistence. Topology
+alone does not explain severity; it is complementary information, consistent with its
+$+0.02$ QWK in the ablation.
+
+\Q{Is $H_1$ persistence a biomarker of neovascularisation?}
+\A No. It measures loops of the segmented vessel skeleton. A link with
+neovascularisation is plausible but not demonstrated; the thesis uses the term
+``severity-associated topological feature'', not ``biomarker''.
+
+\Q{You tested six descriptors. What about multiple comparisons?}
+\A The decision level was fixed at $\alpha=0.005$, below the Bonferroni level
+$0.05/6\approx0.008$, so the decision on $\Pi_{H_1}$ is valid after correction
+(Appendix~C.6).
+
+\Q{Why an ANOVA rather than an ordinal regression?}
+\A H2 was formulated as an association between one predefined feature and five grades
+treated as groups; the ANOVA makes no assumption on the spacing between grades. Ordinal
+or regression models of the grade are natural complementary analyses.
+
+\Q{The topology of TOPORET uses six summary statistics. Is that ``topology''?}
+\A It is a coarse summary of the persistence diagrams, and the thesis states that the
+topological similarity compares six statistics rather than full diagrams. Richer
+representations (persistence images, learnable layers) are listed as perspectives.
+
+\subsection{DGTS}
+
+\Q{What does the persistent-homology branch of DGTS do at inference?}
+\A At inference $p_i=0$, so $q_i=\mathrm{ReLU}(W_p p_i)=0$: the topological branch acts only
+through the gradients that shaped the graph representation during training. It is a
+training-time regulariser. All reported DGTS figures were measured in this inference
+setting, so the gain is a gain of the deployed model.
+
+\Q{Is DGTS topology related to the vessels?}
+\A No. It is the topology of feature-space neighbourhoods; its loops cannot be read as
+vascular loops. The anatomical interpretation of H2 applies only to TOPORET.
+
+\Q{DGTS generalises well but misses the safety threshold. What does that teach?}
+\A That accuracy and safety must be measured separately: QWK $0.925$ on EyePACS, yet Sev-NR
+about $2.1\%$, slightly above the $2\%$ target. It motivated DOTS.
+
+\subsection{DOTS and H3}
+
+\Q{Is DOTS safe?}
+\A Its observed performance satisfies the pre-set screening targets at the point
+estimate, internally and on Messidor-2. Safety is not demonstrated: with $309$ severe
+images the internal interval is $[0.2\%,\,2.8\%]$, above $2\%$, and the external intervals
+cannot be computed from the published counts. About $650$ severe images at the observed
+rate would be needed for the upper bound to fall below $2\%$.
+\Avoid{``DOTS is safe'' or ``DOTS is clinically validated.''}
+
+\Q{Where does the $2\%$ threshold come from?}
+\A It is an evaluation target of this thesis, taken from the DOTS article and informed by
+autonomous screening practice (the pivotal trial with pre-defined endpoints) and by
+national programmes that monitor the referral of sight-threatening disease. It is not a
+regulatory threshold.
+
+\Q{Your non-referral definition counts Severe predicted as Moderate as referred. Is that
+lenient?}
+\A Yes, and it is stated with the definition. It matches a pathway in which moderate DR is
+already referable; a definition requiring a predicted grade of at least~3 would give higher
+rates.
+
+\Q{Why is H3b meaningful?}
+\A On Messidor-2, every reduced variant fails the Sev-NR target (from $5.8\%$ down to
+$2.9\%$), and only the complete pipeline reaches $1.4\%$. The claim is limited to the variants
+of this ablation; it does not show that every system lacking a component would fail.
+
+\Q{Your FRE is called a transformer block. Does attention help?}
+\A No. It operates on a sequence of length one, so attention weights are identically one:
+functionally it is a residual MLP with layer normalisation. Its benefit over a linear
+projection comes from the non-linear bottleneck and the residual path, and no
+attention-based benefit is claimed.
+
+\Q{CORAL adds only $+0.006$ QWK. Why keep it?}
+\A Because the component that improves safety most is not the one that improves QWK most.
+CORAL gives the largest accuracy gain per QWK point ($+1.3$~pp), concentrates errors on
+adjacent grades ($82.9\%$) and, combined with the other components, is needed to reach the
+Sev-NR target externally.
+
+\subsection{Data and protocol}
+
+\Q{KaggleDR-F1 is exactly $60\%$ of APTOS in every grade. Are the sources independent?}
+\A Not verified. The proportionality is compatible with KaggleDR-F1 being derived from
+APTOS~2019, so the cross-validation results on the fused corpus are interpreted as internal
+multi-source evidence, possibly optimistic. The external evaluations (EyePACS, checked for
+duplicates, and Messidor-2) are not affected, which is why the conclusions rest on them.
+
+\Q{Are your sample sizes patients or images?}
+\A Images. For the fused corpus the split is also patient-level (APTOS has one image per
+patient, KaggleDR-F1 no bilateral pairs); for TOPORET on Kaggle DR and Messidor-2 it is not.
+
+\Q{Why a single seed?}
+\A The folds were drawn with seed $42$ for reproducibility. Variability over folds is
+reported everywhere (Table~D.2), but repetition over several seeds was not run; it is the
+second perspective.
+
+\Q{Why EfficientNet and not RETFound or a ViT?}
+\A The thesis isolates the contribution of relations, topology and ordinality on a fixed,
+widely used backbone, so the gains are not confounded by a change of backbone. Retinal
+foundation models such as RETFound are listed as a methodological perspective.
+
+\Q{No demographic information: what about fairness?}
+\A None of the public datasets provides per-image demographic metadata, so a subgroup
+analysis could not be done; it is stated as a limitation and is a requirement of the
+planned prospective study.
+
+\subsection{Chapter 3 and the non-medical detour}
+
+\Q{Why evaluate a graph template on microservices and network intrusion?}
+\A Those domains have unambiguous labels and graphs with a clear structure, so the template
+could be tested before being applied to patients. The ten-run re-evaluation shows an
+honest result: the invariants bring interpretability and robustness to drift, not a
+significant accuracy gain. The transfer to retinal grading is a design analogy, not a
+validated result.
+
+\Q{What does SAMF-GB show?}
+\A That structural descriptors alone already carry enough information to rival a deep
+network on this task ($+0.042$ QWK over EfficientNet-B3, with a CPU classifier about $13$
+times cheaper). It is not a like-for-like architecture benchmark.
+
+\subsection{Chapter 6 and deployment}
+
+\Q{Is your system compliant with the MDR or the EU AI Act?}
+\A No claim of compliance is made. Chapter~6 is a regulatory-oriented engineering mapping,
+not a conformity assessment, clinical evaluation, CE marking or FDA clearance. Table~6.6
+states the status of each component: the FHIR adapter is designed but not implemented, and
+no deployment or certification was performed.
+
+\Q{What would the next study look like?}
+\A A pre-registered, prospective, multi-site reader study powered on severe cases: about
+$1{,}240$ severe images for $80\%$ power, i.e.\ about $25{,}000$ screened images at a $5\%$
+prevalence of severe disease, with patient-level splits and a deferral mechanism based on
+the calibrated probabilities of DOTS.
+
+\subsection{Trap questions}
+
+\Q{So what did you really prove?}
+\A The experiments show directly the measured quantities under the stated protocols. They
+support, without establishing conclusively, that relational information improves grading,
+that topology carries severity-related information, and that the ordinal pipeline
+satisfies screening targets. They do not evaluate clinical safety, patient-level TOPORET,
+multi-seed variability, fairness, longitudinal prediction or regulatory compliance
+(Table~GC.2).
+
+\Q{If you had six more months, what would you do first?}
+\A Re-run TOPORET with patient-level folds and a per-fold graph, repeat all experiments over
+several seeds, and add a second external dataset with enough severe cases. These three
+steps address the main statistical limits without new infrastructure.
+
+\Q{The title says ``disease severity''. Do you predict progression?}
+\A No. The task is cross-sectional: severity on the ICDR scale from a single image. A
+temporal population graph linking successive visits is a perspective.
+
+\section{Wording to use and to avoid}
+\begin{center}\small
+\begin{tabular}{@{}P{7.6cm}P{8.2cm}@{}}
+\toprule
+\color{limred}Avoid & \color{okgreen}Say instead \\
+\midrule
+``We proved that the graph improves grading'' & ``The experiments provide evidence that relational information improves grading under the evaluated conditions'' \\
+``Topology explains severity'' & ``A small statistical association between a topological descriptor and severity'' \\
+``DOTS is safe'' & ``Its observed performance satisfies the pre-set screening targets at the point estimate'' \\
+``Clinically validated'' & ``Evaluated retrospectively on external public data'' \\
+``Regulatory-compliant'' & ``Designed with regulatory considerations in mind'' \\
+``Patients'' (for dataset counts) & ``Retinal images'' \\
+``Retinal topology'' (for DGTS) & ``Feature-space topological regularisation'' \\
+``Superior to the state of the art'' & ``Higher than the baseline on the same folds and features'' \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Suggested presentation plan (about 40 minutes)}
+\begin{center}\small
+\begin{tabular}{@{}rP{4.8cm}P{9.2cm}r@{}}
+\toprule
+\# & Part & Content & min \\
+\midrule
+1 & Context & DR burden, screening gap, why accuracy is not enough & 3 \\
+2 & Problem & L1--L3; the three hypotheses; objective & 3 \\
+3 & Methodology & Pre-specified tests; framework of three systems (Table~1) & 3 \\
+4 & Foundations & Chapter~3 in one slide: template outside medicine, structural evidence & 3 \\
+5 & TOPORET & Dual-similarity graph; H1 with its robustness and correction; ablation & 7 \\
+6 & H2 & ANOVA, effect size, what it does not mean & 3 \\
+7 & DGTS & Inductive graph, regulariser at training only, EyePACS, Sev-NR $2.1\%$ & 5 \\
+8 & DOTS & Pipeline, ablation, H3a with interval, H3b on Messidor-2 & 6 \\
+9 & Engineering & Six stages, status table, what is not done & 2 \\
+10 & Evidence and limits & Figure~GC.1 and Table~GC.2 & 3 \\
+11 & Perspectives & Patient-level, multi-seed, external data, reader and prospective study & 2 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Open and close with the same sentence: \emph{relational, topological and ordinal
+information can complement deep visual representations for DR grading -- here is the
+evidence, and here is exactly where it stops.}
+
+\end{document}
