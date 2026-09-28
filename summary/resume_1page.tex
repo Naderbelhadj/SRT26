@@ -1,16 +1,16 @@
 \documentclass[11pt,a4paper]{article}
-\usepackage[margin=1.5cm,top=1.2cm,bottom=1.2cm]{geometry}
+\usepackage[margin=1.35cm,top=0.9cm,bottom=0.9cm]{geometry}
 \usepackage[bidi=basic,english]{babel}
 \babelprovide[import]{arabic}
 \babelprovide[import]{french}
 \babelfont{rm}{Latin Modern Roman}
-\babelfont[arabic]{rm}[Scale=1.12]{Amiri}
+\babelfont[arabic]{rm}[Scale=1.0]{Amiri}
 \usepackage{xcolor}
 \definecolor{navy}{RGB}{20,45,95}
 \pagestyle{empty}
 \newcommand{\en}[1]{\mbox{\textdir TLT\relax\foreignlanguage{english}{#1}}}
 \setlength{\parindent}{0pt}
-\newcommand{\sect}[1]{\par\vspace{9pt}{\color{navy}\bfseries\large #1}\par\vspace{1pt}{\color{navy}\hrule height 0.6pt}\vspace{4pt}}
+\newcommand{\sect}[1]{\par\vspace{5pt}{\color{navy}\bfseries\large #1}\par\vspace{1pt}{\color{navy}\hrule height 0.6pt}\vspace{4pt}}
 \begin{document}
 \begin{center}
 {\small University of Manouba -- National School of Computer Sciences (ENSI) -- HANALab}\\[3pt]
@@ -23,41 +23,46 @@ Supervisor: Prof.\ Lassaad Latrach -- Co-supervisor: Prof.\ Ridha Ghayoula -- Co
 \sect{Summary}
 Diabetic retinopathy (DR) is a leading cause of preventable blindness. This thesis addresses
 three limitations of automated DR grading: no relational context between patients, no use
-of the topology of the retinal vessel network, and no safety-oriented grading (grade order
-and missed referrals of severe cases are rarely modelled or measured). It proposes TOPORET,
+of the topology of the retinal vessel network, and no safety-oriented grading. It proposes TOPORET,
 a population graph whose edges combine visual and topological (persistent-homology)
-similarity, evaluated transductively; pre-specified tests support the contribution of the
-graph (H1: $t_4=3.82$, $p=0.019$; $p=0.015$ for three benchmarks after correction for fold
-overlap) and a small but robust association of topological features with severity (H2:
+similarity, evaluated transductively; pre-specified tests provide evidence supporting the
+contribution of the graph (H1: $t_4=3.82$, $p=0.019$; with five folds, the fold-overlap
+correction leaves $p=0.015$ only for three benchmarks combined) and show a small
+statistical, not causal, association of topological features with severity (H2:
 $F=84.3$, $p<0.001$). Two systems are then trained on a fused corpus of $5{,}859$ images. DGTS, a
 population graph regularised by persistent homology, reaches QWK $=0.941$ in
 cross-validation and $0.925$ without retraining on $35{,}126$ EyePACS images. DOTS, an
 ordinal pipeline (EfficientNet-B3, feature refinement encoder, CORAL, test-time
 augmentation), reaches QWK $=0.931$ and a severe non-referral rate of $1.4\%$ on the
 independent Messidor-2 dataset, where none of its reduced variants meets the $2\%$ threshold.
-The evidence is retrospective and the safety criteria are met at the point estimate only;
-it is not a clinical validation. Supported by nine accepted papers.
+TOPORET, DGTS and DOTS are complementary contributions to one objective: exploiting
+relations, topology and ordinality to improve DR grading. The evidence is retrospective;
+the observed performance satisfies the safety criteria at the point estimate only, and it
+is not a clinical validation. Supported by nine accepted papers.
 
 \sect{Résumé}
 \begin{otherlanguage}{french}
 La rétinopathie diabétique (RD) est une cause majeure de cécité évitable. Cette thèse
 traite trois limites du classement automatique de la RD : l'absence de contexte
 relationnel entre patients, l'absence d'exploitation de la topologie du réseau vasculaire
-rétinien, et l'absence d'un classement orienté sécurité (l'ordre des grades et la
-non-référence des cas sévères sont rarement modélisés ou mesurés). Elle propose TOPORET, un
+rétinien, et l'absence d'un classement orienté sécurité. Elle propose TOPORET, un
 graphe de population dont les arêtes combinent similarité visuelle et topologique
 (homologie persistante), évalué de façon transductive ; des tests fixés à l'avance
-soutiennent l'apport du graphe (H1 : $t_4=3{,}82$, $p=0{,}019$ ; $p=0{,}015$ sur trois bases
-après correction du chevauchement des plis) et une association faible mais robuste des
+apportent des éléments en faveur de l'apport du graphe (H1 : $t_4=3{,}82$, $p=0{,}019$ ;
+avec cinq plis, $p=0{,}015$ seulement pour trois bases combinées après correction du
+chevauchement des plis) et montrent une association statistique faible, non causale, des
 descripteurs topologiques avec la sévérité (H2 : $F=84{,}3$, $p<0{,}001$). Deux systèmes sont ensuite entraînés sur un corpus fusionné
 de $5\,859$ images. DGTS, un graphe de population régularisé par l'homologie persistante,
 atteint un QWK de $0{,}941$ en validation croisée et de $0{,}925$ sans réentraînement sur
 $35\,126$ images EyePACS. DOTS, une chaîne ordinale (EfficientNet-B3, encodeur de
 raffinement, CORAL, augmentation au test), atteint un QWK de $0{,}931$ et un taux de
 non-référence des cas sévères de $1{,}4\,\%$ sur la base indépendante Messidor-2, où aucune
-de ses variantes réduites n'atteint le seuil de $2\,\%$. Les résultats sont rétrospectifs et
-les critères de sécurité ne sont atteints qu'en estimation ponctuelle ; ils ne constituent
-pas une validation clinique. Neuf publications acceptées soutiennent ce travail.
+de ses variantes réduites n'atteint le seuil de $2\,\%$. TOPORET, DGTS et DOTS sont trois contributions
+complémentaires au service d'un même objectif : exploiter les relations, la topologie et
+l'ordinalité pour améliorer le classement de la RD. Les résultats sont rétrospectifs ; les
+performances observées ne satisfont les critères de sécurité qu'en estimation ponctuelle
+et ne constituent pas une validation clinique. Neuf publications acceptées soutiennent ce
+travail.
 \end{otherlanguage}
 
 \sect{\foreignlanguage{arabic}{ملخص}}
@@ -68,9 +73,9 @@ pas une validation clinique. Neuf publications acceptées soutiennent ce travail
 ويقيس الحالات الشديدة غير المُحالة. تقترح الأطروحة نظام
 \en{TOPORET}،
 وهو مخطط سكاني قُيِّم بطريقة تحويلية، تجمع روابطه بين التشابه البصري والتشابه الطوبولوجي (التماثل المستمر)،
-وتدعم اختبارات محددة مسبقاً مساهمة المخطط
+وتقدّم اختبارات محددة مسبقاً أدلة تدعم مساهمة المخطط
 (الفرضية \en{H1}: \en{$t_4=3.82$}، \en{$p=0.019$})
-وارتباط السمات الطوبولوجية بشدة المرض
+وارتباطاً إحصائياً، لا سببياً، للسمات الطوبولوجية بشدة المرض
 (الفرضية \en{H2}: \en{$F=84.3$}، \en{$p<0.001$}).
 ثم يُدرَّب نظامان على مجموعة مدمجة من
 \en{5,859}
@@ -92,7 +97,8 @@ pas une validation clinique. Neuf publications acceptées soutiennent ce travail
 \en{Messidor-2}
 المستقلة، في حين لا تبلغ أيٌّ من نسخه المختزلة العتبة
 (\en{2\%}).
-النتائج استعادية ولا تمثل تحققاً سريرياً، والخطوة التالية هي نموذج موحد ودراسات استباقية متعددة
+تمثل الأنظمة الثلاثة مساهمات متكاملة لهدف واحد: استغلال العلاقات والطوبولوجيا والترتيب لتحسين تصنيف اعتلال الشبكية السكري.
+النتائج استعادية، ولا تستوفي معايير السلامة إلا في التقدير النقطي، ولا تمثل تحققاً سريرياً، والخطوة التالية هي نموذج موحد ودراسات استباقية متعددة
 المراكز. يستند هذا العمل إلى تسع منشورات علمية مقبولة.
 \end{otherlanguage}
 

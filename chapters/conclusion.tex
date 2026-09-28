@@ -27,22 +27,26 @@ TOPORET, a population graph whose edges combine visual and topological similarit
 DGTS, a population graph regularised by persistent homology of feature-space
 neighbourhoods, and DOTS, an ordinal pipeline evaluated against screening safety criteria.
 Finally, the software of these pipelines was designed according to regulatory-oriented
-principles relevant to the IEC~62304 and ISO~14971 standards and the EU AI Act.
+principles relevant to the IEC~62304 and ISO~14971 standards and the EU AI Act. TOPORET,
+DGTS and DOTS are thus three complementary contributions to one objective: exploiting the
+relations between images, the topology of retinal structures and the order of the grades
+to improve DR grading.
 
 The experiments provide three principal findings. First, the pre-specified analysis
-supports the contribution of the population graph to grading performance (H1:
-$t_4=3.82$, $p=0.019$ two-tailed, $+0.04$ QWK, reproduced on three benchmarks), and the
+provides evidence supporting the contribution of the population graph to grading
+performance (H1: $t_4=3.82$, $p=0.019$ two-tailed, $+0.04$ QWK, reproduced on three
+benchmarks), and the
 same direction of effect is observed on a second corpus with DGTS ($+0.018$ QWK for the
 graph). Because the inferential unit of H1 is the cross-validation fold, its test has four
 degrees of freedom; corrected for the overlap of the folds, it is no longer significant on
 any single benchmark ($p=0.06$--$0.09$) but remains so for the three benchmarks combined
-($p=0.015$). The TOPORET results were obtained transductively with image-level folds,
+($p=0.015$); this is evidence, not proof, given the five folds. The TOPORET results were obtained transductively with image-level folds,
 whereas the DGTS result is inductive. Second, persistent-homology descriptors extracted from
-retinal vascular structures show a statistically significant association with ICDR
-severity (H2: $F=84.3$, $p<0.001$, a small effect, $\eta^2\approx0.01$); this is an association, not evidence of a causal or
-biological mechanism. A topological signal also helps on the feature-space neighbourhoods
-of DGTS ($+0.030$ QWK), although it cannot be interpreted anatomically there. Third, DOTS
-meets the screening safety criteria at the point estimate, internally (QWK $=0.953$,
+retinal vascular structures show a statistical association with ICDR severity (H2:
+$F=84.3$, $p<0.001$, a small effect, $\eta^2\approx0.01$); this is an association, not
+evidence of causality or of a demonstrated biological meaning. A topological signal also helps on the feature-space neighbourhoods
+of DGTS ($+0.030$ QWK), although it cannot be interpreted anatomically there. Third, the observed performance of DOTS
+satisfies the pre-set screening safety criteria at the point estimate, internally (QWK $=0.953$,
 Sev-NR $=0.97\%$, PDR-NR $=1.27\%$) and on the independent Messidor-2 dataset (QWK
 $=0.931$, Sev-NR $=1.4\%$, PDR-NR $=1.9\%$), whereas none of its four reduced variants
 reaches Sev-NR $\leq2\%$ on Messidor-2 (H3a and H3b).
@@ -58,9 +62,9 @@ thesis. All evidence is retrospective (Level~1).}
 \toprule
 Hypothesis & Test and data & Result & Verdict \\
 \midrule
-H1 -- the population graph adds information & Paired two-tailed $t$-test over five folds, three benchmarks; fold-overlap correction (\cref{ch:toporet}) & $t_4=3.82$, $p=0.019$, $+0.04$ QWK; corrected $p=0.015$ combined; DGTS: $+0.018$ QWK, inductive & Supported (combined evidence) \\
-H2 -- vessel topology is associated with severity & One-way ANOVA of $\Pi_{H_1}$ on Kaggle DR (\cref{ch:toporet}) & $F=84.3$, $p<0.001$, monotone increase with grade; small effect ($\eta^2\approx0.01$) & Supported (association) \\
-H3a -- DOTS meets the safety criteria & Criteria of \cref{tab:criteria}, internally and on Messidor-2 (\cref{ch:dots}) & Sev-NR $0.97\%$ internal, $1.4\%$ external; QWK $0.953$ and $0.931$ & Supported at the point estimate \\
+H1 -- the population graph adds information & Paired two-tailed $t$-test over five folds, three benchmarks; fold-overlap correction (\cref{ch:toporet}) & $t_4=3.82$, $p=0.019$, $+0.04$ QWK; corrected $p=0.015$ combined only; DGTS: $+0.018$ QWK, inductive & Evidence supporting H1 (five folds) \\
+H2 -- vessel topology is associated with severity & One-way ANOVA of $\Pi_{H_1}$ on Kaggle DR (\cref{ch:toporet}) & $F=84.3$, $p<0.001$, monotone increase with grade; small effect ($\eta^2\approx0.01$) & Statistical association, not causal \\
+H3a -- DOTS satisfies the pre-set criteria & Criteria of \cref{tab:criteria}, internally and on Messidor-2 (\cref{ch:dots}) & Sev-NR $0.97\%$ internal, $1.4\%$ external; QWK $0.953$ and $0.931$ & Satisfied at the point estimate; interval crosses $2\%$ \\
 H3b -- no reduced variant suffices & Four ablation variants on Messidor-2 (\cref{ch:dots}) & Sev-NR $2.9$--$5.8\%$ for all variants & Supported within the ablation \\
 \bottomrule
 \end{tabular}
@@ -80,21 +84,22 @@ the relational context between patients carry information beyond that of a per-i
 classifier? In our experiments, yes, on two corpora: a graph built from visual similarity
 alone already improves the QWK in DGTS, inductively, and in TOPORET the largest gain is
 obtained when topology enters both the similarity and the node features. Is the global topology of the vascular network
-related to the severity of the disease? It is significantly associated with it: total $H_1$
-persistence, which reflects vascular loops and plausibly neovascularisation, increases
-monotonically with severity. Can an ordinal pipeline meet screening safety criteria, and
-does any reduced version do so? DOTS meets them at the point estimate internally and
+related to the severity of the disease? It is statistically associated with it: total
+$H_1$ persistence, which measures loops of the segmented vessel skeleton, increases
+monotonically with severity; a link with neovascularisation is plausible but not
+demonstrated. Can an ordinal pipeline meet screening safety criteria, and
+does any reduced version do so? The observed performance of DOTS satisfies them at the point estimate internally and
 externally, and none of the reduced versions evaluated does on external data, although the
 confidence interval of the safety criterion calls for confirmation on larger data.
 
 Taken together, the findings support the scientific value of relational, structural and
 ordinal-safety mechanisms in retrospective DR grading. They do not establish clinical
 effectiveness, longitudinal prediction, regulatory certification, or
-readiness for routine clinical deployment, and the three axes have been demonstrated in
+readiness for routine clinical deployment, and the three axes have been evaluated in
 complementary systems rather than combined in one model. The thesis also introduces the use
 of persistent-homology descriptors of the vessel skeleton inside the similarity of a
 population graph, and an evaluation discipline in which safety metrics are reported next to
-accuracy and confirmed on data from another country. On the practical side, DGTS grades an
+accuracy and checked on data from another country. On the practical side, DGTS grades an
 image in $18.3$~ms and DOTS in about $75$~ms on one T4 GPU, and both report quantities that
 can be shown to a clinician -- similar cases with their grades, topological descriptors and
 calibrated probabilities -- whose faithfulness as explanations remains to be evaluated.
@@ -121,10 +126,14 @@ externally.
 \paragraph{Limitations.}
 These results must be read within clear limits.
 \begin{enumerate}[leftmargin=1.6em,itemsep=2pt]
-\item \textbf{No prospective validation.} All experiments are retrospective, on curated
-public datasets. The internal Sev-NR interval of DOTS extends to $2.8\%$, above the $2\%$
-threshold, so statistical compliance with the safety criterion is not established, and no
-claim of prospective clinical safety or effectiveness is made.
+\item \textbf{Statistical uncertainty.} H1 rests on five folds; corrected for their
+overlap, it is significant only for the three benchmarks combined. The internal Sev-NR
+interval of DOTS extends to $2.8\%$, above the $2\%$ threshold, so the safety criteria are
+satisfied at the point estimate only and safety is not demonstrated. The
+cross-validation splits were drawn with one seed ($42$) and were not repeated with others.
+\item \textbf{No prospective or clinical validation.} All experiments are retrospective, on
+curated public datasets, and no claim of prospective clinical safety or effectiveness is
+made.
 \item \textbf{A transductive, image-level evaluation of TOPORET.} Following its released
 code, TOPORET was evaluated with image-level folds and a graph that contains the test
 images as unlabelled nodes, and its topological similarity compares six summary
@@ -142,7 +151,7 @@ counts of retinal images, not necessarily of independent patients, and none of t
 provides demographic information, so fairness across age, sex and ethnicity could not be
 assessed.
 \item \textbf{No single three-axis model and no abstention.} The relational and topological
-axes (TOPORET, DGTS) and the ordinal-safety axis (DOTS) are demonstrated in separate
+axes (TOPORET, DGTS) and the ordinal-safety axis (DOTS) are evaluated in separate
 systems, and no system defers uncertain images to a human grader.
 \item \textbf{No longitudinal validation.} The population graph uses a single visit per
 patient; the thesis grades severity cross-sectionally and does not predict individual
@@ -160,26 +169,42 @@ grade of at least~$3$. The topology used by DGTS is that of the feature space, n
 vessels. Finally, the attention block of the DOTS feature refinement encoder is inactive
 on sequences of length one, so no attention-based benefit is claimed.
 
-These limits open several directions for future work. The most immediate, and the least
-costly, is to re-evaluate TOPORET with patient-level folds and a graph built from the
-training images only, so that H1 is tested under the same inductive conditions as DGTS;
-the released code needs only a grouped split and a per-fold graph. The next is to combine
-the three axes in one model -- a population graph with vascular topology and a CORAL ordinal
-head -- and to add a deferral mechanism built on the calibrated probabilities of DOTS, so
-that the most uncertain images are sent to a human grader. Such a model should then be
-evaluated in a prospective, multi-site reader study, pre-registered and powered on the
-number of severe cases (about $1{,}240$, \cref{sec:roadmap}); this is the first step of the planned translation roadmap of
-\cref{sec:roadmap}. On the methodological side, retinal foundation models such as RETFound
-could replace the ImageNet-pre-trained backbones; anatomically grounded persistent homology
-could replace the feature-space descriptors of DGTS; and learnable topological layers could
-replace the hand-crafted persistence vectors, provided that they remain interpretable. A
-temporal population graph, linking the successive visits of each patient, would allow
-genuine longitudinal modelling of disease progression, for example at the difficult
-Grade~2/3 boundary. Federated construction of the population graph would allow several
-hospitals to collaborate without sharing patient data; the two-site simulation of DOTS is a
-first step in this direction. Finally, an explanation layer based on large language models
-could turn the logged evidence into narratives adapted to clinicians and patients, under
-strict safeguards that prevent it from contradicting the grade.
+\phantomsection\label{sec:persp-gc}
+\paragraph{Perspectives.}
+The experimental weaknesses listed above define the first perspectives, in order of cost.
+\begin{enumerate}[leftmargin=1.6em,itemsep=2pt]
+\item \textbf{Patient-level split.} Re-evaluate TOPORET with patient-level folds and a graph
+built from the training images only, so that H1 is tested under the same inductive
+conditions as DGTS; the released code needs only a grouped split and a per-fold graph.
+\item \textbf{Multi-seed validation.} Repeat each experiment over several random seeds and
+report the spread of QWK and Sev-NR, so that the gains are not tied to one initialisation.
+\item \textbf{New external datasets.} Test DGTS and DOTS on further external datasets, with
+enough severe images (about $650$ at the observed rate) for the upper bound of the Sev-NR
+interval to fall below $2\%$.
+\item \textbf{A unified model with deferral.} Combine the three ingredients in one model --
+a population graph with vascular topology and a CORAL ordinal head -- and add a deferral
+mechanism built on the calibrated probabilities of DOTS.
+\item \textbf{Reader study.} Compare the system with human graders, and graders assisted
+by the system, on the same images, including the usefulness of the similar cases and
+topological descriptors shown to them.
+\item \textbf{Prospective study.} Evaluate the model in a pre-registered prospective study
+powered on the number of severe cases (about $1{,}240$, \cref{sec:roadmap}), the first
+step of the translation roadmap.
+\item \textbf{True multi-site and federated validation.} Replace the two-site simulation of
+DOTS by a validation across hospitals, with a federated construction of the population
+graph so that no patient data are shared.
+\item \textbf{Clinical validation.} Only then can a clinical evaluation, in the sense of
+the Medical Device Regulation, establish clinical safety and effectiveness.
+\end{enumerate}
+On the methodological side, retinal foundation models such as RETFound could replace the
+ImageNet-pre-trained backbones; anatomically grounded persistent homology could replace
+the feature-space descriptors of DGTS; and learnable topological layers could replace the
+hand-crafted persistence vectors, provided that they remain interpretable. A temporal
+population graph, linking the successive visits of each patient, would allow genuine
+longitudinal modelling of disease progression, for example at the difficult Grade~2/3
+boundary. Finally, an explanation layer based on large language models could turn the
+logged evidence into narratives adapted to clinicians and patients, under strict
+safeguards that prevent it from contradicting the grade.
 
 More broadly, the three axes -- relational graph, structural topology, and ordinal
 safety-oriented grading -- are not specific to the retina. They may serve as a template for
@@ -189,7 +214,10 @@ tested.
 
 In summary, the thesis does not claim clinically validated or regulatory-ready systems. It
 shows, on retrospective public data with external validation, that relational, topological
-and ordinal-safety mechanisms each improve DR grading measurably, and it identifies the
-steps that remain: a unified model, a deferral mechanism and prospective evaluation.
+and ordinal-safety mechanisms -- the three complementary contributions TOPORET, DGTS and
+DOTS -- each bring a measurable benefit to DR grading, within the statistical limits stated
+above, and it identifies the steps that remain: patient-level and multi-seed evaluation,
+new external data, a unified model with deferral, and prospective, multi-site clinical
+validation.
 Preventing blindness at population scale will depend on carrying such systems from
 computational evaluation to prospectively validated clinical practice.

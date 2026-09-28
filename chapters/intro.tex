@@ -78,10 +78,10 @@ and on an external dataset;
 to regulatory-oriented principles relevant to medical-device software.
 \end{itemize}
 
-The work thus pursues a double ambition. On the scientific side, it shows that relational
-and topological information improve DR grading on two different corpora, and that
-ordinal supervision combined with multi-source training and test-time augmentation meets
-screening safety thresholds where none of its reduced variants does. On the practical
+The work thus pursues a double ambition. On the scientific side, it provides evidence that relational and topological information
+improve DR grading on two different corpora, and that with ordinal supervision,
+multi-source training and test-time augmentation the observed performance satisfies
+pre-set screening safety criteria where none of the reduced variants does. On the practical
 side, it delivers two research systems trained on $5{,}859$ public images. DGTS (Deep Graph
 Topological System) reaches a quadratic weighted kappa (QWK) of $0.925$ without retraining on
 $35{,}126$ EyePACS images. DOTS (Deep Ordinal Training System) reaches a QWK of $0.931$
@@ -94,9 +94,10 @@ projection, not an observed clinical outcome.
 
 The central claim of the thesis is deliberately bounded. The thesis does not claim that
 its systems are clinically validated or regulatory-ready, nor that the three axes have
-been combined in a single model; it demonstrates, on retrospective public data, that
-relational, topological and ordinal-safety mechanisms each bring a measurable and
-externally validated benefit to DR grading.
+been combined in a single model. It shows, on retrospective public data, that
+relational, topological and ordinal-safety mechanisms each bring a measurable benefit to
+DR grading, also observed on external data, within statistical limits stated with each
+result.
 
 \section*{Research Methodology}
 
@@ -104,7 +105,7 @@ The work follows a hypothesis-driven methodology. Three research hypotheses stru
 thesis: \textbf{H1}, a population graph adds information beyond that captured by a per-image
 classifier; \textbf{H2}, persistent-homology features of the vessel network are
 statistically associated with disease severity; and \textbf{H3}, ordinal supervision
-within the DOTS pipeline meets screening safety criteria internally and on an external
+within the DOTS pipeline satisfies pre-set screening safety criteria internally and on an external
 dataset (H3a), whereas none of the reduced variants of its ablation does on the external
 dataset (H3b). For H1 and H2 the statistical test, the decision threshold and the
 effect-size measure were fixed before the corresponding experiment was run, so that a
@@ -145,18 +146,30 @@ structural features of the retina carry information that deep visual features mi
 including SAMF-GB, a CPU model more accurate than a GPU EfficientNet-B3, whose
 classifier is about $13$ times cheaper to run \cite{belhadj2026hybrid,mezghich2026lnaitopo,belhadj2026icpram,belhadj2026samfgb}.
 \item[C3.] TOPORET, a dual-similarity population graph for DR grading
-introduced in this thesis, with pre-specified tests supporting the contribution of the
-graph (H1) and the association of the topological features with severity (H2) \cite{belhadj2025plos,belhadj2026enase,belhadj2026miua}.
+introduced in this thesis, with pre-specified tests that provide evidence supporting the contribution of the
+graph (H1) and a statistical association of the topological features with severity (H2) \cite{belhadj2025plos,belhadj2026enase,belhadj2026miua}.
 \item[C4.] Two systems trained on a fused multi-source corpus. DGTS is a population graph
 regularised by persistent homology of feature-space neighbourhoods, validated without
 retraining on $35{,}126$ EyePACS images \cite{belhadj2026dgts}. DOTS is an ordinal,
-safety-oriented grading pipeline that meets screening safety criteria at the point
-estimate internally and on Messidor-2, whereas none of its reduced variants does
+safety-oriented grading pipeline whose observed performance satisfies the pre-set
+safety criteria at the point estimate internally and on Messidor-2, whereas none of its reduced variants does
 externally (H3) \cite{belhadj2026dots}.
 \item[C5.] A software architecture with six typed, testable stages, a risk analysis and an
 audit-trail design, together with a regulatory-oriented mapping to IEC~62304, ISO~14971 and
 the EU AI Act (not a conformity assessment).
 \end{description}
+
+\paragraph{Coherence of the contributions.}
+TOPORET, DGTS and DOTS are three complementary contributions to a single objective:
+exploiting the relations between images, the topology of the retinal structures and the
+order of the grades to improve DR grading. TOPORET tests the first two ingredients
+together on three public benchmarks (L1, L2; H1, H2). DGTS carries them into an inductive
+population graph regularised by persistent homology on a fused multi-source corpus, and
+checks them on a second corpus and on external data. DOTS, trained on the same corpus,
+adds the third ingredient, ordinality, and evaluates it against screening safety criteria
+(L3, H3). Each system therefore answers one part of the same question, and C1 and C2
+motivate the design choices on which they rest; combining the three ingredients in one
+model is the first perspective of the thesis (\cref{sec:persp-gc}).
 
 \Cref{tab:pubmap} shows which publications support each chapter of the thesis.
 

@@ -428,7 +428,7 @@ APTOS 2019 & $+0.04$ & 3.5 & 0.025 & 1.57 \\
 in~\cite{belhadj2025plos}.}
 \end{table}
 
-\paragraph{H1 supported.}
+\paragraph{Evidence supporting H1.}
 On the primary benchmark, $t_4=3.82$ ($p=0.019$, two-tailed), a margin of $\times1.37$ over
 the pre-specified critical value; the test is also passed on Messidor-2 and APTOS~2019.
 The population graph is associated with a gain of $+0.04$ QWK and $+1.5$ percentage points
@@ -450,9 +450,9 @@ overlap and gives smaller statistics: $t=2.45$ ($p=0.070$) on Kaggle DR, $2.63$
 ($p=0.058$) on Messidor-2 and $2.25$ ($p=0.088$) on APTOS~2019, each below the
 pre-specified threshold. The three benchmarks are
 independent datasets, so their corrected $p$-values can be combined by Fisher's method,
-which gives $p=0.015$. H1 is therefore supported by the pre-specified test and by the
-combined corrected evidence of the three benchmarks, but not by the corrected test on any
-single benchmark.
+which gives $p=0.015$. The pre-specified test and the combined corrected evidence of the three benchmarks
+therefore provide evidence supporting H1, not a proof: with five folds, the corrected test
+is not significant on any single benchmark.
 
 \paragraph{Where the gain comes from.}
 \Cref{fig:toporetcm} compares the normalised confusion matrices of the CNN baseline and of
@@ -501,7 +501,7 @@ Total $H_1$ persistence $\Pi_{H_1}$ & $84.3$ & $<0.001$ & All adjacent pairs dif
 factor of about $23$.}
 \end{table}
 
-\paragraph{H2 supported.}
+\paragraph{Statistical association (H2).}
 Total $H_1$ persistence increases monotonically with severity, $F=84.3$, $p<0.001$, about
 $23$ times the pre-specified critical value. The association is statistically robust but
 small: over the $35{,}126$ images of the test, $F=84.3$ corresponds to $\eta^2\approx0.01$
@@ -511,9 +511,10 @@ than the number of images; even if it were halved, $F$ would remain about $42$, 
 the critical value. A small effect is consistent with the ablation: topology is a
 complementary signal ($+0.02$ QWK), not a substitute for the visual features. Consistently, intra-grade
 topological distances are systematically smaller than inter-grade distances for all
-grades~\cite{belhadj2025plos}. The analysis demonstrates a statistically
-significant association between the extracted topological descriptors and ICDR severity;
-it does not show that topology causes, or mechanistically explains, disease severity, and
+grades~\cite{belhadj2025plos}. The analysis shows a statistical association between the extracted topological
+descriptors and ICDR severity; it does not show causality, nor a demonstrated biological
+meaning: it does not show that topology causes, or mechanistically explains, disease
+severity, and
 the $p$-value alone does not measure the size of the association. A one-way ANOVA was chosen
 rather than a regression model because H2 was formulated as an association between one
 predefined topological feature and the five ICDR grades, treated as groups; it makes no
@@ -636,21 +637,21 @@ so the evidence of this chapter concerns such summaries, not the full diagrams.
 \subsection{Interpretation of the Topological Features}
 \label{sec:tda-bio}
 
-The six topological features have a direct vascular reading. Total $H_0$ persistence and
-the number of long-lived components describe the fragmentation of the vessel network,
-which increases with vascular rarefaction. Total $H_1$ persistence and the number of
-long-lived loops describe closed vascular loops, which pathological neovascularisation
-multiplies; the monotonic increase of $\Pi_{H_1}$ with severity (\cref{tab:anova}) is
-consistent with this reading. Persistence entropy describes the diversity of the lifetimes
+The six topological features admit a possible vascular reading, which has not been
+verified. Total $H_0$ persistence and the number of long-lived components describe the
+fragmentation of the segmented vessel network, which could increase with vascular
+rarefaction. Total $H_1$ persistence and the number of long-lived loops describe closed
+loops of the skeleton, which pathological neovascularisation could multiply; the monotonic increase of $\Pi_{H_1}$ with severity (\cref{tab:anova}) is
+compatible with this reading but does not establish it. Persistence entropy describes the diversity of the lifetimes
 of topological features, a proxy for the diversity of vessel-segment lengths. These
-mappings are post-hoc plausibility arguments; the statistical support for H2 rests on the
-pre-specified ANOVA.
+mappings are post-hoc plausibility arguments, not demonstrated biological mechanisms; the
+statistical association of H2 rests on the pre-specified ANOVA alone.
 
-\subsection{From Supported Hypotheses to a Safety-Oriented System}
+\subsection{From H1 and H2 to a Safety-Oriented System}
 \label{sec:ch3-deploy}
 
-H1 and H2 jointly support the view that the relational and structural axes contribute
-useful information to grading. They do not, however, address safety. TOPORET grades every
+The evidence for H1 and the association of H2 together suggest that the relational and
+structural axes contribute useful information to grading. They do not, however, address safety. TOPORET grades every
 image, does not model the order of the grades, and was evaluated with accuracy-type
 metrics only, on each benchmark separately. A $+0.04$ QWK gain and a significant ANOVA
 are what a methods paper reports as success, but neither shows how many severe cases a
@@ -709,9 +710,10 @@ vessel segmentation, so a failure of stage S1 would appear as a change of topolo
 
 TOPORET~\cite{belhadj2025plos} improves on a strong CNN baseline on three benchmarks
 ($+1.5$ to $+2.3$ percentage points of accuracy, $+0.04$ to $+0.07$ QWK). Its pre-specified
-tests supported H1 ($t_4=3.82$, $p=0.019$ two-tailed, $d_z=1.71$; $p=0.015$ for the three
-benchmarks combined after correction for fold overlap) and H2 as a statistical association
-($F=84.3$, $p<0.001$); the graph is the larger contributor, the topology a complementary
+tests provide evidence supporting H1 ($t_4=3.82$, $p=0.019$ two-tailed, $d_z=1.71$; with five
+folds, the fold-overlap correction leaves $p=0.015$ only for the three benchmarks combined)
+and show a statistical association for H2 ($F=84.3$, $p<0.001$), without causal or
+biological interpretation; the graph is the larger contributor, the topology a complementary
 one. These results were obtained transductively, with image-level folds. TOPORET, however, is trained on one dataset at a time, ignores the
 order of the grades and does not measure missed referrals; the next chapter addresses
 these gaps with DGTS and DOTS.

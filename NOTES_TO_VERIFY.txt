@@ -489,3 +489,12 @@ v24 (title without "progression"; 9 accepted papers; serious points addressed in
 - DOTS: new subsection "What is new in DOTS" (empirical contribution, standard components).
 - Ch.5: interpretive sentences for Tables 5.7 and 5.9; Tables 5.7 and 5.12 pinned.
 - Checks: 0 errors, 0 undefined, 0 overfull, 67/67 floats OK, 0 stacked, resume/abstract one page each, summary one page.
+
+v25 (coherence and calibrated claims):
+- Coherence: TOPORET, DGTS and DOTS stated as three complementary contributions to one objective (relations, topology, ordinality for DR grading): new paragraph "Coherence of the contributions" (Introduction), Ch.5 introduction, General Conclusion, abstract, resume, one-page summary EN/FR/AR.
+- H1: "H1 supported" -> "Evidence supporting H1" (Ch.4, Figure map, Table GC.1); five-fold limit and corrected tests (significant only for the three benchmarks combined, p=0.015) stated in abstract, resume, Ch.4, conclusion, summary.
+- H2: "Statistical association (H2)"; association, not causality nor demonstrated biological meaning; vascular reading of the six features (Section 4.5.2) and the H1-persistence/neovascularisation link marked as unverified.
+- H3: "meets the safety criteria" -> "the observed performance satisfies the pre-set criteria at the point estimate"; "safety is not demonstrated" with the interval [0.2%, 2.8%] (Ch.5, intro, abstract, resume, conclusion, Table 5.8/5.13, GC.1).
+- "demonstrated/confirmed" removed from the conclusion and intro claims.
+- General Conclusion: new "Statistical uncertainty" limitation (five folds, interval, single split seed 42); explicit Perspectives list: patient-level split, multi-seed validation, new external datasets, unified model with deferral, reader study, prospective study, true multi-site/federated validation, clinical validation.
+- Checks: 0 errors, 0 undefined, 67/67 floats OK, 0 stacked, resume/abstract one page each, summary one page (margins slightly reduced).

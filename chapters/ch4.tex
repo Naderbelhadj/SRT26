@@ -1,8 +1,8 @@
 \section*{Introduction}
 \phantomsection\addcontentsline{toc}{section}{Introduction}
 
-TOPORET (\cref{ch:toporet}) showed that a population graph and the topology of the
-retinal vessel network improve DR grading. It was not, however, designed for safety: it
+TOPORET (\cref{ch:toporet}) provided evidence that a population graph and the topology
+of the retinal vessel network improve DR grading. It was not, however, designed for safety: it
 is trained on one dataset at a time, its softmax head ignores the order of the grades, and
 its evaluation does not measure how many severe cases would be left unreferred. This
 chapter addresses these three residual gaps with two systems developed on the same
@@ -19,7 +19,9 @@ test-time augmentation, evaluated against screening safety thresholds internally
 the independent Messidor-2 dataset.
 \end{itemize}
 The two systems share the data, the pre-processing and the cross-validation protocol, so
-that their contributions can be compared, but they are distinct architectures. The
+that their contributions can be compared, but they are distinct architectures. With
+TOPORET, they pursue one objective: DGTS carries the relational and topological
+ingredients to a multi-source corpus and to external data, and DOTS adds the ordinal one. The
 chapter first reviews related work and states the residual gaps and hypothesis H3. It then
 presents the shared protocol, DGTS, DOTS, a comparison of the two systems, a projection of
 the clinical impact, and a discussion of what the results establish and what they do not.
@@ -91,7 +93,7 @@ internal corpus and on Messidor-2.
 
 The third hypothesis of the thesis concerns the safety axis and has two parts.
 \begin{description}[leftmargin=1.4em,style=sameline,itemsep=2pt]
-\item[H3a (sufficiency).] The complete DOTS pipeline meets the screening safety criteria
+\item[H3a (sufficiency).] The complete DOTS pipeline satisfies the pre-set screening safety criteria
 of \cref{tab:criteria} -- QWK $\geq0.80$, Sev-NR $\leq2\%$, PDR-NR $\leq2\%$ and no
 Grade~$0\leftrightarrow4$ confusion -- both under five-fold cross-validation and on the
 external Messidor-2 dataset.
@@ -514,7 +516,7 @@ CNN baseline gives $p=0.013$.
 \Cref{tab:h3a} confronts DOTS with the criteria of \cref{tab:criteria}. Internally, $3$ of
 the $309$ Severe images and $6$ of the $472$ PDR images are predicted as No DR or Mild.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption[H3a: DOTS against the screening safety criteria]{H3a: DOTS against the screening
 safety criteria, internally (five-fold out-of-fold predictions) and on Messidor-2. Exact
@@ -530,17 +532,17 @@ Sev-NR & $\leq2\%$ & $0.97\%$ ($3/309$) $[0.2\%,\,2.8\%]$ & $1.4\%$ \\
 PDR-NR & $\leq2\%$ & $1.27\%$ ($6/472$) $[0.5\%,\,2.7\%]$ & $1.9\%$ \\
 Grade $0\leftrightarrow4$ confusions & $0\%$ & $0\%$ & $0\%$ \\
 \midrule
-Verdict & & met at the point estimate & met at the point estimate \\
+Verdict & & satisfied at the point estimate & satisfied at the point estimate \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-H3a is supported at the point estimate: every criterion is met both internally and on
-Messidor-2. The evidence is nevertheless limited by the small number of severe cases. With
+At the point estimate, the observed performance satisfies every pre-set criterion both
+internally and on Messidor-2, which supports H3a. The evidence is nevertheless limited by the small number of severe cases. With
 $309$ Severe images, the exact 95\% interval of the internal Sev-NR, $[0.2\%,\,2.8\%]$,
 extends above $2\%$, and the same holds for PDR-NR; the number of Severe and PDR images in
 Messidor-2 is not reported in the DOTS article, so no interval can be computed for the
-external rates. H3a is therefore met at the point estimate, not established with
+external rates. Safety is therefore not demonstrated: H3a holds at the point estimate, not with
 statistical confidence.
 
 \subsection{Necessity within the Ablation (H3b)}
@@ -575,8 +577,8 @@ same direction, so the ranking of the variants does not depend on the metric. Th
 the $2\%$ threshold, however, is closed only by the complete pipeline, whose Sev-NR is less
 than half that of the best reduced variant ($1.4\%$ against $2.9\%$).
 
-H3b is supported within the ablation: none of the reduced variants brings Sev-NR below
-$2\%$ on Messidor-2, and the non-referral rates decrease as components are added
+Within the ablation, the observations support H3b: none of the reduced variants brings
+Sev-NR below $2\%$ on Messidor-2, and the non-referral rates decrease as components are added
 (\cref{fig:progressive}). The ordinal head alone does not suffice ($3.7\%$), and neither
 does test-time augmentation alone ($2.9\%$). The claim is limited to the variants of this
 ablation under one specification; it does not show that every system lacking one of these
@@ -617,7 +619,8 @@ Inference (T4 GPU) & $18.3$~ms & $\approx75$~ms (TTA $\times5$) \\
 
 DGTS supports, on a second corpus and with a different form of topology, the value of the
 relational and topological axes; it generalises well in QWK but misses the Sev-NR
-threshold on EyePACS. DOTS meets the safety criteria but does not use the population graph
+threshold on EyePACS. The observed performance of DOTS satisfies the safety criteria at the point estimate, but
+DOTS does not use the population graph
 or topology in its final form. Combining the two -- a population graph with a topological
 regulariser and an ordinal safety head in one model -- has not been evaluated in this thesis
 and is the most direct continuation of this work (see the General Conclusion).
@@ -681,7 +684,7 @@ Claim & Evidence & Strength \\
 \midrule
 Graph and topological regulariser help (DGTS) & Controlled ablation A1--A6; Wilcoxon $p=0.031$ over five folds & Moderate \\
 DGTS generalises across datasets & Zero-shot EyePACS, $35{,}126$ images, $\Delta$QWK $=-0.016$ & Strong \\
-H3a: DOTS meets the safety criteria & Point estimates pass internally and on Messidor-2; internal Sev-NR interval $[0.2\%,\,2.8\%]$ crosses $2\%$ & Moderate \\
+H3a: DOTS satisfies the criteria (point estimate) & Point estimates pass internally and on Messidor-2; internal Sev-NR interval $[0.2\%,\,2.8\%]$ crosses $2\%$ & Moderate \\
 H3b: no ablation variant suffices & Four reduced variants fail Sev-NR on Messidor-2 & Moderate \\
 Ordinal supervision concentrates errors & $82.9\%$ of errors adjacent; no $0\leftrightarrow4$ confusion & Moderate \\
 Clinical impact & Projection under assumed prevalence & Illustrative \\
@@ -694,7 +697,8 @@ Clinical impact & Projection under assumed prevalence & Illustrative \\
 The components of DOTS are established ones: an ImageNet EfficientNet-B3, a residual
 refinement block, a CORAL head and test-time augmentation. Its contribution is therefore
 not a new layer but an empirical result obtained under one protocol: on external data,
-only the combination of these components meets the safety criteria, and the component
+only the combination of these components gives an observed performance that satisfies
+the safety criteria, and the component
 that improves safety most is not the one that improves QWK most (\cref{tab:ablate,tab:h3b}).
 This kind of evidence is what accuracy-only benchmarks of individual components do not
 provide.
@@ -725,11 +729,13 @@ evaluation was conducted; the federated variant is a simulation.
 
 \subsection{Outcome of the Hypotheses}
 
-H3a is supported at the point estimate: DOTS meets QWK $\geq0.80$, Sev-NR $\leq2\%$,
-PDR-NR $\leq2\%$ and zero Grade~$0\leftrightarrow4$ confusion, internally and on
-Messidor-2. H3b is supported within the ablation: no reduced variant meets the Sev-NR
-criterion on Messidor-2. DGTS provides complementary evidence, on a second corpus, that
-relational and topological information improve grading, while showing that good
+At the point estimate, the observed performance of DOTS satisfies the pre-set criteria --
+QWK $\geq0.80$, Sev-NR $\leq2\%$, PDR-NR $\leq2\%$ and zero Grade~$0\leftrightarrow4$
+confusion -- internally and on Messidor-2, which supports H3a; the interval of
+\cref{sec:notestablished} shows that safety is not demonstrated. Within the ablation, no
+reduced variant meets the Sev-NR criterion on Messidor-2, which supports H3b. DGTS
+provides complementary evidence, on a second corpus, that relational and topological
+information improve grading, while showing that good
 generalisation in QWK does not by itself guarantee the safety criterion.
 
 \section*{Conclusion}
@@ -743,8 +749,9 @@ $0.925$ zero-shot on $35{,}126$ EyePACS images, with a Sev-NR of about $2.1\%$ o
 DOTS, which combines EfficientNet-B3, a residual feature refinement encoder, CORAL ordinal
 regression and test-time augmentation, reaches QWK $=0.9527$ with Sev-NR $=0.97\%$ and
 PDR-NR $=1.27\%$ internally, and QWK $=0.931$ with Sev-NR $=1.4\%$ and PDR-NR $=1.9\%$ on
-Messidor-2; none of its reduced variants meets the Sev-NR criterion externally. These
-results support H3 at the point estimate and within the evaluated ablation; they are
+Messidor-2; none of its reduced variants meets the Sev-NR criterion externally. The
+observed performance therefore satisfies the criteria of H3 at the point estimate and
+within the evaluated ablation, without demonstrating safety; they are
 retrospective and limited by the small number of severe cases. \Cref{ch:reg} describes the
 software architecture of these pipelines and the regulatory-oriented principles that
 guided it.
