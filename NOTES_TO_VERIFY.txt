@@ -480,3 +480,12 @@ v22 (coherence with the public TOPORET code, file by file; other research repos 
 - Table 6.6 placed right after its first mention; App. D.8 condensed.
 
 v23: float form audit - 16 figures, 51 tables, 1 algorithm (68); numbering consecutive in every chapter (0 gaps); table captions above, figure captions below (all); lists of figures/tables match (16/51/1); 5 tables given short titles so no list entry ends with a period; no hard-coded Fig./Tab. references.
+
+v24 (title without "progression"; 9 accepted papers; serious points addressed in writing):
+- Title: "Deep Learning-Based Prediction of Disease Severity Using Medical Imaging: An Application to Diabetology" (title page, PDF metadata, one-page summary); scope paragraphs rewritten (intro, abstract, resume, conclusion); Ch.1 subsection renamed.
+- Publications: IJCNN 2025 moved to conference papers as P7; 13 publications = 9 accepted/published (7 conference + 2 book chapters) + 4 journals under review; counts updated everywhere (intro, abstract, resume, summary EN/FR/AR, Table 1).
+- TOPORET: Table 4.8 (comparison with Gulshan et al.) removed - absolute transductive figures not comparable; Section 4.4.8 rewritten ("Position with respect to the literature"); Figure 4.1 notes "transductive"; scope of topological evidence stated (six summary statistics).
+- DGTS: explanation that q_i = 0 at inference; all reported figures measured in that setting.
+- DOTS: new subsection "What is new in DOTS" (empirical contribution, standard components).
+- Ch.5: interpretive sentences for Tables 5.7 and 5.9; Tables 5.7 and 5.12 pinned.
+- Checks: 0 errors, 0 undefined, 0 overfull, 67/67 floats OK, 0 stacked, resume/abstract one page each, summary one page.

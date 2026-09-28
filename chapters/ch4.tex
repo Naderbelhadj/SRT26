@@ -239,7 +239,13 @@ neighbourhood produces no persistent loop, whereas a diffuse or mixed neighbourh
 produces loops with high persistence: the descriptor encodes the \emph{shape} of the
 neighbourhood, which the mean aggregation of \cref{eq:dgts-sage} cannot recover. The
 descriptor is computed for training nodes only; at inference $p_i=0$, so persistent
-homology acts as a training-time regulariser rather than as an input feature.
+homology acts as a training-time regulariser rather than as an input feature. Because
+$q_i=\mathrm{ReLU}(W_p p_i)$, the projected descriptor is zero at inference, and the softmax
+head then relies on the graph representation $h_i^{(2)}$ alone; the topological branch acts
+only through the gradients that shaped $h_i^{(2)}$ during training. All the figures reported
+for DGTS, in cross-validation and on EyePACS, were obtained in this inference setting, so the
+gain attributed to the regulariser is a gain of the deployed model, although its mechanism
+is regularisation rather than the use of topology at inference.
 
 \paragraph{Relation to TOPORET.}
 The topology used here is that of the learned feature space, not of the retinal vessels:
@@ -466,8 +472,12 @@ predictions. Of the $597$ errors, $495$ ($82.9\%$) are between adjacent grades, 
 ($15.6\%$) span two grades, $9$ ($1.5\%$) span three and none spans four: no No-DR image is
 predicted as PDR and no PDR image as No DR. The dominant confusion is Mild$\to$Moderate
 ($162$ of $592$ Mild images), an over-referral rather than an under-referral.
+Recall is highest for No~DR ($0.985$) and lowest for Mild ($0.671$). Severe images have
+the lowest precision ($0.631$) but a recall of $0.770$: DOTS predicts Severe more often than
+it should, an error in the safe direction for referral, which is consistent with the low
+non-referral rates of \cref{tab:h3a}.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption[DOTS per-grade results]{DOTS per-grade results over the $5{,}859$ out-of-fold
 predictions~\cite{belhadj2026dots}.}
@@ -559,6 +569,11 @@ Distributed DOTS (two-site simulation) & 0.928 & 0.961 & 1.2\% & 1.7\% \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Across the five rows of \cref{tab:h3b}, QWK, AUC and both non-referral rates move in the
+same direction, so the ranking of the variants does not depend on the metric. The gap to
+the $2\%$ threshold, however, is closed only by the complete pipeline, whose Sev-NR is less
+than half that of the best reduced variant ($1.4\%$ against $2.9\%$).
 
 H3b is supported within the ablation: none of the reduced variants brings Sev-NR below
 $2\%$ on Messidor-2, and the non-referral rates decrease as components are added
@@ -654,7 +669,7 @@ human graders, and it inherits the uncertainty of the rates of \cref{tab:h3b}.
 
 \Cref{tab:claims} states the strength of each claim of this chapter.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \caption[Claims of Chapter 5 and strength of evidence]{Claims of this chapter and
 strength of the supporting evidence.}
@@ -673,6 +688,16 @@ Clinical impact & Projection under assumed prevalence & Illustrative \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{What Is New in DOTS}
+\label{sec:dots-new}
+The components of DOTS are established ones: an ImageNet EfficientNet-B3, a residual
+refinement block, a CORAL head and test-time augmentation. Its contribution is therefore
+not a new layer but an empirical result obtained under one protocol: on external data,
+only the combination of these components meets the safety criteria, and the component
+that improves safety most is not the one that improves QWK most (\cref{tab:ablate,tab:h3b}).
+This kind of evidence is what accuracy-only benchmarks of individual components do not
+provide.
 
 \subsection{What the Results Do Not Establish}
 \label{sec:notestablished}

@@ -24,15 +24,13 @@ DR~\cite{gulshan2016jama,ting2017jama}, and backbones have steadily improved, fr
 compound-scaled networks such as EfficientNet~\cite{tan2019efficientnet} to retinal
 foundation models such as RETFound~\cite{zhou2023retfound}.
 
-\paragraph{Scope of the term ``disease progression''.}
-In this thesis, the term ``disease progression'' used in the title is operationalised
-through the prediction of diabetic retinopathy severity and ordinal grading from medical
-images: each fundus image is assigned a grade on the five-level ICDR scale, whose levels
-correspond to successive stages of the disease. The present work is therefore primarily
-cross-sectional: every patient contributes a single visit, and the thesis does not
-predict the future trajectory of an individual patient. Longitudinal modelling of disease
-progression, which requires repeated observations of the same patients over time, is
-considered a future extension (see the General Conclusion).
+\paragraph{Scope.}
+The task studied in this thesis is the prediction of disease severity: each fundus image
+is assigned a grade on the five-level ICDR scale, whose levels correspond to successive
+stages of the disease. The work is cross-sectional: every patient contributes a single
+visit, and the thesis does not predict the future trajectory of an individual patient.
+Longitudinal modelling, which requires repeated observations of the same patients over
+time, is a future extension (see the General Conclusion).
 
 \section*{Problem Statement}
 
@@ -133,14 +131,15 @@ The typed interfaces between stages make each stage testable on its own, a prope
 
 \section*{Contributions}
 
-The main contributions of this thesis, supported by twelve publications (see the List of
+The main contributions of this thesis, supported by thirteen publications, nine of them
+accepted or published (see the List of
 Publications), are the following.
 \begin{description}[leftmargin=2.2em,style=sameline,itemsep=3pt]
 \item[C1.] A graph template that augments node features with interpretable node-level
 descriptors, evaluated outside medicine on microservice orchestration and on four
 anomaly-detection datasets; its ten-run re-evaluation shows that the descriptors bring
 interpretability and robustness to drift rather than a significant accuracy gain
-\cite{belhadj2025icaart,belhadj2026invariants,belhadj2026lnaiinv}.
+\cite{belhadj2025icaart,belhadj2026invariants,belhadj2026lnaiinv,belhadj2025ijcnn}.
 \item[C2.] Evidence, obtained with three independent methods, that topological and
 structural features of the retina carry information that deep visual features miss,
 including SAMF-GB, a CPU model more accurate than a GPU EfficientNet-B3, whose
@@ -166,13 +165,13 @@ the EU AI Act (not a conformity assessment).
 \caption[Publications supporting each chapter]{Publications supporting each chapter.}
 \label{tab:pubmap}
 \small
-\begin{tabular}{@{}c P{6.4cm} P{4.2cm} l@{}}
+\begin{tabular}{@{}c P{6.2cm} P{3.4cm} P{3.4cm}@{}}
 \toprule
 Ch. & Content & Contribution & Publications \\
 \midrule
 1 & Clinical problem, state of the art, limitations L1--L3 & Problem statement & -- \\
 2 & Graphs, topology, ordinal prediction, metrics & Methodological background & -- \\
-3 & Graph template outside medicine; structural evidence on DR & C1, C2 & P1--P4, B1, B2, J2 \\
+3 & Graph template outside medicine; structural evidence on DR & C1, C2 & P1--P4, P7, B1, B2, J2 \\
 4 & TOPORET population graph; tests of H1 and H2 & C3 & J3, P5, P6 \\
 5 & DGTS and DOTS; safety criteria (H3) & C4 & J1, J4 \\
 6 & Software architecture and regulatory-oriented design & C5 & P5 \\
@@ -180,7 +179,8 @@ Ch. & Content & Contribution & Publications \\
 \end{tabular}
 \end{table}
 
-All twelve publications are listed, with the contribution of each author, after the Bibliography.
+All thirteen publications are listed, with the contribution of each author, after the
+Bibliography.
 
 \section*{Thesis Organisation}
 

@@ -8,9 +8,8 @@ Diabetic retinopathy (DR) affects about 103 million adults and is a leading caus
 preventable blindness. The representative grading systems reviewed in this thesis share
 three limitations: they grade each image in isolation (L1), ignore the global topology of
 the retinal vessels (L2), and rarely model the order of the grades or measure missed
-referrals of severe cases (L3). ``Disease progression'' is operationalised as the
-cross-sectional prediction of severity on the five-grade International Clinical DR (ICDR)
-scale from a single fundus image, not as longitudinal prediction.
+referrals of severe cases (L3). The task is the cross-sectional prediction of severity on
+the five-grade International Clinical DR (ICDR) scale from a single fundus image.
 
 \paragraph{Methods.}
 Three hypotheses are tested. H1: a population graph adds information beyond a per-image
@@ -21,7 +20,7 @@ Grade~$0\leftrightarrow4$ confusion) internally and on external data (H3a), wher
 its reduced variants does (H3b). Three systems are developed: TOPORET, a topology-aware
 population graph evaluated transductively on three benchmarks; and, on a fused corpus of
 $5{,}859$ images, DGTS, a population graph regularised by persistent homology, and DOTS, an
-ordinal pipeline with a CORAL head; twelve publications support the work.
+ordinal pipeline with a CORAL head; nine accepted papers support the work.
 
 \paragraph{Results.}
 H1 is supported by the pre-specified test ($t_4=3.82$, two-tailed $p=0.019$, $+0.04$ QWK)

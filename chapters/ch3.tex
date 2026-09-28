@@ -22,8 +22,8 @@ seed $42$, $\alpha=0.6$, $\tau=0.65$), and the two sets of figures should not be
 We first review related work on population graphs and topological features in medical
 imaging. We then state the two hypotheses tested in this chapter, present the pipeline and
 the dual-similarity graph, and report the experiments: the tests of the hypotheses, the
-results on three benchmarks, the ablation, the analysis of the graph and the comparison
-with the literature. We close with a discussion of what the results do and do not imply.
+results on three benchmarks, the ablation, the analysis of the graph and its position
+with respect to the literature. We close with a discussion of what the results do and do not imply.
 
 \section{Related Work}
 \label{sec:ch3-related}
@@ -587,31 +587,18 @@ Dense hubs (degree $>50$) & $0.8\%$ (mostly Grade~0) \\
 \end{tabular}
 \end{table}
 
-\subsection{Comparison with the Literature}
+\subsection{Position with Respect to the Literature}
 \label{sec:toporet-sota}
 
-\Cref{tab:toporet-sota} places TOPORET among published systems. The values of the other
-systems are those reported by their authors on their own splits, so the comparison is
-approximate; only the CNN baseline and TOPORET were evaluated under an identical protocol
-on all three benchmarks.
-
-\begin{table}[!htbp]
-\centering
-\caption[TOPORET versus published systems]{TOPORET versus published systems (accuracy, \%). $^\dagger$As reported by the
-original authors on their own splits; --: not evaluated in the original
-publication~\cite{belhadj2025plos}.}
-\label{tab:toporet-sota}
-\small
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-System & Year & Kaggle DR & Messidor-2 & APTOS 2019 \\
-\midrule
-Gulshan et al.~\cite{gulshan2016jama} & 2016 & $90.3^\dagger$ & -- & -- \\
-CNN baseline (this thesis) & -- & 94.0 & 93.8 & 92.9 \\
-TOPORET (this thesis) & -- & \textbf{95.5} & \textbf{96.1} & \textbf{94.6} \\
-\bottomrule
-\end{tabular}
-\end{table}
+The absolute figures of \cref{tab:crossdata} are not compared with those of published
+systems. They were obtained with image-level folds and a transductive graph
+(\cref{sec:ch3-validity}), a protocol that is likely to be optimistic in absolute terms and
+that differs from the patient-level or external test sets of most published studies; a
+five-class accuracy of $95.5\%$ on Kaggle DR should therefore not be read as a
+state-of-the-art result. What the protocol does support is the paired comparison:
+TOPORET and the CNN baseline share the same features, folds, loss and schedule, so the
+gain of $+0.04$ QWK is measured under identical conditions (H1). The same caution applies
+to the TOPORET row of \cref{tab:sota}.
 
 TOPORET uses a frozen ImageNet EfficientNet-B3 backbone by design: it was built to test H1
 and H2 at a controlled backbone quality, not to maximise QWK. Its contribution is not the
@@ -642,7 +629,9 @@ super-additive interaction. Because variant~(C) already uses topology in its edg
 ablation contains no graph built from visual similarity alone, so the contribution of the
 relational aggregation and that of the topological edge term are not separated here. DGTS,
 whose graph is purely visual, isolates the relational effect ($+0.018$ QWK,
-\cref{tab:dgts-abl}).
+\cref{tab:dgts-abl}). Finally, the topological information used by TOPORET is coarse: its
+similarity and node features compare six summary statistics of the persistence diagrams,
+so the evidence of this chapter concerns such summaries, not the full diagrams.
 
 \subsection{Interpretation of the Topological Features}
 \label{sec:tda-bio}
