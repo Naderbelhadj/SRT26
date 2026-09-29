@@ -5,6 +5,8 @@ const path = require('path');
 const FIG = '/tmp/claude-0/-home-user-SRT26/618f6450-ab76-51da-ba52-60090a9566a0/scratchpad/deckfig';
 const IMG = '/home/user/SRT26/img';
 const OUT = process.argv[2] || '/home/user/SRT26/defense/Belhadj_PhD_Defence.pptx';
+const NOTES = JSON.parse(fs.readFileSync(path.join(__dirname, 'notes_fr.json'), 'utf8'));
+function addN(slide) { slide.addNotes(NOTES[n - 1]); }
 
 const C = {
   navy: '16324F', R: '1F4E79', Rf: 'D6E6F5', S: '1B7A4E', Sf: 'D9F0E3', O: '6B3D8C', Of: 'EADCF3',
@@ -49,7 +51,7 @@ function content(title, tag, color, notes) {
   s.addText(title, { x: 1.35, y: 0.3, w: 11.4, h: 0.8, fontFace: HF, fontSize: 28, bold: true, color: C.navy,
     valign: 'middle', margin: 0, isTextBox: true });
   footer(s);
-  if (notes) s.addNotes(notes);
+  addN(s);
   return s;
 }
 function section(num, title, sub, color, notes) {
@@ -64,7 +66,7 @@ function section(num, title, sub, color, notes) {
   s.addText(sub, { x: 2.9, y: 3.45, w: 9.6, h: 0.8, fontFace: BF, fontSize: 18, italic: true, color: C.ice,
     margin: 0, valign: 'top', isTextBox: true });
   footer(s, true);
-  if (notes) s.addNotes(notes);
+  addN(s);
   return s;
 }
 function bullets(slide, items, x, y, w, h, size = 16, color = C.ink) {
@@ -135,7 +137,7 @@ n++;
   s.addText('Nader BELHADJ', { x: 0.9, y: 5.0, w: 11.5, h: 0.5, fontFace: HF, fontSize: 24, bold: true, color: C.white, align: 'center', margin: 0, isTextBox: true });
   s.addText('Doctoral thesis in Computer Science (Artificial Intelligence)\nSupervisor: Prof. Lassaad Latrach  |  Co-supervisor: Prof. Ridha Ghayoula (Laval University)  |  Co-advisor: Mohamed Amine Mezghich', {
     x: 0.9, y: 5.55, w: 11.5, h: 0.9, fontFace: BF, fontSize: 14, color: C.ice, align: 'center', margin: 0, isTextBox: true });
-  s.addNotes("[0:00 – 0:45] Bonjour. Je remercie les membres du jury. Je vais présenter ma thèse intitulée « Deep Learning-Based Prediction of Disease Severity Using Medical Imaging: An Application to Diabetology ». En une phrase : la thèse étudie comment trois types d'information – les relations entre images, la topologie des vaisseaux rétiniens et l'ordre des grades – peuvent améliorer le classement automatique de la rétinopathie diabétique. Les trois cercles R, S, O sur cette diapositive reviendront tout au long de la présentation : R pour Relationnel, S pour Structurel (topologie), O pour Ordinal.");
+  addN(s);
 }
 
 // ---------------------------------------------------------------- 2 Outline
@@ -608,7 +610,7 @@ n++;
   s.addText('Relational, topological and ordinal information can complement deep visual representations for DR grading: here is the evidence, and here is exactly where it stops.', {
     x: 0.9, y: 5.7, w: 11.5, h: 0.8, fontFace: HF, fontSize: 18, italic: true, color: C.white, margin: 0, isTextBox: true });
   s.addText('Thank you for your attention', { x: 0.9, y: 6.55, w: 11.5, h: 0.5, fontFace: HF, fontSize: 18, bold: true, color: C.ice, margin: 0, isTextBox: true });
-  s.addNotes("[39:45 – 40:30] Pour conclure, sur les trois axes : R, des preuves en faveur de H1, cohérentes mais limitées par cinq plis, confirmées en inductif avec DGTS. S, une association statistique faible mais robuste, et un régulariseur utile dans DGTS – pas un biomarqueur. O, DOTS satisfait les objectifs de dépistage en estimation ponctuelle, en interne et sur Messidor-2, mais la sécurité n'est pas encore démontrée. Phrase finale, à dire lentement : les informations relationnelles, topologiques et ordinales peuvent compléter les représentations visuelles profondes pour le grading de la rétinopathie diabétique – voici la preuve, et voici exactement où elle s'arrête. Je vous remercie de votre attention, et je suis prêt à répondre à vos questions.");
+  addN(s);
 }
 
 pres.writeFile({ fileName: OUT }).then(() => console.log('wrote', OUT, 'slides', n));
