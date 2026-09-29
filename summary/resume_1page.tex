@@ -30,15 +30,15 @@ contribution of the graph (H1: $t_4=3.82$, $p=0.019$; with five folds, the fold-
 correction leaves $p=0.015$ only for three benchmarks combined) and show a small
 statistical, not causal, association of topological features with severity (H2:
 $F=84.3$, $p<0.001$). Two systems are then trained on a fused corpus of $5{,}859$ images. DGTS, a
-population graph regularised by persistent homology, reaches QWK $=0.941$ in
+population graph with a feature-space topological regulariser, reaches QWK $=0.941$ in
 cross-validation and $0.925$ without retraining on $35{,}126$ EyePACS images. DOTS, an
 ordinal pipeline (EfficientNet-B3, feature refinement encoder, CORAL, test-time
 augmentation), reaches QWK $=0.931$ and a severe non-referral rate of $1.4\%$ on the
 independent Messidor-2 dataset, where none of its reduced variants meets the $2\%$ threshold.
-TOPORET, DGTS and DOTS are complementary contributions to one objective: exploiting
-relations, topology and ordinality to improve DR grading. The evidence is retrospective;
-the observed performance satisfies the safety criteria at the point estimate only, and it
-is not a clinical validation. Supported by nine accepted papers.
+TOPORET, DGTS and DOTS form a three-axis research framework, not a single model, with one
+objective: exploiting relations, topology and ordinality to improve DR grading. The
+evidence is retrospective; the observed performance satisfies the screening targets at the
+point estimate only, and it is not a clinical validation. Supported by nine accepted papers.
 
 \sect{Résumé}
 \begin{otherlanguage}{french}
@@ -52,15 +52,15 @@ apportent des éléments en faveur de l'apport du graphe (H1 : $t_4=3{,}82$, $p=
 avec cinq plis, $p=0{,}015$ seulement pour trois bases combinées après correction du
 chevauchement des plis) et montrent une association statistique faible, non causale, des
 descripteurs topologiques avec la sévérité (H2 : $F=84{,}3$, $p<0{,}001$). Deux systèmes sont ensuite entraînés sur un corpus fusionné
-de $5\,859$ images. DGTS, un graphe de population régularisé par l'homologie persistante,
+de $5\,859$ images. DGTS, un graphe de population doté d'un régulariseur topologique dans l'espace des caractéristiques,
 atteint un QWK de $0{,}941$ en validation croisée et de $0{,}925$ sans réentraînement sur
 $35\,126$ images EyePACS. DOTS, une chaîne ordinale (EfficientNet-B3, encodeur de
 raffinement, CORAL, augmentation au test), atteint un QWK de $0{,}931$ et un taux de
 non-référence des cas sévères de $1{,}4\,\%$ sur la base indépendante Messidor-2, où aucune
-de ses variantes réduites n'atteint le seuil de $2\,\%$. TOPORET, DGTS et DOTS sont trois contributions
-complémentaires au service d'un même objectif : exploiter les relations, la topologie et
+de ses variantes réduites n'atteint le seuil de $2\,\%$. TOPORET, DGTS et DOTS forment un cadre de recherche
+à trois axes, et non un modèle unique, au service d'un même objectif : exploiter les relations, la topologie et
 l'ordinalité pour améliorer le classement de la RD. Les résultats sont rétrospectifs ; les
-performances observées ne satisfont les critères de sécurité qu'en estimation ponctuelle
+performances observées ne satisfont les objectifs de sécurité du dépistage qu'en estimation ponctuelle
 et ne constituent pas une validation clinique. Neuf publications acceptées soutiennent ce
 travail.
 \end{otherlanguage}
@@ -97,7 +97,7 @@ travail.
 \en{Messidor-2}
 المستقلة، في حين لا تبلغ أيٌّ من نسخه المختزلة العتبة
 (\en{2\%}).
-تمثل الأنظمة الثلاثة مساهمات متكاملة لهدف واحد: استغلال العلاقات والطوبولوجيا والترتيب لتحسين تصنيف اعتلال الشبكية السكري.
+تشكل الأنظمة الثلاثة إطاراً بحثياً ثلاثي المحاور، لا نموذجاً واحداً، لهدف واحد: استغلال العلاقات والطوبولوجيا والترتيب لتحسين تصنيف اعتلال الشبكية السكري.
 النتائج استعادية، ولا تستوفي معايير السلامة إلا في التقدير النقطي، ولا تمثل تحققاً سريرياً، والخطوة التالية هي نموذج موحد ودراسات استباقية متعددة
 المراكز. يستند هذا العمل إلى تسع منشورات علمية مقبولة.
 \end{otherlanguage}
