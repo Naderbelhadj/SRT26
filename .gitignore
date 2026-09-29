@@ -9,3 +9,4 @@ build/
 *.bbl
 *.blg
 summary/*.pdf
+__pycache__/
