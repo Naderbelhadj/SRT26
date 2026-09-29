@@ -15,8 +15,9 @@ they are rarely trained or evaluated with the referral of severe cases in mind. 
 throughout was the prediction of DR severity on the ordinal ICDR scale from a single
 image; the work is cross-sectional, not longitudinal.
 
-The central contribution of this thesis is the development and retrospective evaluation of
-relational, topological and ordinal-safety mechanisms for diabetic retinopathy grading.
+The central contribution of this thesis is a structured body of retrospective evidence on
+how relational, topological and ordinal information can complement deep visual
+representations for diabetic retinopathy grading.
 The study began with the clinical context of the disease and the methodological tools
 needed for the three axes: graph neural networks, persistent homology, ordinal regression
 and calibration. We then evaluated the graph template outside medicine, on microservice
@@ -50,7 +51,9 @@ of DGTS ($+0.030$ QWK), although it cannot be interpreted anatomically there. Th
 satisfies the pre-set screening safety criteria at the point estimate, internally (QWK $=0.953$,
 Sev-NR $=0.97\%$, PDR-NR $=1.27\%$) and on the independent Messidor-2 dataset (QWK
 $=0.931$, Sev-NR $=1.4\%$, PDR-NR $=1.9\%$), whereas none of its four reduced variants
-reaches Sev-NR $\leq2\%$ on Messidor-2 (H3a and H3b).
+reaches Sev-NR $\leq2\%$ on Messidor-2 (H3a and H3b). With $309$ severe images, however,
+the internal Sev-NR interval, $[0.2\%,\,2.8\%]$, still crosses $2\%$, and the external
+intervals cannot be computed from the published counts: safety is not demonstrated.
 \Cref{tab:hypsummary} summarises the outcome of the three hypotheses.
 
 \begin{table}[!htbp]
@@ -71,15 +74,6 @@ H3b -- no reduced variant suffices & Four ablation variants on Messidor-2 (\cref
 \end{tabular}
 \end{table}
 
-The interpretation of the third result requires particular caution. With $309$ severe
-images, the exact 95\% interval of the internal Sev-NR is $[0.2\%,\,2.8\%]$, whose upper
-bound remains above the $2\%$ threshold, and the external intervals cannot be computed from
-the published counts. The present work therefore provides evidence of favourable
-safety-oriented performance, but does not establish statistical compliance with the
-threshold or prospective clinical safety. Moreover, DGTS shows that good generalisation in
-QWK ($0.925$ on EyePACS) does not by itself guarantee the safety criterion: its Sev-NR on
-EyePACS is about $2.1\%$.
-
 The three research questions of the thesis can therefore be answered as follows. Does
 the relational context between patients carry information beyond that of a per-image
 classifier? In our experiments, yes, with two systems and two protocols: a graph built from visual similarity
@@ -90,8 +84,8 @@ $H_1$ persistence, which measures loops of the segmented vessel skeleton, increa
 monotonically with severity; a link with neovascularisation is plausible but not
 demonstrated. Can an ordinal pipeline meet screening safety criteria, and
 does any reduced version do so? The observed performance of DOTS satisfies them at the point estimate internally and
-externally, and none of the reduced versions evaluated does on external data, although the
-confidence interval of the safety criterion calls for confirmation on larger data.
+externally, and none of the reduced versions evaluated does on external data; larger data
+are needed to confirm it.
 
 \paragraph{What the thesis shows, supports and does not evaluate.}
 The experiments \emph{show directly}, under the stated protocols, the measured quantities:
@@ -105,9 +99,8 @@ carries severity-related information (a small statistical association), and that
 ordinal pipeline is safe enough for screening (an interval that crosses $2\%$). They
 \emph{do not evaluate} clinical safety or effectiveness, patient-level TOPORET, multi-seed
 variability, reader performance, fairness, longitudinal prediction or regulatory
-compliance. The contribution that remains despite these limits is a structured body of
-retrospective evidence on how relational, topological and ordinal information can
-complement deep visual representations for DR grading. \Cref{tab:claimev} maps each claim
+compliance. The contribution that remains despite these limits is the body of evidence described
+above. \Cref{tab:claimev} maps each claim
 to its evidence and main limitation.
 
 \begin{table}[!htbp]
@@ -145,7 +138,7 @@ before prospective evaluation.
 
 \input{figures/fig_evidence}
 
-Beyond these findings, the thesis introduces the use
+In addition, the thesis introduces the use
 of persistent-homology descriptors of the vessel skeleton inside the similarity of a
 population graph, and an evaluation discipline in which safety metrics are reported next to
 accuracy and checked on data from another country. On the practical side, DGTS grades an
@@ -188,8 +181,7 @@ code, TOPORET was evaluated with image-level folds and a graph that contains the
 images as unlabelled nodes, and its topological similarity compares six summary
 statistics rather than full persistence diagrams. Part of its gain on Kaggle DR and
 Messidor-2 may come from the fellow eye of the same patient; the inductive evidence for
-the relational axis comes from DGTS, and the fold-overlap correction leaves H1 significant
-only for the three benchmarks combined.
+the relational axis comes from DGTS.
 \item \textbf{A small multi-source corpus of uncertain independence.} DGTS and DOTS are
 trained on $5{,}859$ images; KaggleDR-F1 has exactly $60\%$ of the APTOS~2019 count in
 every grade, and the absence of shared images between the two sources has not been
