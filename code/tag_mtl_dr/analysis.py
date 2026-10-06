@@ -276,6 +276,25 @@ def main():
             f.write(f"{g} -- {GRADES[g]} & {pr[g]:.3f} & {rc[g]:.3f} & {f1[g]:.3f} & {int(sup[g])} \\\\\n")
         f.write(r"\bottomrule\end{tabular}\end{table}" "\n")
 
+    # computational cost (all methods, same hardware)
+    cost = defaultdict(lambda: defaultdict(list))
+    for r in meta["runs"]:
+        for k in ("params", "train_seconds", "infer_ms_per_image", "temperature"):
+            if k in r:
+                cost[r["method"]][k].append(r[k])
+    with open(out / "table_cost.tex", "w") as f:
+        f.write(r"\begin{table}[t]\centering\small\caption{Computational cost on "
+                + tex_escape(meta.get("environment", {}).get("gpu", "the same hardware"))
+                + r" (mean over runs).}\label{tab:cost}" "\n"
+                r"\begin{tabular}{@{}lcccc@{}}\toprule Method & Params (M) & Training (min/run) & Inference (ms/image) & Temperature \\ \midrule" "\n")
+        for m in sota + [a.reference] + abl:
+            c = cost[m]
+            f.write(f"{tex_escape(m)} & {np.mean(c['params']) / 1e6:.1f} & "
+                    f"{(np.mean(c['train_seconds']) / 60 if c['train_seconds'] else float('nan')):.1f} & "
+                    f"{(np.mean(c['infer_ms_per_image']) if c['infer_ms_per_image'] else float('nan')):.1f} & "
+                    f"{(np.mean(c['temperature']) if c['temperature'] else float('nan')):.2f} \\\\\n")
+        f.write(r"\bottomrule\end{tabular}\end{table}" "\n")
+
     # external validation
     ext = {}
     lines = []

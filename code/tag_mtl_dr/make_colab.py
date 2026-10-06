@@ -20,9 +20,10 @@ def writefile(name):
 
 cells = [
     md("""
-# TAG-MTL-DR — complete pipeline for Google Colab
+# TAG-MTL-DR v2 — complete pipeline for Google Colab
 
-Topology-aware graph + multi-task learning for diabetic retinopathy grading, with a
+CNN lesion tokens + lesion-aware vessel graph (GAT) + optic-disc-rooted vessel-path GRU +
+cross-attention + CORAL + auxiliary vessel segmentation, for diabetic retinopathy grading, with a
 single-protocol benchmark (reproduced baselines + ablations), external validation,
 statistics, LaTeX tables and figures for a journal article.
 
@@ -54,12 +55,15 @@ DATA_DIR = "/content/drive/MyDrive/datasets"          # where your images are
 # --- experiment size ---
 QUICK = True                    # QUICK: fewer methods/seeds for a free Colab GPU; False: full paper protocol
 if QUICK:
-    METHODS = ["EfficientNet-B3", "EfficientNet-B3 + CORAL", "ConvNeXt-T", "TAG-MTL-DR (ours)", "w/o vessel graph"]
+    METHODS = ["EfficientNet-B3", "EfficientNet-B3 + CORAL", "ConvNeXt-T", "TAG-MTL-DR (ours)",
+               "w/o vessel-path GRU", "w/o lesion-aware nodes"]
     SEEDS, FOLDS, EPOCHS = [42], 5, 15
 else:
-    METHODS = ["all"]           # 7 baselines + ours + 4 ablations
+    METHODS = ["all"]           # 7 baselines + ours + 6 ablations
     SEEDS, FOLDS, EPOCHS = [42, 43, 44], 5, 30
 BATCH, WORKERS = 16, 2
+CACHE_DIR = "/content/cache"    # pre-processing cache on the fast local disk (rebuilt automatically in a new session)
+SAVE_MODELS = True              # keep checkpoints (needed by explain.py)
 """),
     code("""
 import os
@@ -77,6 +81,7 @@ print("results will be written to", WORK_DIR)
     writefile("tag_mtl_dr.py"),
     writefile("benchmark.py"),
     writefile("analysis.py"),
+    writefile("explain.py"),
     code("""
 !python tag_mtl_dr.py --smoke
 """),
@@ -171,9 +176,11 @@ else:
 RUNS = f"{WORK_DIR}/runs/main"
 methods = " ".join(f'"{m}"' for m in METHODS)
 seeds = " ".join(map(str, SEEDS))
-extra = "--no_pretrained --backbone_override resnet18 --size_override 64 --epochs 2 --patience 2" if DEMO else f"--epochs {EPOCHS}"
+extra = ("--no_pretrained --backbone_override resnet18 --cache_size 64 --epochs 2 --patience 2" if DEMO
+         else f"--epochs {EPOCHS}") + (" --save_models" if SAVE_MODELS else "")
+cache = CACHE_DIR + ("_demo" if DEMO else "")
 folds = 2 if DEMO else FOLDS
-!python benchmark.py --manifest "{MANIFEST}" --out "{RUNS}" --methods {methods} --seeds {seeds} --folds {folds} --batch {BATCH} --workers {WORKERS} {extra}
+!python benchmark.py --manifest "{MANIFEST}" --cache "{cache}" --out "{RUNS}" --methods {methods} --seeds {seeds} --folds {folds} --batch {BATCH} --workers {WORKERS} {extra}
 '''),
     md("## 6. Statistics, tables and figures\n"
        "Optional: upload `literature_reported.csv` (columns `method,year,citation_key,dataset,protocol,metric,value`) "
@@ -204,7 +211,19 @@ for f in ["fig_qwk.pdf", "fig_confusion.pdf", "fig_reliability.pdf"]:
     convert_from_path(f"{RUNS}/paper/{f}", dpi=110)[0].save(f"/content/{f}.png"); display(Img(f"/content/{f}.png"))
 print(open(f"{RUNS}/paper/table_sota.tex").read())
 '''),
-    md("## 7. Download everything\nThe ZIP contains the predictions, `results.json`, the LaTeX tables, the macros and the "
+    md("## 7. Explanations (successes *and* failures)\nUses a saved checkpoint of the proposed model."),
+    code(r'''
+import glob
+ck = sorted(glob.glob(f"{RUNS}/checkpoints/TAG-MTL-DR_(ours)_*.pt"))
+if ck:
+    ids = "0 1 2 3" if DEMO else "0 1 2 3 4 5"      # choose manifest rows, e.g. misclassified severe images
+    size = 64 if DEMO else 300
+    bb = "--backbone resnet18" if DEMO else ""
+    !python explain.py --checkpoint "{ck[0]}" --cache "{cache}" --manifest "{MANIFEST}" --images {ids} --size {size} {bb} --out "{RUNS}/paper/explanations"
+else:
+    print("no checkpoint: set SAVE_MODELS = True and re-run the benchmark")
+'''),
+    md("## 8. Download everything\nThe ZIP contains the predictions, `results.json`, the LaTeX tables, the macros and the "
        "figures, ready for the paper skeleton (`paper/main.tex` of the repository)."),
     code(r'''
 import shutil

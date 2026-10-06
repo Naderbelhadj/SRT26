@@ -40,7 +40,8 @@ bound \OursSevNRhi\%). On \ExtAName, QWK was \ExtAQWK{} and Sev-NR \ExtASevNR\%.
 and the order of the grades are rarely modelled jointly with lesion features, and
 comparisons rarely share one protocol. Contributions, stated as testable claims:
 (i) the model; (ii) a single-protocol benchmark of reproduced baselines; (iii) ablations
-isolating the graph, the segmentation loss, the fusion and the ordinal head; (iv) external
+isolating the vessel-path GRU, the lesion-aware nodes, the graph, the segmentation task, the
+fusion and the ordinal head; (iv) external
 validation with safety metrics and confidence intervals.}
 
 \section{Related Work}
@@ -51,14 +52,23 @@ literature; they are not comparable with ours because datasets, splits and metri
 
 \section{Methods}
 \subsection{Model}
-Lesion branch: EfficientNet-B3 feature map, one token per cell. Vessel branch: U-Net
-trained with BCE + Dice against annotated masks or classical pseudo-labels. Vessel graph:
-skeleton of the predicted mask; nodes are end-points and junctions with normalised
-position, degree and type; edges are skeleton segments weighted by length. Graph encoder:
-two GAT layers with edge features. Fusion: multi-head cross-attention from lesion tokens to
-graph nodes with a residual connection, concatenated with pooled lesion and graph features.
-Head: CORAL with $K-1$ rank logits. Loss: $\mathcal{L}_{\mathrm{CORAL}} + \lambda\,
-\mathcal{L}_{\mathrm{seg}}$, $\lambda = 0.5$. \todo{figure of the architecture}
+\textbf{Lesion branch (CNN).} EfficientNet-B3 feature map, one token per cell.
+\textbf{Lesion-aware vessel graph (GNN).} The vessel skeleton is converted into a graph whose
+nodes are end-points and junctions and whose edges are the vessel segments, weighted by
+length and tortuosity. Each node carries its geometry (position, degree, type, distance to
+the optic disc) \emph{and} the CNN feature sampled at its position, so that two graph
+attention layers (GAT) propagate lesion evidence along the vessels.
+\textbf{Vessel-path recurrence (RNN).} The vessel tree of each component is rooted at the
+node closest to the optic disc; every root-to-leaf path is read in anatomical order
+(disc to periphery) by a bidirectional GRU over the GAT node embeddings, and the paths are
+pooled by attention.
+\textbf{Fusion.} Multi-head cross-attention from the lesion tokens to the graph nodes and
+path embeddings, with a residual connection; the result is concatenated with pooled lesion,
+graph and path features. \textbf{Head.} CORAL with $K-1$ rank logits; temperature scaling
+fitted on the validation patients. \textbf{Multi-task.} An auxiliary U-Net segments the
+vessels (BCE + Dice) against annotated masks or classical pseudo-labels; loss
+$\mathcal{L}_{\mathrm{CORAL}} + \lambda\,\mathcal{L}_{\mathrm{seg}}$, $\lambda = 0.5$.
+\todo{architecture figure; state novelty only after a literature search.}
 
 \subsection{Data and protocol}
 \todo{datasets, grades, numbers of images and patients, external sets, ethics/licences.}
@@ -85,6 +95,10 @@ before running the experiments.}
 \IfFileExists{\resultsdir/table_external.tex}{\input{\resultsdir/table_external.tex}}{}
 \todo{external validation, \cref{tab:external}.}
 \input{\resultsdir/table_pergrade.tex}
+\IfFileExists{\resultsdir/table_cost.tex}{\input{\resultsdir/table_cost.tex}}{}
+\todo{computational cost, \cref{tab:cost}; data-efficiency curve (runs with
+\texttt{--train\_fraction} 0.1, 0.25, 0.5, 1.0); qualitative explanations of successes
+\emph{and} failures (\texttt{explain.py}).}
 
 \begin{figure}[t]\centering
 \includegraphics[width=0.48\linewidth]{\resultsdir/fig_confusion.pdf}\hfill
