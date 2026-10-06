@@ -1,0 +1,20 @@
+% Items expected by strong medical-imaging journals (inspired by CLAIM and TRIPOD+AI).
+% Tick each item only when the manuscript actually contains it.
+\begin{itemize}\small
+\item[$\square$] Clinical question, intended use and target population stated.
+\item[$\square$] Data sources, inclusion/exclusion criteria, image counts \emph{and} patient counts, grade distribution.
+\item[$\square$] Reference standard: who graded, with which scale (ICDR), adjudication.
+\item[$\square$] Splits at the patient level; no patient in two sets (asserted in \texttt{benchmark.py}).
+\item[$\square$] External data never used for training, model selection or threshold tuning.
+\item[$\square$] Primary endpoint and hypotheses fixed before the experiments.
+\item[$\square$] All compared methods reproduced under one protocol; hyperparameters and budgets reported.
+\item[$\square$] Several seeds; variability (SD) and confidence intervals reported.
+\item[$\square$] Statistical tests suited to cross-validation (corrected $t$-test), multiplicity correction.
+\item[$\square$] Safety metrics (Sev-NR, PDR-NR, 0$\leftrightarrow$4 confusions) with exact intervals.
+\item[$\square$] Calibration (ECE, reliability diagram).
+\item[$\square$] Ablation of every component claimed as a contribution.
+\item[$\square$] Failure analysis (per-grade results, confusion matrix, examples).
+\item[$\square$] Literature values shown separately, with sources and protocols, never mixed with reproduced results.
+\item[$\square$] Limitations, including fairness and the absence of prospective evaluation.
+\item[$\square$] Code, configuration and random seeds released.
+\end{itemize}

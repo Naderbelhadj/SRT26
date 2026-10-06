@@ -1,0 +1,121 @@
+% =====================================================================
+%  Journal article skeleton for TAG-MTL-DR.
+%  Every number comes from results_macros.tex and the generated tables
+%  (analysis.py). Text in [brackets] is to be written once results exist;
+%  do not state a claim the tables do not support.
+%  Build: set \resultsdir, then pdflatex + bibtex.
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{booktabs,graphicx,amsmath,amssymb,xcolor,hyperref,cleveref}
+\newcommand{\resultsdir}{../runs/main/paper}
+\input{\resultsdir/results_macros.tex}
+\newcommand{\todo}[1]{\textcolor{red}{[#1]}}
+
+\title{Topology-Aware Graph and Multi-Task Learning for Safety-Oriented
+Diabetic Retinopathy Grading}
+\author{\todo{authors and affiliations}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\textbf{Purpose.} Automated diabetic retinopathy (DR) grading must be accurate and must not
+miss severe cases. \textbf{Methods.} TAG-MTL-DR couples EfficientNet-B3 lesion features
+with a supervised vessel-segmentation branch, a topological vessel graph (end-points,
+junctions and segments) encoded by a graph attention network, cross-attention from lesion
+tokens to graph nodes, and a rank-consistent ordinal head. All methods were trained with
+the same patient-grouped \NFolds-fold cross-validation over \NSeeds{} seeds and evaluated on
+external data never used for training. \textbf{Results.} TAG-MTL-DR reached a QWK of
+\OursQWK~$\pm$~\OursQWKsd{} (pooled \OursQWKpooled, 95\% CI \OursQWKlo--\OursQWKhi), against
+\BestBaselineQWK{} for the best reproduced baseline (\BestBaseline; difference \DeltaBest,
+Holm-adjusted $p$ = \PBest), with a severe non-referral rate of \OursSevNR\% (upper 95\%
+bound \OursSevNRhi\%). On \ExtAName, QWK was \ExtAQWK{} and Sev-NR \ExtASevNR\%.
+\textbf{Conclusions.} \todo{one sentence that the tables support, including the limits}
+\end{abstract}
+
+\section{Introduction}
+\todo{Clinical need: screening volume, cost of missed severe cases. Gap: vessel topology
+and the order of the grades are rarely modelled jointly with lesion features, and
+comparisons rarely share one protocol. Contributions, stated as testable claims:
+(i) the model; (ii) a single-protocol benchmark of reproduced baselines; (iii) ablations
+isolating the graph, the segmentation loss, the fusion and the ordinal head; (iv) external
+validation with safety metrics and confidence intervals.}
+
+\section{Related Work}
+\todo{CNN and transformer graders; vessel segmentation; graph neural networks on vessel
+structure; ordinal regression (CORAL). \Cref{tab:literature} lists results reported in the
+literature; they are not comparable with ours because datasets, splits and metrics differ.}
+\IfFileExists{\resultsdir/table_literature.tex}{\input{\resultsdir/table_literature.tex}}{}
+
+\section{Methods}
+\subsection{Model}
+Lesion branch: EfficientNet-B3 feature map, one token per cell. Vessel branch: U-Net
+trained with BCE + Dice against annotated masks or classical pseudo-labels. Vessel graph:
+skeleton of the predicted mask; nodes are end-points and junctions with normalised
+position, degree and type; edges are skeleton segments weighted by length. Graph encoder:
+two GAT layers with edge features. Fusion: multi-head cross-attention from lesion tokens to
+graph nodes with a residual connection, concatenated with pooled lesion and graph features.
+Head: CORAL with $K-1$ rank logits. Loss: $\mathcal{L}_{\mathrm{CORAL}} + \lambda\,
+\mathcal{L}_{\mathrm{seg}}$, $\lambda = 0.5$. \todo{figure of the architecture}
+
+\subsection{Data and protocol}
+\todo{datasets, grades, numbers of images and patients, external sets, ethics/licences.}
+Splits are grouped by patient (both eyes in the same fold); 12.5\% of the training patients
+form the validation set used for model selection (QWK). Every method uses the same folds,
+seeds, input pipeline, class-balanced sampling, optimiser (AdamW, cosine schedule) and
+early-stopping rule. External datasets are used only for evaluation, with the ensemble of
+the cross-validated models.
+
+\subsection{Metrics and statistics}
+QWK, accuracy, macro-F1, AUC for referable DR (grade $\geq2$), severe and proliferative
+non-referral rates (Sev-NR, PDR-NR: grade 3 or 4 predicted as 0 or 1) with exact
+Clopper--Pearson intervals, Grade~0$\leftrightarrow$4 confusions, ECE and Brier score.
+Confidence intervals: patient-level bootstrap. Comparison with each baseline: corrected
+repeated $k$-fold $t$-test, Holm-adjusted; external sets: exact McNemar test and paired
+bootstrap of the QWK difference. \todo{state the primary endpoint and the hypotheses
+before running the experiments.}
+
+\section{Results}
+\input{\resultsdir/table_sota.tex}
+\todo{comparison with reproduced baselines, \cref{tab:sota}.}
+\IfFileExists{\resultsdir/table_ablation.tex}{\input{\resultsdir/table_ablation.tex}}{}
+\todo{ablation, \cref{tab:ablation}: which component explains the gain.}
+\IfFileExists{\resultsdir/table_external.tex}{\input{\resultsdir/table_external.tex}}{}
+\todo{external validation, \cref{tab:external}.}
+\input{\resultsdir/table_pergrade.tex}
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.48\linewidth]{\resultsdir/fig_confusion.pdf}\hfill
+\includegraphics[width=0.40\linewidth]{\resultsdir/fig_reliability.pdf}
+\caption{Normalised confusion matrix and reliability diagram of TAG-MTL-DR (pooled
+out-of-fold predictions).}\label{fig:cm}
+\end{figure}
+\begin{figure}[t]\centering
+\includegraphics[width=0.8\linewidth]{\resultsdir/fig_qwk.pdf}
+\caption{Pooled QWK with 95\% patient-bootstrap intervals for all methods.}\label{fig:qwk}
+\end{figure}
+
+\section{Discussion}
+\todo{what the results show; what they do not show; comparison with the literature only
+where protocols match; failure cases (\cref{tab:pergrade}).}
+
+\subsection{Limitations}
+\todo{retrospective data; pseudo-label quality if no annotated masks; number of severe
+cases and width of the Sev-NR interval; datasets without demographic data; no reader
+study or prospective evaluation.}
+
+\section{Conclusion}
+\todo{one paragraph, consistent with the tables.}
+
+\section*{Data and code availability}
+Code: \todo{repository URL}. Datasets are public and obtained from their distributors.
+
+\appendix
+\section{Reporting checklist}
+\input{checklist.tex}
+
+\bibliographystyle{unsrt}
+\bibliography{references}
+\end{document}

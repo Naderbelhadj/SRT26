@@ -60,7 +60,10 @@ def pseudo_vessel_mask(rgb: np.ndarray, radius: int = 7, min_size: int = 50) -> 
     if th.max() <= 0:
         return np.zeros(g.shape, bool)
     m = th > threshold_otsu(th)
-    return morphology.remove_small_objects(m, min_size=min_size)
+    try:                                    # scikit-image >= 0.26
+        return morphology.remove_small_objects(m, max_size=min_size - 1)
+    except TypeError:
+        return morphology.remove_small_objects(m, min_size=min_size)
 
 
 # ============================================================ vessel graph
@@ -223,10 +226,18 @@ class CoralHead(nn.Module):
 
 
 class TAGMTLDR(nn.Module):
-    def __init__(self, pretrained=True, dim=256, heads=4, max_nodes=256, head="coral"):
+    def __init__(self, pretrained=True, dim=256, heads=4, max_nodes=256, head="coral",
+                 use_graph=True, fusion="cross", backbone="efficientnet_b3"):
+        """Ablation switches: ``use_graph=False`` removes the vessel graph (and the
+        cross-attention); ``fusion='concat'`` replaces the cross-attention by a
+        concatenation of pooled lesion and graph features. The segmentation loss is
+        switched off in training with ``lam_seg=0``."""
         super().__init__()
+        if fusion not in ("cross", "concat"):
+            raise ValueError(fusion)
+        self.use_graph, self.fusion = use_graph, fusion
         import timm
-        self.encoder = timm.create_model("efficientnet_b3", pretrained=pretrained, num_classes=0, global_pool="")
+        self.encoder = timm.create_model(backbone, pretrained=pretrained, num_classes=0, global_pool="")
         c = self.encoder.num_features
         self.lesion_proj = nn.Linear(c, dim)
         self.unet = UNet()
@@ -245,17 +256,26 @@ class TAGMTLDR(nn.Module):
     def forward(self, x, graphs: Batch | None = None):
         fmap = self.encoder.forward_features(x)                       # (B, C, h, w)
         tokens = self.lesion_proj(fmap.flatten(2).transpose(1, 2))     # (B, h*w, d)
+        lesion_global = tokens.mean(1)
         vessel_logits = self.unet(x)
-        if graphs is None:                                             # inference / predicted-mask training
-            graphs = self.graphs_from_masks(vessel_logits)
-        graphs = graphs.to(x.device)
-        nodes = self.graph(graphs)                                     # (sum N_i, d)
-        dense, valid = to_dense_batch(nodes, graphs.batch, batch_size=x.size(0))
-        attended, attn = self.cross(tokens, dense, dense, key_padding_mask=~valid)
-        tokens = self.norm(tokens + attended)                          # residual: lesion info is kept
-        h = self.fuse(torch.cat([tokens.mean(1), fmap.mean((2, 3)) @ self.lesion_proj.weight.T
-                                 + self.lesion_proj.bias, global_mean_pool(nodes, graphs.batch,
-                                                                            size=x.size(0))], 1))
+        B, d = x.size(0), tokens.size(-1)
+        attn = None
+        if not self.use_graph:
+            graph_global = torch.zeros(B, d, device=x.device)
+            fused = lesion_global
+        else:
+            if graphs is None:                                         # inference / predicted-mask training
+                graphs = self.graphs_from_masks(vessel_logits)
+            graphs = graphs.to(x.device)
+            nodes = self.graph(graphs)                                 # (sum N_i, d)
+            graph_global = global_mean_pool(nodes, graphs.batch, size=B)
+            if self.fusion == "cross":
+                dense, valid = to_dense_batch(nodes, graphs.batch, batch_size=B)
+                attended, attn = self.cross(tokens, dense, dense, key_padding_mask=~valid)
+                fused = self.norm(tokens + attended).mean(1)           # residual keeps lesion information
+            else:
+                fused = lesion_global
+        h = self.fuse(torch.cat([fused, lesion_global, graph_global], 1))
         return self.head(h), vessel_logits, attn
 
 
@@ -298,8 +318,9 @@ class FundusDataset(torch.utils.data.Dataset):
     target is ``pseudo_vessel_mask``. With ``reference_graph=True`` the vessel graph is
     built from the target mask in the DataLoader workers (faster training)."""
 
-    def __init__(self, items, size=300, augment=False, reference_graph=False, max_nodes=256):
-        self.items, self.size, self.augment = items, size, augment
+    def __init__(self, items, size=300, augment=False, reference_graph=False, max_nodes=256,
+                 with_mask=True):
+        self.items, self.size, self.augment, self.with_mask = items, size, augment, with_mask
         self.reference_graph, self.max_nodes = reference_graph, max_nodes
 
     def __len__(self):
@@ -309,7 +330,9 @@ class FundusDataset(torch.utils.data.Dataset):
         from PIL import Image
         path, grade, mask_path = (list(self.items[i]) + [None])[:3]
         img = np.asarray(Image.open(path).convert("RGB").resize((self.size, self.size), Image.BILINEAR))
-        if mask_path:
+        if not self.with_mask:                      # baselines: no vessel target needed
+            m = np.zeros((self.size, self.size), bool)
+        elif mask_path:
             m = np.asarray(Image.open(mask_path).convert("L").resize((self.size, self.size), Image.NEAREST)) > 127
         else:
             m = pseudo_vessel_mask(img)
